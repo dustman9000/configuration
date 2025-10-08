@@ -1,12 +1,10 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: rhobs-hcp-monitoring-stack
+  name: rhobs-hcp-monitoring-stack-all
   annotations:
-    description: "Template for deploying RHOBS MonitoringStack for remote-write to RHOBS"
+    description: "Template for deploying RHOBS MonitoringStack to all regions/sectors for remote-write to RHOBS"
 parameters:
-  - name: REGION
-    description: region of SC/MC clusters
   - name: CLIENT_ID
     description: "OIDC client ID"
     required: true
@@ -50,10 +48,6 @@ objects:
             values:
               - management-cluster
               - service-cluster
-          - key: ext-hypershift.openshift.io/cluster-region
-            operator: In
-            values:
-              - ${REGION}
       resources:
       - apiVersion: v1
         kind: Secret
