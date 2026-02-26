@@ -1,0 +1,17 @@
+stages:
+  - build
+
+default:
+  timeout: 5m
+  tags:
+    - itup-alm-x86
+
+build-step1-job:
+  stage: build
+  script:
+    - echo "Build step 1"
+
+build-step2-job:
+  stage: build
+  script:
+    - echo "Build step 2"
