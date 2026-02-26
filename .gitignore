@@ -1,0 +1,11 @@
+vendor/
+vendor_jsonnet/
+.bin
+.idea
+.envrc
+resources/.tmp/
+tmp/
+.fleet
+.vscode
+.DS_Store
+.claude

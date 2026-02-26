@@ -2,16 +2,19 @@ stages:
   - build
 
 default:
-  timeout: 5m
+  image: images.paas.redhat.com/it-cloud-ocp-registry-redhat-io-proxy/ubi9/go-toolset:1.25
   tags:
     - itup-alm-x86
 
-build-step1-job:
+build-clusters:
   stage: build
   script:
-    - echo "Build step 1"
-
-build-step2-job:
-  stage: build
-  script:
-    - echo "Build step 2"
+    - git config --global --add safe.directory "$PWD"
+    - go mod download
+    - go install github.com/magefile/mage@latest
+    - rm -rf resources/clusters/ && $(go env GOPATH)/bin/mage build:clusters
+    - if [ -n "$(git status --porcelain)" ]; then git status && git diff && false; fi
+  variables:
+    KUBERNETES_CPU_REQUEST: 2
+    KUBERNETES_CPU_LIMIT: 2
+    KUBERNETES_MEMORY_LIMIT: "4Gi"
