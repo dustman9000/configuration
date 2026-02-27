@@ -11,8 +11,6 @@ import (
 	"github.com/bwplotka/mimic/encoding"
 	kitlog "github.com/go-kit/log"
 	tempov1alpha1 "github.com/grafana/tempo-operator/api/tempo/v1alpha1"
-	"github.com/observatorium/observatorium/configuration_go/kubegen/openshift"
-	templatev1 "github.com/openshift/api/template/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
 
@@ -22,38 +20,8 @@ import (
 	"k8s.io/utils/ptr"
 )
 
-func (b Build) DefaultTempoStack(config clusters.ClusterConfig) {
-	// For migrated clusters, generate traces bundle with individual resources
-	if isMigratedCluster(config) {
-		if err := generateTracesBundle(config); err != nil {
-			log.Printf("Error generating traces bundle: %v", err)
-		}
-		return
-	}
-
-	gen := b.generator(config, "tempo-operator-default-cr")
-	objs := []runtime.Object{
-		NewTempoStack(config.Namespace, config.Templates),
-	}
-
-	gen.Add("tempo-operator-default-cr.yaml", encoding.GhodssYAML(
-		openshift.WrapInTemplate(
-			objs,
-			metav1.ObjectMeta{Name: "tempo-rhobs"},
-			[]templatev1.Parameter{
-				{
-					Name:  "TEMPO_STORAGE_SECRET_NAME",
-					Value: "tempo-default-bucket",
-				},
-				{
-					Name:  "TEMPO_STORAGE_CLASS",
-					Value: "gp3-csi",
-				},
-			},
-		),
-	))
-
-	gen.Generate()
+func (b Build) DefaultTempoStack(config clusters.ClusterConfig) error {
+	return generateTracesBundle(config)
 }
 
 // NewTempoStack creates a TempoStack custom resource

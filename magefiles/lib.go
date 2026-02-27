@@ -13,7 +13,6 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	templatev1 "github.com/openshift/api/template/v1"
 	monv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
 	appsv1 "k8s.io/api/apps/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 
@@ -40,28 +39,6 @@ const (
 	// openshiftCustomerMonitoringNamespace is the namespace where monitoring resources should be deployed.
 	openshiftCustomerMonitoringNamespace = "openshift-customer-monitoring"
 )
-
-var migratedClusters = []clusters.ClusterName{
-	clusters.ClusterRHOBSUSWestIntegration,
-	clusters.ClusterRHOBSUSEastOneStaging,
-	clusters.ClusterRHOBSUSWestTwoStaging,
-	clusters.ClusterRHOBSUSEastOneProduction,
-	clusters.ClusterRHOBSUSEastOneShardTwoProduction,
-	clusters.ClusterRHOBSSouthAmericaEastOneProduction,
-	clusters.ClusterRHOBSEuropeWestOneProduction,
-	clusters.ClusterRHOBSEuropeCentralOneProduction,
-	clusters.ClusterRHOBSAsiaPacificNorthEastOneProduction,
-	clusters.ClusterRHOBSAsiaPacificSouthEastTwoProduction,
-}
-
-func isMigratedCluster(config clusters.ClusterConfig) bool {
-	for _, cluster := range migratedClusters {
-		if config.Name == cluster {
-			return true
-		}
-	}
-	return false
-}
 
 type resourceRequirements struct {
 	cpuRequest    string

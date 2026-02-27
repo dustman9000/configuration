@@ -16,7 +16,6 @@ import (
 	templatev1 "github.com/openshift/api/template/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
-	cfgobservatorium "gitlab.cee.redhat.com/rhobs/configuration/configuration/observatorium"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -45,14 +44,7 @@ const (
 )
 
 func (b Build) Gateway(config clusters.ClusterConfig) error {
-	fn := func() *mimic.Generator {
-		return b.generator(config, gatewayName)
-	}
-	// For rhobss01ue1 and rhobsi01uw2 clusters, generate gateway bundle with individual resources
-	if isMigratedCluster(config) {
-		return generateGatewayBundle(config)
-	}
-	return gateway(config, fn)
+	return generateGatewayBundle(config)
 }
 
 func gateway(config clusters.ClusterConfig, fn builderBuilderGenFunc) error {
@@ -187,42 +179,6 @@ func generateGatewayBundle(config clusters.ClusterConfig) error {
 
 // quick workaround to bridge us between cell approach and old approach for now
 type builderBuilderGenFunc func() *mimic.Generator
-
-// Gateway Generates the Observatorium API Gateway configuration for the stage environment.
-func (s Stage) Gateway() error {
-	conf := clusters.ClusterConfig{
-		Namespace: s.namespace(),
-		Templates: clusters.StageMaps,
-		GatewayConfig: clusters.NewGatewayConfig(
-			clusters.WithMetricsEnabled(),
-			clusters.WithRBAC(*cfgobservatorium.GenerateRBAC()),
-			clusters.WithAMS("https://api.stage.openshift.com"),
-			clusters.WithTenants(stageGatewayTenants()),
-		),
-	}
-	fn := func() *mimic.Generator {
-		return s.generator(gatewayName)
-	}
-	return gateway(conf, fn)
-}
-
-// Gateway Generates the Observatorium API Gateway configuration for the production environment.
-func (p Production) Gateway() error {
-	conf := clusters.ClusterConfig{
-		Namespace: p.namespace(),
-		Templates: clusters.ProductionMaps,
-		GatewayConfig: clusters.NewGatewayConfig(
-			clusters.WithMetricsEnabled(),
-			clusters.WithRBAC(*cfgobservatorium.GenerateRBAC()),
-			clusters.WithAMS("https://api.openshift.com"),
-			clusters.WithTenants(prodGatewayTenants()),
-		),
-	}
-	fn := func() *mimic.Generator {
-		return p.generator(gatewayName)
-	}
-	return gateway(conf, fn)
-}
 
 func gatewayLabels(m clusters.TemplateMaps) (labels map[string]string, selectorLabels map[string]string) {
 	selectorLabels = map[string]string{

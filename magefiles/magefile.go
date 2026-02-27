@@ -11,10 +11,6 @@ import (
 )
 
 type (
-	Stage      mg.Namespace
-	Production mg.Namespace
-	Unified    mg.Namespace
-
 	Build mg.Namespace
 	List  mg.Namespace
 )
@@ -28,68 +24,31 @@ const (
 
 // BuildStepFunctions maps build step names to their implementation functions
 var BuildStepFunctions = map[string]func(Build, clusters.ClusterConfig) error{
-	clusters.StepThanosOperatorCRDS: func(b Build, cfg clusters.ClusterConfig) error {
-		return b.ThanosOperatorCRDS(cfg)
-	},
-	clusters.StepThanosOperator: func(b Build, cfg clusters.ClusterConfig) error {
-		return b.ThanosOperator(cfg)
-	},
 	clusters.StepDefaultThanosStack: func(b Build, cfg clusters.ClusterConfig) error {
-		b.DefaultThanosStack(cfg)
-		return nil
-	},
-	clusters.StepLokiOperatorCRDS: func(b Build, cfg clusters.ClusterConfig) error {
-		return b.LokiOperatorCRDS(cfg)
-	},
-	clusters.StepLokiOperator: func(b Build, cfg clusters.ClusterConfig) error {
-		b.LokiOperator(cfg)
-		return nil
+		return b.DefaultThanosStack(cfg)
 	},
 	clusters.StepDefaultLokiStack: func(b Build, cfg clusters.ClusterConfig) error {
-		b.DefaultLokiStack(cfg)
-		return nil
-	},
-	clusters.StepTempoOperatorCRDS: func(b Build, cfg clusters.ClusterConfig) error {
-		return b.TempoOperatorCRDS(cfg)
-	},
-	clusters.StepTempoOperator: func(b Build, cfg clusters.ClusterConfig) error {
-		b.TempoOperator(cfg)
-		return nil
+		return b.DefaultLokiStack(cfg)
 	},
 	clusters.StepDefaultTempoStack: func(b Build, cfg clusters.ClusterConfig) error {
-		b.DefaultTempoStack(cfg)
-		return nil
-	},
-	clusters.StepServiceMonitors: func(b Build, cfg clusters.ClusterConfig) error {
-		b.ServiceMonitors(cfg)
-		return nil
+		return b.DefaultTempoStack(cfg)
 	},
 	clusters.StepAlertmanager: func(b Build, cfg clusters.ClusterConfig) error {
-		b.Alertmanager(cfg)
-		return nil
+		return b.Alertmanager(cfg)
 	},
 	clusters.StepSecrets: func(b Build, cfg clusters.ClusterConfig) error {
 		b.Secrets(cfg)
 		return nil
 	},
-	clusters.StepMemcached: func(b Build, cfg clusters.ClusterConfig) error {
-		b.Cache(cfg)
-		return nil
-	},
 	clusters.StepSyntheticsApi: func(b Build, cfg clusters.ClusterConfig) error {
-		b.SyntheticsApi(cfg)
-		return nil
+		return b.SyntheticsApi(cfg)
 	},
 	clusters.StepAlertmanagerCR: func(b Build, cfg clusters.ClusterConfig) error {
 		b.AlertmanagerCR(cfg)
 		return nil
 	},
 	clusters.StepGateway: func(b Build, cfg clusters.ClusterConfig) error {
-		err := b.Gateway(cfg)
-		if err != nil {
-			return err
-		}
-		return nil
+		return b.Gateway(cfg)
 	},
 	clusters.StepNoOp: func(b Build, cfg clusters.ClusterConfig) error {
 		return nil
@@ -186,11 +145,6 @@ func (l List) Clusters() {
 	}
 }
 
-// Build Builds the manifests for the stage environment.
-func (Stage) Build() {
-	mg.SerialDeps(Stage.Alertmanager, Stage.CRDS, Stage.Operator, Stage.Thanos, Stage.ServiceMonitors, Stage.Secrets)
-}
-
 func (Build) generator(config clusters.ClusterConfig, component string) *mimic.Generator {
 	gen := &mimic.Generator{}
 	gen = gen.With(templatePath, templateClustersPath, string(config.Environment), string(config.Name), component)
@@ -203,60 +157,4 @@ func (Build) o11yGenerator(component string) *mimic.Generator {
 	gen = gen.With(templatePath, templateO11yPath, component)
 	gen.Logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
 	return gen
-}
-
-func (Stage) generator(component string) *mimic.Generator {
-	gen := &mimic.Generator{}
-	gen = gen.With(templatePath, templateServicesPath, component, "staging")
-	gen.Logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
-	return gen
-}
-
-func (Production) generator(component string) *mimic.Generator {
-	gen := &mimic.Generator{}
-	gen = gen.With(templatePath, templateServicesPath, component, "production")
-	gen.Logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
-	return gen
-}
-
-func (Unified) generator(component string) *mimic.Generator {
-	gen := &mimic.Generator{}
-	gen = gen.With(templatePath, templateServicesPath)
-	gen.Logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stdout))
-	return gen
-}
-
-const (
-	stageNamespace = "rhobs-stage"
-	prodNamespace  = "rhobs-production"
-)
-
-func (Stage) namespace() string {
-	return stageNamespace
-}
-
-func (Production) namespace() string {
-	return prodNamespace
-}
-
-// Build Builds the manifests for the production environment.
-func (Production) Build() {
-	mg.Deps(Production.Alertmanager)
-}
-
-// SyntheticsApi generates a single, environment-agnostic synthetics-api template
-func (Unified) SyntheticsApi() {
-	generateUnifiedSyntheticsApi()
-}
-
-// All generates all available unified templates
-func (Unified) All() {
-	mg.Deps(Unified.SyntheticsApi)
-}
-
-// List shows all available unified template targets
-func (Unified) List() {
-	fmt.Fprintln(os.Stdout, "Available unified template targets:")
-	fmt.Fprintln(os.Stdout, "  unified:syntheticsApi - Generate synthetics-api template")
-	fmt.Fprintln(os.Stdout, "  unified:all           - Generate all unified templates")
 }

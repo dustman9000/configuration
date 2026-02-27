@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"maps"
 	"os"
 	"time"
@@ -43,94 +42,8 @@ const (
 	defaultAlertmanagerMemoryLimit   = "5Gi"
 )
 
-func (b Build) Alertmanager(config clusters.ClusterConfig) {
-	// For migrated clusters, generate alertmanager bundle with individual resources
-	if isMigratedCluster(config) {
-		if err := generateAlertmanagerBundleFromTemplate(config); err != nil {
-			log.Printf("Error generating alertmanager bundle: %v", err)
-		}
-		return
-	}
-
-	gen := b.generator(config, "alertmanager")
-
-	// TODO: @moadz Extract Alertmanager options to an envTemplate in template.go
-	k8s := alertmanagerKubernetes(alertManagerOptions(), manifestOptions{
-		namespace: config.Namespace,
-		image:     defaultAlertManagerImage,
-		imageTag:  defaultAlertManagerImageTag,
-		resourceRequirements: resourceRequirements{
-			cpuRequest:    defaultAlertmanagerCPURequest,
-			cpuLimit:      defaultAlertmanagerCPULimit,
-			memoryRequest: defaultAlertmanagerMemoryRequest,
-			memoryLimit:   defaultAlertmanagerMemoryLimit,
-		},
-	})
-	buildAlertmanager(k8s.Objects(), config.Namespace, gen)
-}
-
-// Alertmanager Generates the Alertmanager configuration for the stage environment.
-func (s Stage) Alertmanager() {
-	gen := s.generator(alertManagerName)
-
-	const (
-		alertManagerImageTag = defaultAlertManagerImageTag
-
-		cpuRequest = defaultAlertmanagerCPURequest
-		cpuLimit   = defaultAlertmanagerCPULimit
-		memRequest = defaultAlertmanagerMemoryRequest
-		memLimit   = defaultAlertmanagerMemoryLimit
-	)
-
-	k8s := alertmanagerKubernetes(alertManagerOptions(), manifestOptions{
-		namespace: s.namespace(),
-		image:     defaultAlertManagerImage,
-		imageTag:  alertManagerImageTag,
-		resourceRequirements: resourceRequirements{
-			cpuRequest:    cpuRequest,
-			cpuLimit:      cpuLimit,
-			memoryRequest: memRequest,
-			memoryLimit:   memLimit,
-		},
-	})
-	buildAlertmanager(k8s.Objects(), s.namespace(), gen)
-}
-
-// Alertmanager Generates the Alertmanager configuration for the production environment.
-func (p Production) Alertmanager() {
-	gen := p.generator(alertManagerName)
-
-	const (
-		alertManagerImageTag = defaultAlertManagerImageTag
-
-		cpuRequest = defaultAlertmanagerCPURequest
-		cpuLimit   = defaultAlertmanagerCPULimit
-		memRequest = defaultAlertmanagerMemoryRequest
-		memLimit   = defaultAlertmanagerMemoryLimit
-	)
-
-	k8s := alertmanagerKubernetes(alertManagerOptions(), manifestOptions{
-		namespace: p.namespace(),
-		image:     defaultAlertManagerImage,
-		imageTag:  alertManagerImageTag,
-		resourceRequirements: resourceRequirements{
-			cpuRequest:    cpuRequest,
-			cpuLimit:      cpuLimit,
-			memoryRequest: memRequest,
-			memoryLimit:   memLimit,
-		},
-	})
-	buildAlertmanager(k8s.Objects(), p.namespace(), gen)
-}
-
-func buildAlertmanager(manifests []runtime.Object, namespace string, generator *mimic.Generator) {
-	var sm *monv1.ServiceMonitor
-	sm, manifests = getAndRemoveObject[*monv1.ServiceMonitor](manifests, "")
-	smEnc := postProcessServiceMonitor(sm, namespace)
-	enc := alertmanagerPostProcess(manifests, namespace)
-	generator.Add(alertmanagerTemplate, enc)
-	generator.Add(serviceMonitorTemplate, smEnc)
-	generator.Generate()
+func (b Build) Alertmanager(config clusters.ClusterConfig) error {
+	return generateAlertmanagerBundleFromTemplate(config)
 }
 
 func alertManagerOptions() *alertmanager.AlertManagerOptions {

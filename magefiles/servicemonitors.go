@@ -28,21 +28,6 @@ func generateServiceMonitors(gen *mimic.Generator, objs []runtime.Object) {
 	gen.Generate()
 }
 
-// ServiceMonitors generates ServiceMonitor resources for the Stage environment.
-func (s Stage) ServiceMonitors() {
-	objs := createThanosServiceMonitors(s.namespace())
-	objs = append(objs, thanosOperatorServiceMonitor(s.namespace())...)
-	serviceMonitorTemplateGen(s.generator("servicemonitors"), objs)
-}
-
-// ServiceMonitors generates ServiceMonitor resources for the Production environment.
-func (p Production) ServiceMonitors() {
-	ns := p.namespace()
-	objs := createThanosServiceMonitors(ns)
-	objs = append(objs, thanosOperatorServiceMonitor(ns)...)
-	serviceMonitorTemplateGen(p.generator("servicemonitors"), objs)
-}
-
 func serviceMonitorTemplateGen(gen *mimic.Generator, objs []runtime.Object) {
 	template := openshift.WrapInTemplate(objs, metav1.ObjectMeta{Name: "thanos-operator-servicemonitors"}, []templatev1.Parameter{})
 	encoder := encoding.GhodssYAML(template)
