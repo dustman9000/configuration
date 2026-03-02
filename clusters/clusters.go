@@ -3,8 +3,6 @@ package clusters
 import (
 	"fmt"
 
-	cfgobservatorium "gitlab.cee.redhat.com/rhobs/configuration/configuration/observatorium"
-
 	observatoriumapi "github.com/observatorium/observatorium/configuration_go/abstr/kubernetes/observatorium/api"
 )
 
@@ -51,7 +49,7 @@ type GatewayConfig struct {
 	tracingEnabled bool
 	amsURL         string
 	tenants        observatoriumapi.Tenants
-	rbac           cfgobservatorium.ObservatoriumRBAC
+	rbac           ObservatoriumRBAC
 	customRoute    string
 }
 
@@ -229,7 +227,7 @@ func WithTenants(tenants observatoriumapi.Tenants) func(*GatewayConfig) {
 }
 
 // WithRBAC configures role-based access control settings for the gateway
-func WithRBAC(rbac cfgobservatorium.ObservatoriumRBAC) func(*GatewayConfig) {
+func WithRBAC(rbac ObservatoriumRBAC) func(*GatewayConfig) {
 	return func(g *GatewayConfig) {
 		g.rbac = rbac
 	}
@@ -274,7 +272,7 @@ func (g *GatewayConfig) Tenants() observatoriumapi.Tenants {
 }
 
 // RBAC returns the RBAC configuration for the gateway
-func (g *GatewayConfig) RBAC() cfgobservatorium.ObservatoriumRBAC {
+func (g *GatewayConfig) RBAC() ObservatoriumRBAC {
 	return g.rbac
 }
 

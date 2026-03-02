@@ -1,4 +1,4 @@
-package cfgobservatorium
+package clusters
 
 import (
 	"fmt"
