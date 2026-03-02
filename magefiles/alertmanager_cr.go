@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
@@ -30,17 +29,8 @@ type alertmanagerConfig struct {
 	Replicas  *int32
 }
 
-func (b Build) AlertmanagerCR(config clusters.ClusterConfig) {
-	// For rhobss01ue1 cluster, generate alertmanager bundle with individual resources
-	if config.Name == "rhobss01ue1" {
-		if err := generateAlertmanagerBundle(config); err != nil {
-			log.Printf("Error generating alertmanager bundle: %v", err)
-		}
-		return
-	}
-
-	// For other clusters, generate templates (if needed in the future)
-	log.Printf("Alertmanager CR generation not yet implemented for cluster: %s", config.Name)
+func (b Build) AlertmanagerCR(config clusters.ClusterConfig) error {
+	return generateAlertmanagerBundle(config)
 }
 
 // generateAlertmanagerBundle generates individual alertmanager component resources for bundle deployment

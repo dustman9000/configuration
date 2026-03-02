@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
@@ -73,28 +72,6 @@ func (f *syntheticsApiFlags) ToArgs() []string {
 func (f *syntheticsAgentFlags) ToArgs() []string {
 	var args []string
 	return args
-}
-
-// SyntheticsApi creates the syntheticsApi resources for the stage environment
-func (s Stage) SyntheticsApi() {
-	gen := func() *mimic.Generator {
-		return s.generator(syntheticsApiName)
-	}
-	syntheticsApis := []*syntheticsApiConfig{
-		newSyntheticsApiConfig(clusters.StageMaps, s.namespace()),
-	}
-	syntheticsApi(gen, clusters.StageMaps, syntheticsApis)
-}
-
-// SyntheticsApi creates the syntheticsApi resources for the production environment
-func (p Production) SyntheticsApi() {
-	gen := func() *mimic.Generator {
-		return p.generator(syntheticsApiName)
-	}
-	syntheticsApis := []*syntheticsApiConfig{
-		newSyntheticsApiConfig(clusters.ProductionMaps, p.namespace()),
-	}
-	syntheticsApi(gen, clusters.ProductionMaps, syntheticsApis)
 }
 
 func syntheticsApi(g func() *mimic.Generator, m clusters.TemplateMaps, confs []*syntheticsApiConfig) {
@@ -277,49 +254,8 @@ func createSyntheticsApiServiceMonitor(config *syntheticsApiConfig) *monitoringv
 	}
 }
 
-func (b Build) SyntheticsApi(config clusters.ClusterConfig) {
-	// For rhobss01ue1 and rhobsi01uw2 clusters, generate synthetics bundle with individual resources
-	if isMigratedCluster(config) {
-		if err := generateSyntheticsBundle(config); err != nil {
-			log.Printf("Error generating synthetics bundle: %v", err)
-		}
-		return
-	}
-
-	ns := config.Namespace
-	gen := func() *mimic.Generator {
-		return b.generator(config, syntheticsApiName)
-	}
-	syntheticsApis := []*syntheticsApiConfig{
-		newSyntheticsApiConfig(clusters.ProductionMaps, ns),
-	}
-	syntheticsApi(gen, clusters.ProductionMaps, syntheticsApis)
-}
-
-// generateUnifiedSyntheticsApi generates a single, environment-agnostic template
-func generateUnifiedSyntheticsApi() {
-	var u Unified
-	gen := func() *mimic.Generator {
-		return u.generator(syntheticsApiName)
-	}
-
-	// Create a single config without environment-specific values
-	config := &syntheticsApiConfig{
-		Flags:              &syntheticsApiFlags{},
-		Name:               syntheticsApiName,
-		Namespace:          "", // Will be parameterized
-		SyntheticsApiImage: "", // Not used since we use template parameter
-		Labels: map[string]string{
-			"app.kubernetes.io/component": syntheticsApiName,
-			"app.kubernetes.io/instance":  "rhobs",
-			"app.kubernetes.io/name":      syntheticsApiName,
-			"app.kubernetes.io/part-of":   "rhobs",
-			"app.kubernetes.io/version":   "${IMAGE_TAG}",
-		},
-		Replicas: defaultGatewaySyntheticsApiReplicas,
-	}
-
-	syntheticsApi(gen, clusters.TemplateMaps{}, []*syntheticsApiConfig{config})
+func (b Build) SyntheticsApi(config clusters.ClusterConfig) error {
+	return generateSyntheticsBundle(config)
 }
 
 // generateSyntheticsBundle generates individual synthetics component resources for bundle deployment

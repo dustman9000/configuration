@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/bwplotka/mimic"
 	"github.com/bwplotka/mimic/encoding"
 	kitlog "github.com/go-kit/log"
 	kghelpers "github.com/observatorium/observatorium/configuration_go/kubegen/helpers"
-	"github.com/observatorium/observatorium/configuration_go/kubegen/openshift"
 	routev1 "github.com/openshift/api/route/v1"
-	templatev1 "github.com/openshift/api/template/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/thanos-community/thanos-operator/api/v1alpha1"
 	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
@@ -25,147 +22,8 @@ import (
 	"k8s.io/utils/ptr"
 )
 
-func (b Build) DefaultThanosStack(config clusters.ClusterConfig) {
-	if isMigratedCluster(config) {
-		if err := generateMetricsBundle(config); err != nil {
-			log.Printf("Error generating metrics bundle: %v", err)
-		}
-		return
-	}
-
-	gen := b.generator(config, "thanos-operator-default-cr")
-	var objs []runtime.Object
-
-	objs = append(objs, defaultQueryCR(config.Namespace, config.Templates, true)...)
-	objs = append(objs, defaultReceiveCR(config.Namespace, config.Templates))
-	objs = append(objs, defaultCompactCR(config.Namespace, config.Templates, true)...)
-	objs = append(objs, defaultRulerCR(config.Namespace, config.Templates))
-	objs = append(objs, defaultStoreCR(config.Namespace, config.Templates))
-
-	// Sort objects by Kind then Name
-	sort.Slice(objs, func(i, j int) bool {
-		iMeta := objs[i].(metav1.Object)
-		jMeta := objs[j].(metav1.Object)
-		iType := objs[i].GetObjectKind().GroupVersionKind().Kind
-		jType := objs[j].GetObjectKind().GroupVersionKind().Kind
-
-		if iType != jType {
-			return iType < jType
-		}
-		return iMeta.GetName() < jMeta.GetName()
-	})
-
-	gen.Add("thanos-operator-default-cr.yaml", encoding.GhodssYAML(
-		openshift.WrapInTemplate(
-			objs,
-			metav1.ObjectMeta{Name: "thanos-rhobs"},
-			[]templatev1.Parameter{
-				{
-					Name:     "OAUTH_PROXY_COOKIE_SECRET",
-					Generate: "expression",
-					From:     `[a-zA-Z0-9]{40}`,
-				},
-			},
-		),
-	))
-
-	gen.Generate()
-}
-
-// Thanos Generates the RHOBS-specific CRs for Thanos Operator.
-func (p Production) Thanos() {
-	templateDir := "rhobs-thanos-operator"
-
-	gen := p.generator(templateDir)
-	ns := p.namespace()
-	var objs []runtime.Object
-
-	tmpAdditionalQueryArgs := []string{
-		`--endpoint=dnssrv+_grpc._tcp.observatorium-thanos-rule.observatorium-metrics-production.svc.cluster.local`,
-		`--endpoint=dnssrv+_grpc._tcp.observatorium-thanos-receive-default.observatorium-metrics-production.svc.cluster.local`,
-	}
-
-	objs = append(objs, queryCR(ns, clusters.ProductionMaps, true, tmpAdditionalQueryArgs...)...)
-	objs = append(objs, tmpStoreProduction(ns, clusters.ProductionMaps)...)
-	objs = append(objs, compactTempProduction(clusters.ProductionMaps)...)
-	// objs = append(objs, tmpRulerCR(ns, clusters.ProductionMaps))
-
-	// Sort objects by Kind then Name
-	sort.Slice(objs, func(i, j int) bool {
-		iMeta := objs[i].(metav1.Object)
-		jMeta := objs[j].(metav1.Object)
-		iType := objs[i].GetObjectKind().GroupVersionKind().Kind
-		jType := objs[j].GetObjectKind().GroupVersionKind().Kind
-
-		if iType != jType {
-			return iType < jType
-		}
-		return iMeta.GetName() < jMeta.GetName()
-	})
-
-	gen.Add("rhobs.yaml", encoding.GhodssYAML(
-		openshift.WrapInTemplate(
-			objs,
-			metav1.ObjectMeta{Name: "thanos-rhobs"},
-			[]templatev1.Parameter{
-				{
-					Name:     "OAUTH_PROXY_COOKIE_SECRET",
-					Generate: "expression",
-					From:     `[a-zA-Z0-9]{40}`,
-				},
-			},
-		),
-	))
-
-	gen.Generate()
-}
-
-// Thanos Generates the RHOBS-specific CRs for Thanos Operator.
-func (s Stage) Thanos() {
-	templateDir := "rhobs-thanos-operator"
-
-	gen := s.generator(templateDir)
-	tmpAdditionalQueryArgs := []string{
-		`--endpoint=dnssrv+_grpc._tcp.observatorium-thanos-receive-default.observatorium-metrics-stage.svc.cluster.local`,
-	}
-	var objs []runtime.Object
-
-	objs = append(objs, receiveCR(s.namespace(), clusters.StageMaps))
-	objs = append(objs, queryCR(s.namespace(), clusters.StageMaps, true, tmpAdditionalQueryArgs...)...)
-	objs = append(objs, rulerCR(s.namespace(), clusters.StageMaps)...)
-	// TODO: Add compact CRs for stage once we shut down previous
-	// objs = append(objs, compactCR(s.namespace(), templates, true)...)
-	objs = append(objs, stageCompactCR(s.namespace(), clusters.StageMaps)...)
-	objs = append(objs, storeCR(s.namespace(), clusters.StageMaps)...)
-
-	// Sort objects by Kind then Name
-	sort.Slice(objs, func(i, j int) bool {
-		iMeta := objs[i].(metav1.Object)
-		jMeta := objs[j].(metav1.Object)
-		iType := objs[i].GetObjectKind().GroupVersionKind().Kind
-		jType := objs[j].GetObjectKind().GroupVersionKind().Kind
-
-		if iType != jType {
-			return iType < jType
-		}
-		return iMeta.GetName() < jMeta.GetName()
-	})
-
-	gen.Add("rhobs.yaml", encoding.GhodssYAML(
-		openshift.WrapInTemplate(
-			objs,
-			metav1.ObjectMeta{Name: "thanos-rhobs"},
-			[]templatev1.Parameter{
-				{
-					Name:     "OAUTH_PROXY_COOKIE_SECRET",
-					Generate: "expression",
-					From:     `[a-zA-Z0-9]{40}`,
-				},
-			},
-		),
-	))
-
-	gen.Generate()
+func (b Build) DefaultThanosStack(config clusters.ClusterConfig) error {
+	return generateMetricsBundle(config)
 }
 
 func storeCR(namespace string, m clusters.TemplateMaps) []runtime.Object {

@@ -22,32 +22,6 @@ const (
 	thanosOperatorCRDRef = "d4a318c4f38c926ef82a4367926c2281f84f608a"
 )
 
-// ThanosOperatorCRDS Generates the CRDs for the Thanos operator.
-// This is synced from the latest upstream ref at:
-// https://github.com/thanos-community/thanos-operator/tree/main/config/crd/bases
-func (b Build) ThanosOperatorCRDS(config clusters.ClusterConfig) error {
-	// For rhobss01ue1 and rhobsi01uw2 clusters, CRDs are handled in metrics bundle
-	if isMigratedCluster(config) {
-		return nil // CRDs are generated as part of metrics bundle
-	}
-	gen := b.generator(config, "thanos-operator-crds")
-	return crds(gen)
-}
-
-// CRDS Generates the CRDs for the Thanos operator.
-// This is synced from the latest upstream ref at:
-// https://github.com/thanos-community/thanos-operator/tree/main/config/crd/bases
-func (p Production) CRDS() error {
-	return crds(p.generator(crdTemplateDir))
-}
-
-// CRDS Generates the CRDs for the Thanos operator.
-// This is synced from the latest upstream ref at:
-// https://github.com/thanos-community/thanos-operator/tree/main/config/crd/bases
-func (s Stage) CRDS() error {
-	return crds(s.generator(crdTemplateDir))
-}
-
 func crds(gen *mimic.Generator) error {
 	const (
 		compact   = "thanoscompacts.yaml"
@@ -78,41 +52,6 @@ func crds(gen *mimic.Generator) error {
 	gen.Generate()
 
 	return nil
-}
-
-func (b Build) ThanosOperator(config clusters.ClusterConfig) error {
-	// For rhobss01ue1 and rhobsi01uw2 clusters, operator is handled in metrics bundle
-	if isMigratedCluster(config) {
-		return nil // Operator is generated as part of metrics bundle
-	}
-
-	gen := b.generator(config, "thanos-operator")
-
-	objs, err := operatorResources(config.Namespace, config.Templates)
-	if err != nil {
-		return err
-	}
-
-	gen.Add("operator.yaml", encoding.GhodssYAML(
-		openshift.WrapInTemplate(objs, metav1.ObjectMeta{Name: "thanos-operator-manager"}, []templatev1.Parameter{}),
-	))
-
-	gen.Generate()
-	return nil
-}
-
-// Operator Generates the Thanos Operator Manager resources.
-func (p Production) Operator() error {
-	gen := p.generator("operator")
-	templates := clusters.ProductionMaps
-	return operator(p.namespace(), gen, templates)
-}
-
-// Operator Generates the Thanos Operator Manager resources.
-func (s Stage) Operator() error {
-	gen := s.generator("operator")
-	templates := clusters.StageMaps
-	return operator(s.namespace(), gen, templates)
 }
 
 func operator(namespace string, gen *mimic.Generator, m clusters.TemplateMaps) error {

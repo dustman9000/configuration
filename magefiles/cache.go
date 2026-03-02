@@ -84,31 +84,6 @@ func (f *memcachedFlags) ToArgs() []string {
 	return args
 }
 
-// Cache creates the cache resources for the stage environment
-func (s Stage) Cache() {
-	gen := func() *mimic.Generator {
-		return s.generator(cacheName)
-	}
-	caches := []*memcachedConfig{
-		gatewayCache(clusters.StageMaps, s.namespace()),
-	}
-	cache(gen, clusters.StageMaps, caches)
-}
-
-// Cache creates the cache resources for the production environment
-func (p Production) Cache() {
-	gen := func() *mimic.Generator {
-		return p.generator(cacheName)
-	}
-	caches := []*memcachedConfig{
-		gatewayCache(clusters.ProductionMaps, p.namespace()),
-		indexCache(clusters.ProductionMaps, p.namespace()),
-		bucketCache(clusters.ProductionMaps, p.namespace()),
-		queryRangeCache(clusters.ProductionMaps, p.namespace()),
-	}
-	cache(gen, clusters.ProductionMaps, caches)
-}
-
 func cache(g func() *mimic.Generator, m clusters.TemplateMaps, confs []*memcachedConfig) {
 	var sms []runtime.Object
 	var objs []runtime.Object
@@ -384,18 +359,4 @@ func createCacheServiceMonitor(config *memcachedConfig) *monitoringv1.ServiceMon
 			},
 		},
 	}
-}
-
-func (b Build) Cache(config clusters.ClusterConfig) {
-	ns := config.Namespace
-	gen := func() *mimic.Generator {
-		return b.generator(config, cacheName)
-	}
-	caches := []*memcachedConfig{
-		gatewayCache(clusters.ProductionMaps, ns),
-		indexCache(clusters.ProductionMaps, ns),
-		bucketCache(clusters.ProductionMaps, ns),
-		queryRangeCache(clusters.ProductionMaps, ns),
-	}
-	cache(gen, clusters.ProductionMaps, caches)
 }
