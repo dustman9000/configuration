@@ -44,9 +44,10 @@ type ClusterConfig struct {
 type GatewayConfig struct {
 	metricsEnabled    bool
 	logsEnabled       bool
+	tracesEnabled     bool
 	syntheticsEnabled bool
-	// tracing in this instance refers to internal tracing of the gateway itself
-	tracingEnabled bool
+	// internalTracingSDKEnabled refers to internal tracing of the gateway itself
+	internalTracingSDKEnabled bool
 	amsURL         string
 	tenants        observatoriumapi.Tenants
 	rbac           ObservatoriumRBAC
@@ -198,6 +199,13 @@ func WithLoggingEnabled() func(*GatewayConfig) {
 	}
 }
 
+// WithTracesEnabled enables traces functionality for the gateway
+func WithTracesEnabled() func(*GatewayConfig) {
+	return func(g *GatewayConfig) {
+		g.tracesEnabled = true
+	}
+}
+
 // WithSyntheticsEnabled enables synthetics functionality for the gateway
 func WithSyntheticsEnabled() func(*GatewayConfig) {
 	return func(g *GatewayConfig) {
@@ -205,10 +213,10 @@ func WithSyntheticsEnabled() func(*GatewayConfig) {
 	}
 }
 
-// WithTracingEnabled enables internal tracing for the gateway itself
-func WithTracingEnabled() func(*GatewayConfig) {
+// WithInternalTracingSDKEnabled enables internal tracing for the gateway itself
+func WithInternalTracingSDKEnabled() func(*GatewayConfig) {
 	return func(g *GatewayConfig) {
-		g.tracingEnabled = true
+		g.internalTracingSDKEnabled = true
 	}
 }
 
@@ -251,14 +259,19 @@ func (g *GatewayConfig) LogsEnabled() bool {
 	return g.logsEnabled
 }
 
+// TracesEnabled returns whether traces are enabled for the gateway
+func (g *GatewayConfig) TracesEnabled() bool {
+	return g.tracesEnabled
+}
+
 // SyntheticsEnabled returns whether synthetics are enabled for the gateway
 func (g *GatewayConfig) SyntheticsEnabled() bool {
 	return g.syntheticsEnabled
 }
 
-// TracingEnabled returns whether tracing is enabled for the gateway
-func (g *GatewayConfig) TracingEnabled() bool {
-	return g.tracingEnabled
+// InternalTracingSDKEnabled returns whether internal tracing is enabled for the gateway
+func (g *GatewayConfig) InternalTracingSDKEnabled() bool {
+	return g.internalTracingSDKEnabled
 }
 
 // AMSURL returns the AMS URL for the gateway

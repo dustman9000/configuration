@@ -18,7 +18,7 @@ func init() {
 			WithMetricsEnabled(),
 			WithLoggingEnabled(),
 			WithSyntheticsEnabled(),
-			WithTracingEnabled(),
+			WithInternalTracingSDKEnabled(),
 			WithTenants(rhobss01uw2Tenants()),
 			WithRBAC(rhobss01uw2RBAC()),
 			WithCustomRoute("us-west-2-0.rhobs.api.stage.openshift.com"),
