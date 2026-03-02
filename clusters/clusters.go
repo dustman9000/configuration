@@ -3,8 +3,6 @@ package clusters
 import (
 	"fmt"
 
-	cfgobservatorium "gitlab.cee.redhat.com/rhobs/configuration/configuration/observatorium"
-
 	observatoriumapi "github.com/observatorium/observatorium/configuration_go/abstr/kubernetes/observatorium/api"
 )
 
@@ -51,7 +49,7 @@ type GatewayConfig struct {
 	tracingEnabled bool
 	amsURL         string
 	tenants        observatoriumapi.Tenants
-	rbac           cfgobservatorium.ObservatoriumRBAC
+	rbac           ObservatoriumRBAC
 	customRoute    string
 }
 
@@ -117,73 +115,12 @@ const (
 	StepAlertmanager = "alertmanager"
 	StepSecrets      = "secrets"
 	StepGateway      = "gateway"
-	StepMemcached    = "memcached"
 
 	StepSyntheticsApi  = "synthetics-api"
 	StepAlertmanagerCR = "alertmanager-cr"
 
 	StepNoOp = "noop"
 )
-
-// DefaultBuildSteps returns the default build pipeline for clusters
-func DefaultBuildSteps() []string {
-	var steps []string
-	steps = append(steps, DefaultMetricsBuildSteps()...)
-	steps = append(steps, DefaultLoggingBuildSteps()...)
-	steps = append(steps, DefaultSyntheticsBuildSteps()...)
-	steps = append(steps, DefaultAlertingBuildSteps()...)
-	steps = append(steps, DefaultGatewayBuildSteps()...)
-
-	steps = append(steps,
-		StepServiceMonitors, // Monitoring setup
-		StepSecrets,         // Secrets last
-		StepMemcached,       // Memcached configuration
-	)
-	return steps
-}
-
-func DefaultMetricsBuildSteps() []string {
-	return []string{
-		StepThanosOperatorCRDS,
-		StepThanosOperator,
-		StepDefaultThanosStack,
-	}
-}
-
-func DefaultLoggingBuildSteps() []string {
-	return []string{
-		StepLokiOperatorCRDS,
-		StepLokiOperator,
-		StepDefaultLokiStack,
-	}
-}
-
-func DefaultTracingBuildSteps() []string {
-	return []string{
-		StepTempoOperatorCRDS,
-		StepTempoOperator,
-		StepDefaultTempoStack,
-	}
-}
-
-func DefaultSyntheticsBuildSteps() []string {
-	return []string{
-		StepSyntheticsApi,
-	}
-}
-
-func DefaultAlertingBuildSteps() []string {
-	return []string{
-		StepAlertmanager,
-		StepAlertmanagerCR,
-	}
-}
-
-func DefaultGatewayBuildSteps() []string {
-	return []string{
-		StepGateway,
-	}
-}
 
 // Prune is a utility function to remove specified steps from a list
 func Prune(from []string, prune ...[]string) []string {
@@ -290,7 +227,7 @@ func WithTenants(tenants observatoriumapi.Tenants) func(*GatewayConfig) {
 }
 
 // WithRBAC configures role-based access control settings for the gateway
-func WithRBAC(rbac cfgobservatorium.ObservatoriumRBAC) func(*GatewayConfig) {
+func WithRBAC(rbac ObservatoriumRBAC) func(*GatewayConfig) {
 	return func(g *GatewayConfig) {
 		g.rbac = rbac
 	}
@@ -335,7 +272,7 @@ func (g *GatewayConfig) Tenants() observatoriumapi.Tenants {
 }
 
 // RBAC returns the RBAC configuration for the gateway
-func (g *GatewayConfig) RBAC() cfgobservatorium.ObservatoriumRBAC {
+func (g *GatewayConfig) RBAC() ObservatoriumRBAC {
 	return g.rbac
 }
 

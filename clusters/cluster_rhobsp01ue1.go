@@ -3,7 +3,6 @@ package clusters
 import (
 	"github.com/observatorium/api/rbac"
 	observatoriumapi "github.com/observatorium/observatorium/configuration_go/abstr/kubernetes/observatorium/api"
-	cfgobservatorium "gitlab.cee.redhat.com/rhobs/configuration/configuration/observatorium"
 )
 
 const (
@@ -47,15 +46,14 @@ func rhobsp01ue1Tenants() observatoriumapi.Tenants {
 	}
 }
 
-func rhobsp01ue1RBAC() cfgobservatorium.ObservatoriumRBAC {
-	opts := &cfgobservatorium.BindingOpts{}
+func rhobsp01ue1RBAC() ObservatoriumRBAC {
+	opts := &BindingOpts{}
 	opts.WithServiceAccountName("cd54dce2-590e-4ea4-9b83-a83c58205962").
-		WithTenant(cfgobservatorium.HcpTenant).
-		WithSignals([]cfgobservatorium.Resource{cfgobservatorium.MetricsResource, cfgobservatorium.LogsResource, cfgobservatorium.ProbesResource}).
-		WithPerms([]rbac.Permission{rbac.Read, rbac.Write}).
-		WithRawSubjectName()
+		WithTenant(HcpTenant).
+		WithSignals([]Resource{MetricsResource, LogsResource, ProbesResource}).
+		WithPerms([]rbac.Permission{rbac.Read, rbac.Write})
 
-	config := cfgobservatorium.GenerateClusterRBAC(opts)
+	config := GenerateClusterRBAC(opts)
 	return *config
 }
 
