@@ -6,7 +6,7 @@ default:
   tags:
     - itup-alm-x86
 
-build-clusters:
+clusters:
   stage: build
   script:
     - git config --global --add safe.directory "$PWD"
@@ -18,3 +18,14 @@ build-clusters:
     KUBERNETES_CPU_REQUEST: 2
     KUBERNETES_CPU_LIMIT: 2
     KUBERNETES_MEMORY_LIMIT: "4Gi"
+
+rules:
+  stage: build
+  script:
+    - git config --global --add safe.directory "$PWD"
+    - make all
+    - if [ -n "$(git status --porcelain)" ]; then git status && git diff && false; fi
+  variables:
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
+    KUBERNETES_MEMORY_LIMIT: "2Gi"
