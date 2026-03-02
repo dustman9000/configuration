@@ -41,6 +41,9 @@ const (
 
 	logsQfeService    = "observatorium-lokistack-query-frontend-http"
 	logsRouterService = "observatorium-lokistack-distributor-http"
+
+	tracesDistributorService   = "tempo-observatorium-tempostack-distributor"
+	tracesQueryFrontendService = "tempo-observatorium-tempostack-query-frontend"
 )
 
 func (b Build) Gateway(config clusters.ClusterConfig) error {
@@ -204,7 +207,7 @@ func gatewayDeployment(m clusters.TemplateMaps, namespace string, conf *clusters
 		}
 	}
 
-	if conf.TracingEnabled() {
+	if conf.InternalTracingSDKEnabled() {
 		if _, ok := m.Images[componentJaegerAgent]; ok {
 			containers = append(containers, createJaegerAgentContainer(m))
 		}
@@ -314,6 +317,13 @@ func createObservatoriumAPIContainer(m clusters.TemplateMaps, namespace string, 
 			fmt.Sprintf("--logs.read.endpoint=http://%s.%s.svc.cluster.local:3100", logsQfeService, namespace),
 			fmt.Sprintf("--logs.tail.endpoint=http://%s.%s.svc.cluster.local:3100", logsQfeService, namespace),
 			fmt.Sprintf("--logs.write.endpoint=http://%s.%s.svc.cluster.local:3100", logsRouterService, namespace),
+		)
+	}
+
+	if conf.TracesEnabled() {
+		args = append(args,
+			fmt.Sprintf("--traces.read.endpoint=http://%s.%s.svc.cluster.local:3200", tracesQueryFrontendService, namespace),
+			fmt.Sprintf("--traces.write.otlphttp.endpoint=http://%s.%s.svc.cluster.local:4318", tracesDistributorService, namespace),
 		)
 	}
 

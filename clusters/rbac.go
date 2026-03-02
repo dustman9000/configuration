@@ -20,6 +20,7 @@ const (
 	MetricsResource Resource = "metrics"
 	LogsResource    Resource = "logs"
 	ProbesResource  Resource = "probes"
+	TracesResource  Resource = "traces"
 )
 
 // GenerateClusterRBAC generates rbac.json for the cluster
