@@ -504,6 +504,23 @@ objects:
           namespace: ${NAMESPACE}
         spec:
           groups:
+            - name: AlertSuppressionRules
+              interval: 60s
+              rules:
+                # Produces hypershift_cluster_alerts_disabled=1 for clusters that
+                # are silenced, in limited support, or being deleted. Replaces
+                # the Dynatrace-owned SilenceAlerts.yaml recording rule.
+                - record: hypershift_cluster_alerts_disabled
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    max by (_id, name, exported_namespace) (
+                      last_over_time(hypershift_cluster_silence_alerts[10m]) == 1
+                    or
+                      last_over_time(hypershift_cluster_deleting_duration_seconds[10m]) * 0 + 1
+                    or
+                      last_over_time(hypershift_cluster_limited_support_enabled[10m]) == 1
+                    )
             - name: OauthRecordingRules
               interval: 60s
               rules:
