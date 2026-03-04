@@ -3,20 +3,15 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"sort"
 	"strings"
 
-	"github.com/bwplotka/mimic/encoding"
 	kghelpers "github.com/observatorium/observatorium/configuration_go/kubegen/helpers"
-	"github.com/observatorium/observatorium/configuration_go/kubegen/openshift"
 	"github.com/observatorium/observatorium/configuration_go/kubegen/workload"
 	routev1 "github.com/openshift/api/route/v1"
-	templatev1 "github.com/openshift/api/template/v1"
 	monv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	appsv1 "k8s.io/api/apps/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
-
 	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,8 +22,6 @@ import (
 const (
 	servingCertSecretNameAnnotation = "service.alpha.openshift.io/serving-cert-secret-name"
 	serviceRedirectAnnotation       = "serviceaccounts.openshift.io/oauth-redirectreference.application"
-
-	serviceMonitorTemplate = "service-monitor-template.yaml"
 
 	// openshiftCustomerMonitoringLabel and
 	// openShiftClusterMonitoringLabelValue are label's key and value added to
@@ -224,27 +217,6 @@ func getAndRemoveObject[T metav1.Object](objects []runtime.Object, name string) 
 		}
 	}
 	return ret, modifiedObjs
-}
-
-// postProcessServiceMonitor updates the service monitor to work with the app-sre prometheus.
-func postProcessServiceMonitor(serviceMonitor *monv1.ServiceMonitor, namespaceSelector string) encoding.Encoder {
-	serviceMonitor.ObjectMeta.Namespace = openshiftCustomerMonitoringNamespace
-	serviceMonitor.Spec.NamespaceSelector.MatchNames = []string{namespaceSelector}
-	serviceMonitor.ObjectMeta.Labels[openshiftCustomerMonitoringLabel] = openShiftClusterMonitoringLabelValue
-
-	name := serviceMonitor.Name + "-service-monitor-" + namespaceSelector
-
-	template := openshift.WrapInTemplate([]runtime.Object{serviceMonitor}, metav1.ObjectMeta{
-		Name: name,
-	}, nil)
-	return encoding.GhodssYAML(template)
-}
-
-func sortTemplateParams(params []templatev1.Parameter) []templatev1.Parameter {
-	sort.Slice(params, func(i, j int) bool {
-		return params[i].Name < params[j].Name
-	})
-	return params
 }
 
 func createServiceAccount(name, namespace string, labels map[string]string) *corev1.ServiceAccount {

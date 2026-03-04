@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
-
 	"github.com/bwplotka/mimic"
 	"github.com/bwplotka/mimic/encoding"
 	kitlog "github.com/go-kit/log"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-
+	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )

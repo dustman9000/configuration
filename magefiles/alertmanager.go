@@ -11,10 +11,8 @@ import (
 	kitlog "github.com/go-kit/log"
 	"github.com/observatorium/observatorium/configuration_go/abstr/kubernetes/alertmanager"
 	kghelpers "github.com/observatorium/observatorium/configuration_go/kubegen/helpers"
-	"github.com/observatorium/observatorium/configuration_go/kubegen/openshift"
 	"github.com/observatorium/observatorium/configuration_go/kubegen/workload"
 	routev1 "github.com/openshift/api/route/v1"
-	templatev1 "github.com/openshift/api/template/v1"
 	monv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
 	appsv1 "k8s.io/api/apps/v1"
@@ -77,61 +75,6 @@ func alertmanagerKubernetes(opts *alertmanager.AlertManagerOptions, options mani
 	return alertmanSts
 }
 
-func alertmanagerPostProcess(manifests []runtime.Object, namespace string) encoding.Encoder {
-	service := kghelpers.GetObject[*corev1.Service](manifests, alertManagerName)
-	service.ObjectMeta.Annotations[servingCertSecretNameAnnotation] = alertmanagerTLSSecret
-	service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{
-		Name:       "https",
-		Port:       8443,
-		TargetPort: intstr.FromInt32(8443),
-	})
-	// Add annotations for openshift oauth so that the route to access the query ui works
-	serviceAccount := kghelpers.GetObject[*corev1.ServiceAccount](manifests, "")
-	if serviceAccount.Annotations == nil {
-		serviceAccount.Annotations = map[string]string{}
-	}
-	serviceAccount.Annotations[serviceRedirectAnnotation] = fmt.Sprintf(`{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"%s"}}`, alertManagerName)
-
-	// Add route for oauth-proxy
-	manifests = append(manifests, &routev1.Route{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Route",
-			APIVersion: routev1.SchemeGroupVersion.String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      alertManagerName,
-			Namespace: namespace,
-			Labels:    maps.Clone(kghelpers.GetObject[*appsv1.StatefulSet](manifests, "").ObjectMeta.Labels),
-		},
-		Spec: routev1.RouteSpec{
-			Port: &routev1.RoutePort{
-				TargetPort: intstr.FromString("https"),
-			},
-			TLS: &routev1.TLSConfig{
-				Termination:                   routev1.TLSTerminationReencrypt,
-				InsecureEdgeTerminationPolicy: routev1.InsecureEdgeTerminationPolicyRedirect,
-			},
-			To: routev1.RouteTargetReference{
-				Kind: "Service",
-				Name: alertManagerName,
-			},
-		},
-	})
-
-	return encoding.GhodssYAML(
-		openshift.WrapInTemplate(
-			manifests,
-			metav1.ObjectMeta{Name: alertManagerName},
-			[]templatev1.Parameter{
-				{
-					Name:     "OAUTH_PROXY_COOKIE_SECRET",
-					Generate: "expression",
-					From:     `[a-zA-Z0-9]{40}`,
-				},
-			},
-		))
-}
-
 // generateAlertmanagerBundleFromTemplate generates individual alertmanager component resources for bundle deployment
 // This function reuses the existing template-based alertmanager generation but outputs individual files instead
 func generateAlertmanagerBundleFromTemplate(config clusters.ClusterConfig) error {
@@ -189,7 +132,7 @@ func generateAlertmanagerBundleFromTemplate(config clusters.ClusterConfig) error
 // but returns the processed manifests directly for bundle generation instead of wrapping in template
 func alertmanagerPostProcessForBundle(manifests []runtime.Object, namespace string) []runtime.Object {
 	service := kghelpers.GetObject[*corev1.Service](manifests, alertManagerName)
-	service.ObjectMeta.Annotations[servingCertSecretNameAnnotation] = alertmanagerTLSSecret
+	service.Annotations[servingCertSecretNameAnnotation] = alertmanagerTLSSecret
 	service.Spec.Ports = append(service.Spec.Ports, corev1.ServicePort{
 		Name:       "https",
 		Port:       8443,
@@ -212,7 +155,7 @@ func alertmanagerPostProcessForBundle(manifests []runtime.Object, namespace stri
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      alertManagerName,
 			Namespace: namespace,
-			Labels:    maps.Clone(kghelpers.GetObject[*appsv1.StatefulSet](manifests, "").ObjectMeta.Labels),
+			Labels:    maps.Clone(kghelpers.GetObject[*appsv1.StatefulSet](manifests, "").Labels),
 		},
 		Spec: routev1.RouteSpec{
 			Port: &routev1.RoutePort{

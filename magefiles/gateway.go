@@ -4,19 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/bwplotka/mimic"
 	"github.com/bwplotka/mimic/encoding"
 	"github.com/ghodss/yaml"
 	"github.com/go-kit/log"
-	observatoriumapi "github.com/observatorium/observatorium/configuration_go/abstr/kubernetes/observatorium/api"
 	"github.com/observatorium/observatorium/configuration_go/kubegen/openshift"
 	routev1 "github.com/openshift/api/route/v1"
 	templatev1 "github.com/openshift/api/template/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,49 +47,6 @@ func (b Build) Gateway(config clusters.ClusterConfig) error {
 	return generateGatewayBundle(config)
 }
 
-func gateway(config clusters.ClusterConfig, fn builderBuilderGenFunc) error {
-	ns := config.Namespace
-	rbac, err := json.Marshal(config.GatewayConfig.RBAC())
-	if err != nil {
-		return fmt.Errorf("failed to marshal RBAC configuration: %w", err)
-	}
-	rbacYAML, err := yaml.JSONToYAML(rbac)
-	if err != nil {
-		return fmt.Errorf("failed to convert RBAC configuration to YAML: %w", err)
-	}
-
-	deployment := gatewayDeployment(config.Templates, ns, config.GatewayConfig)
-
-	objs := []runtime.Object{
-		gatewayRBAC(config.Templates, ns, string(rbacYAML)),
-		deployment,
-		createGatewayService(config.Templates, ns, config.GatewayConfig),
-		createTenantSecret(config, ns),
-		createGatewayServiceAccount(config.Templates, ns),
-	}
-
-	template := openshift.WrapInTemplate(objs, metav1.ObjectMeta{
-		Name: gatewayName,
-	}, gatewayTemplateParams)
-	enc := encoding.GhodssYAML(template)
-	gen := fn()
-	gen.Add(gatewayTemplate, enc)
-	gen.Generate()
-
-	sms := []runtime.Object{
-		gatewayServiceMonitor(clusters.StageMaps, ns, config.GatewayConfig),
-	}
-
-	template = openshift.WrapInTemplate(sms, metav1.ObjectMeta{
-		Name: gatewayName + "-service-monitor",
-	}, nil)
-	gen = fn()
-	gen.Add("service-monitor-"+gatewayTemplate, encoding.GhodssYAML(template))
-	gen.Generate()
-
-	return nil
-}
-
 // generateGatewayBundle generates individual gateway and cache resource files
 func generateGatewayBundle(config clusters.ClusterConfig) error {
 	ns := config.Namespace
@@ -107,7 +61,7 @@ func generateGatewayBundle(config clusters.ClusterConfig) error {
 
 	deployment := gatewayDeployment(config.Templates, ns, config.GatewayConfig)
 	// Ensure metadata.name is rhobs-gateway
-	deployment.ObjectMeta.Name = gatewayName
+	deployment.Name = gatewayName
 
 	// Gateway resources
 	gatewayObjs := []runtime.Object{
@@ -179,9 +133,6 @@ func generateGatewayBundle(config clusters.ClusterConfig) error {
 
 	return nil
 }
-
-// quick workaround to bridge us between cell approach and old approach for now
-type builderBuilderGenFunc func() *mimic.Generator
 
 func gatewayLabels(m clusters.TemplateMaps) (labels map[string]string, selectorLabels map[string]string) {
 	selectorLabels = map[string]string{
@@ -709,353 +660,6 @@ func createTenantSecret(config clusters.ClusterConfig, namespace string) *corev1
 			"client-secret": "${CLIENT_SECRET}",
 			"issuer-url":    "https://sso.redhat.com/auth/realms/redhat-external",
 			"tenants.yaml":  config.GatewayConfig.Tenants().String(),
-		},
-	}
-}
-
-func stageGatewayTenants() observatoriumapi.Tenants {
-	return observatoriumapi.Tenants{
-		Tenants: []observatoriumapi.Tenant{
-			{
-				Name: "rhobs",
-				ID:   "0fc2b00e-201b-4c17-b9f2-19d91adc4fd2",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium.api.stage.openshift.com/oidc/rhobs/callback",
-					UsernameClaim: "preferred_username",
-					GroupClaim:    "email",
-				},
-			},
-			{
-				Name: "osd",
-				ID:   "770c1124-6ae8-4324-a9d4-9ce08590094b",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.stage.openshift.com/oidc/osd/callback",
-					UsernameClaim: "preferred_username",
-				},
-				OPA: &observatoriumapi.TenantOPA{
-					URL: "http://127.0.0.1:8082/v1/data/observatorium/allow",
-				},
-				RateLimits: []observatoriumapi.TenantRateLimits{
-					{
-						Endpoint: "/api/metrics/v1/.+/api/v1/receive",
-						Limit:    10000,
-						Window:   time.Second * 30,
-					},
-				},
-			},
-			{
-				Name: "rhacs",
-				ID:   "1b9b6e43-9128-4bbf-bfff-3c120bbe6f11",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.stage.openshift.com/oidc/rhacs/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "cnvqe",
-				ID:   "9ca26972-4328-4fe3-92db-31302013d03f",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.stage.openshift.com/oidc/cnvqe/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "psiocp",
-				ID:   "37b8fd3f-56ff-4b64-8272-917c9b0d1623",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.stage.openshift.com/oidc/psiocp/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "rhods",
-				ID:   "8ace13a2-1c72-4559-b43d-ab43e32a255a",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.stage.openshift.com/oidc/rhods/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "odfms",
-				ID:   "99c885bc-2d64-4c4d-b55e-8bf30d98c657",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.stage.openshift.com/oidc/odfms/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "reference-addon",
-				ID:   "d17ea8ce-d4c6-42ef-b259-7d10c9227e93",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.stage.openshift.com/oidc/reference-addon/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "dptp",
-				ID:   "AC879303-C60F-4D0D-A6D5-A485CFD638B8",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.stage.openshift.com/oidc/dptp/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "appsre",
-				ID:   "3833951d-bede-4a53-85e5-f73f4913973f",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.stage.openshift.com/oidc/appsre/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "rhtap",
-				ID:   "0031e8d6-e50a-47ea-aecb-c7e0bd84b3f1",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.stage.openshift.com/oidc/rhtap/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "rhel",
-				ID:   "72e6f641-b2e2-47eb-bbc2-fee3c8fbda26",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.stage.openshift.com/oidc/rhel/callback",
-					UsernameClaim: "preferred_username",
-				},
-				RateLimits: []observatoriumapi.TenantRateLimits{
-					{
-						Endpoint: "/api/metrics/v1/rhel/api/v1/receive",
-						Limit:    10000,
-						Window:   time.Second * 30,
-					},
-				},
-			},
-			{
-				Name: "telemeter",
-				ID:   "FB870BF3-9F3A-44FF-9BF7-D7A047A52F43",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium.api.stage.openshift.com/oidc/telemeter/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "ros",
-				ID:   "B5B43A0A-3BC5-4D8D-BAAB-E424A835AA7D",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium.api.stage.openshift.com/oidc/telemeter/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-		},
-	}
-}
-
-func prodGatewayTenants() observatoriumapi.Tenants {
-	return observatoriumapi.Tenants{
-		Tenants: []observatoriumapi.Tenant{
-			{
-				Name: "rhobs",
-				ID:   "0fc2b00e-201b-4c17-b9f2-19d91adc4fd2",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium.api.openshift.com/oidc/rhobs/callback",
-					UsernameClaim: "preferred_username",
-					GroupClaim:    "email",
-				},
-			},
-			{
-				Name: "osd",
-				ID:   "770c1124-6ae8-4324-a9d4-9ce08590094b",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.openshift.com/oidc/osd/callback",
-					UsernameClaim: "preferred_username",
-				},
-				OPA: &observatoriumapi.TenantOPA{
-					URL: "http://127.0.0.1:8082/v1/data/observatorium/allow",
-				},
-				RateLimits: []observatoriumapi.TenantRateLimits{
-					{
-						Endpoint: "/api/metrics/v1/.+/api/v1/receive",
-						Limit:    10000,
-						Window:   time.Second * 30,
-					},
-				},
-			},
-			{
-				Name: "rhacs",
-				ID:   "1b9b6e43-9128-4bbf-bfff-3c120bbe6f11",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.openshift.com/oidc/rhacs/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "cnvqe",
-				ID:   "9ca26972-4328-4fe3-92db-31302013d03f",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.openshift.com/oidc/cnvqe/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "psiocp",
-				ID:   "37b8fd3f-56ff-4b64-8272-917c9b0d1623",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.openshift.com/oidc/psiocp/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "rhods",
-				ID:   "8ace13a2-1c72-4559-b43d-ab43e32a255a",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.openshift.com/oidc/rhods/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "odfms",
-				ID:   "99c885bc-2d64-4c4d-b55e-8bf30d98c657",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.openshift.com/oidc/odfms/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "reference-addon",
-				ID:   "d17ea8ce-d4c6-42ef-b259-7d10c9227e93",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.openshift.com/oidc/reference-addon/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "dptp",
-				ID:   "AC879303-C60F-4D0D-A6D5-A485CFD638B8",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.openshift.com/oidc/dptp/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "appsre",
-				ID:   "3833951d-bede-4a53-85e5-f73f4913973f",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.openshift.com/oidc/appsre/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "rhtap",
-				ID:   "0031e8d6-e50a-47ea-aecb-c7e0bd84b3f1",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.openshift.com/oidc/rhtap/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
-			{
-				Name: "rhel",
-				ID:   "72e6f641-b2e2-47eb-bbc2-fee3c8fbda26",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium-mst.api.openshift.com/oidc/rhel/callback",
-					UsernameClaim: "preferred_username",
-				},
-				RateLimits: []observatoriumapi.TenantRateLimits{
-					{
-						Endpoint: "/api/metrics/v1/rhel/api/v1/receive",
-						Limit:    10000,
-						Window:   time.Second * 30,
-					},
-				},
-			},
-			{
-				Name: "telemeter",
-				ID:   "FB870BF3-9F3A-44FF-9BF7-D7A047A52F43",
-				OIDC: &observatoriumapi.TenantOIDC{
-					ClientID:      "${CLIENT_ID}",
-					ClientSecret:  "${CLIENT_SECRET}",
-					IssuerURL:     "https://sso.redhat.com/auth/realms/redhat-external",
-					RedirectURL:   "https://observatorium.api.openshift.com/oidc/telemeter/callback",
-					UsernameClaim: "preferred_username",
-				},
-			},
 		},
 	}
 }

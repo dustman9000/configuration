@@ -3,17 +3,11 @@ package main
 import (
 	"fmt"
 
-	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
-
-	"github.com/bwplotka/mimic"
-	"github.com/bwplotka/mimic/encoding"
-	"github.com/observatorium/observatorium/configuration_go/kubegen/openshift"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-
+	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -82,33 +76,6 @@ func (f *memcachedFlags) ToArgs() []string {
 	}
 
 	return args
-}
-
-func cache(g func() *mimic.Generator, m clusters.TemplateMaps, confs []*memcachedConfig) {
-	var sms []runtime.Object
-	var objs []runtime.Object
-
-	for _, c := range confs {
-		objs = append(objs, memcachedStatefulSet(c, m))
-		objs = append(objs, createServiceAccount(c.Name, c.Namespace, c.Labels))
-		objs = append(objs, createCacheHeadlessService(c))
-		sms = append(sms, createCacheServiceMonitor(c))
-	}
-
-	template := openshift.WrapInTemplate(objs, metav1.ObjectMeta{
-		Name: cacheName,
-	}, nil)
-	enc := encoding.GhodssYAML(template)
-	gen := g()
-	gen.Add(cacheTemplate, enc)
-	gen.Generate()
-
-	template = openshift.WrapInTemplate(sms, metav1.ObjectMeta{
-		Name: cacheName + "-service-monitor",
-	}, nil)
-	gen = g()
-	gen.Add("service-monitor-"+cacheTemplate, encoding.GhodssYAML(template))
-	gen.Generate()
 }
 
 func gatewayCache(m clusters.TemplateMaps, namespace string) *memcachedConfig {

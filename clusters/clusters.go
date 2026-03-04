@@ -48,10 +48,10 @@ type GatewayConfig struct {
 	syntheticsEnabled bool
 	// internalTracingSDKEnabled refers to internal tracing of the gateway itself
 	internalTracingSDKEnabled bool
-	amsURL         string
-	tenants        observatoriumapi.Tenants
-	rbac           ObservatoriumRBAC
-	customRoute    string
+	amsURL                    string
+	tenants                   observatoriumapi.Tenants
+	rbac                      ObservatoriumRBAC
+	customRoute               string
 }
 
 // String returns the string representation of ClusterName
