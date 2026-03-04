@@ -69,5 +69,10 @@ func rhobsp01euc1BuildSteps() []string {
 
 // rhobsp01euc1TemplateMaps returns template mappings specific to the rhobsp01euc1 production cluster
 func rhobsp01euc1TemplateMaps() TemplateMaps {
-	return DefaultBaseTemplate().Override()
+	return DefaultBaseTemplate().Override(
+		Replicas{
+			// TODO: @moadz temporary scale out to deal with stampeding herd of retries
+			ReceiveIngestorDefault: 4,
+		},
+	)
 }
