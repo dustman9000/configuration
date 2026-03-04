@@ -39,7 +39,10 @@ spec:
         - --log.level=debug
         command:
         - /manager
-        image: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos-operator:6390cb9cec28b7ffebec06f5049e0f937cbf216f
+        env:
+        - name: CONFIG_RELOADER_IMAGE
+          value: registry.redhat.io/cluster-observability-operator/coo-prometheus-config-reloader-rhel8:v0.77.1-1
+        image: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos-operator:bd795286bea694f2a4d4eb275a67727aa8d47d82
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
