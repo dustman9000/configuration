@@ -41,7 +41,7 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       storage:
-        size: 10Gi
+        size: 50Gi
       storeLimitsOptions: {}
       tenancyConfig:
         defaultTenantID: FB870BF3-9F3A-44FF-9BF7-D7A047A52F43
