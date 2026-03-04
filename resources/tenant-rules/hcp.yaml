@@ -409,7 +409,7 @@ objects:
                 unless on (_id) (hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled)
               for: 60m
               labels:
-                severity: warning
+                severity: soaking
                 otel_collect: "true"
             - alert: ClusterOperatorDown
               annotations:
@@ -668,6 +668,7 @@ objects:
                 namespace: openshift-route-monitor-operator
                 severity: critical
                 short_window: 5m
+                alert_group: api-slo
                 otel_collect: "true"
             - alert: api-ErrorBudgetBurn
               annotations:
@@ -693,6 +694,7 @@ objects:
                 namespace: openshift-route-monitor-operator
                 severity: critical
                 short_window: 30m
+                alert_group: api-slo
                 otel_collect: "true"
             - alert: api-ErrorBudgetBurn
               annotations:
@@ -717,6 +719,7 @@ objects:
                 namespace: openshift-route-monitor-operator
                 severity: warning
                 short_window: 2h
+                alert_group: api-slo
                 otel_collect: "true"
             - alert: api-ErrorBudgetBurn
               annotations:
@@ -741,6 +744,7 @@ objects:
                 namespace: openshift-route-monitor-operator
                 severity: warning
                 short_window: 6h
+                alert_group: api-slo
                 otel_collect: "true"
   - apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
@@ -769,12 +773,19 @@ objects:
                     unless on (_id_or_ns) (
                         label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "_id", ".*")
                         or
-                        label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")),
+                        label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")
+                        or
+                        # Do not fire if the cluster is not ready yet (initial availability wait).
+                        label_replace(hypershift_cluster_waiting_initial_avaibility_duration_seconds, "_id_or_ns", "$0", "_id", ".*")
+                        or
+                        # Do not fire if the cluster is uninstalling.
+                        label_replace(hypershift_cluster_deleting_duration_seconds, "_id_or_ns", "$0", "_id", ".*")),
                     "_id_or_ns", "", "_id_or_ns", ".*")
               labels:
                 namespace: openshift-route-monitor-operator
-                severity: critical
+                severity: soaking
                 short_window: 3m
+                alert_group: api-slo
                 otel_collect: "true"
   - apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
@@ -1045,7 +1056,7 @@ objects:
               labels:
                 long: 1h
                 short: 5m
-                severity: warning
+                severity: soaking
                 otel_collect: "true"
               expr: |
                 max_over_time(count by (_id, job, namespace,type,verb)(apiserver_request:error_rate_1h > (14.40 * 0.0001) and apiserver_request:error_rate_5m > (14.40 * 0.0001))[5m:])
@@ -1058,7 +1069,7 @@ objects:
               labels:
                 long: 6h
                 short: 30m
-                severity: warning
+                severity: soaking
                 otel_collect: "true"
               expr: |
                 max_over_time(count by (_id, job, namespace,type,verb)(apiserver_request:error_rate_6h > (6.00 * 0.0001) and apiserver_request:error_rate_30m > (6.00 * 0.0001))[10m:])
@@ -1114,7 +1125,7 @@ objects:
               labels:
                 long: 1d
                 short: 2h
-                severity: warning
+                severity: soaking
                 otel_collect: "true"
               expr: |
                 apiserver_request:error_rate_1d > (3.00 * 0.0001)
@@ -1129,7 +1140,7 @@ objects:
               labels:
                 long: 3d
                 short: 6h
-                severity: warning
+                severity: soaking
                 otel_collect: "true"
               expr: |
                 apiserver_request:error_rate_3d > (1.00 * 0.0001)

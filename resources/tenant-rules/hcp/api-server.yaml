@@ -72,6 +72,7 @@ objects:
                 namespace: openshift-route-monitor-operator
                 severity: critical
                 short_window: 5m
+                alert_group: api-slo
                 otel_collect: "true"
             - alert: api-ErrorBudgetBurn
               annotations:
@@ -97,6 +98,7 @@ objects:
                 namespace: openshift-route-monitor-operator
                 severity: critical
                 short_window: 30m
+                alert_group: api-slo
                 otel_collect: "true"
             - alert: api-ErrorBudgetBurn
               annotations:
@@ -121,6 +123,7 @@ objects:
                 namespace: openshift-route-monitor-operator
                 severity: warning
                 short_window: 2h
+                alert_group: api-slo
                 otel_collect: "true"
             - alert: api-ErrorBudgetBurn
               annotations:
@@ -145,6 +148,7 @@ objects:
                 namespace: openshift-route-monitor-operator
                 severity: warning
                 short_window: 6h
+                alert_group: api-slo
                 otel_collect: "true"
   # Rapid error budget burn for API server (probe-based, >90% failure rate over 3m)
   # Fires immediately when detecting acute API server incidents
@@ -175,12 +179,19 @@ objects:
                     unless on (_id_or_ns) (
                         label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "_id", ".*")
                         or
-                        label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")),
+                        label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")
+                        or
+                        # Do not fire if the cluster is not ready yet (initial availability wait).
+                        label_replace(hypershift_cluster_waiting_initial_avaibility_duration_seconds, "_id_or_ns", "$0", "_id", ".*")
+                        or
+                        # Do not fire if the cluster is uninstalling.
+                        label_replace(hypershift_cluster_deleting_duration_seconds, "_id_or_ns", "$0", "_id", ".*")),
                     "_id_or_ns", "", "_id_or_ns", ".*")
               labels:
                 namespace: openshift-route-monitor-operator
-                severity: critical
+                severity: soaking
                 short_window: 3m
+                alert_group: api-slo
                 otel_collect: "true"
   # KubeAPIServer restart detection and availability alerts
   - apiVersion: monitoring.coreos.com/v1
