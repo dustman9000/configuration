@@ -521,10 +521,106 @@ objects:
                     or
                       last_over_time(hypershift_cluster_limited_support_enabled[10m]) == 1
                     )
+            - name: APIServerRecordingRules
+              interval: 60s
+              rules:
+                - record: sre:apiserver_request:total
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    sum by (namespace, _id) (
+                      label_replace(
+                        sum by (namespace) (
+                          rate(apiserver_request_total{
+                            service="kube-apiserver",
+                            namespace=~"ocm-.*-.*",
+                            verb!~"WATCH|WATCHLIST|PROXY|CONNECT"
+                          }[5m])
+                        ),
+                        "exported_namespace",
+                        "$1-$2",
+                        "namespace",
+                        "(ocm-[^-]+)-([^-]+)-.*"
+                      )
+                    * on (exported_namespace) group_left (_id)
+                      (max by (exported_namespace, _id) (hypershift_cluster_vcpus) * 0 + 1)
+                    )
+                - record: sre:apiserver_request:duration_seconds_bucket
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    sum by (namespace, _id) (
+                      label_replace(
+                        sum by (namespace) (
+                          rate(apiserver_request_duration_seconds_bucket{
+                            service="kube-apiserver",
+                            namespace=~"ocm-.*-.*",
+                            le="+Inf",
+                            verb!~"WATCH|WATCHLIST|PROXY|CONNECT"
+                          }[5m])
+                        ),
+                        "exported_namespace",
+                        "$1-$2",
+                        "namespace",
+                        "(ocm-[^-]+)-([^-]+)-.*"
+                      )
+                    * on (exported_namespace) group_left (_id)
+                      (max by (exported_namespace, _id) (hypershift_cluster_vcpus) * 0 + 1)
+                    )
+            - name: PrometheusTargetRecordingRules
+              interval: 60s
+              rules:
+                - record: sre:hcp_podmonitor_up:sum
+                  labels:
+                    otel_collect: "true"
+                  expr: sum by (_id, name, namespace) (label_replace(up{_id!="",job=~"ocm-.*-.*-.*",namespace=~"ocm-.*-.*-.*"}, "name", "$1", "job", "(.*)"))
+                - record: sre:hcp_servicemonitor_up:sum
+                  labels:
+                    otel_collect: "true"
+                  expr: sum by (_id, name, namespace) (label_replace(up{_id!="",job!~"ocm-.*-.*-.*",namespace=~"ocm-.*-.*-.*"}, "name", "$1", "job", "(.*)"))
+            - name: ClusterAutoscalerRecordingRules
+              interval: 60s
+              rules:
+                - record: cluster_autoscaler:pod_status_ready
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    sum by (namespace, _id) (
+                      label_replace(
+                        max by (namespace, pod) (
+                          kube_pod_status_ready{condition="true",namespace=~"ocm-.*-.*",pod=~"cluster-autoscaler-.*"}
+                        ),
+                        "exported_namespace",
+                        "$1-$2",
+                        "namespace",
+                        "(ocm-[^-]+)-([^-]+)-.*"
+                        )
+                    * on (exported_namespace) group_left (_id)
+                      (max by (exported_namespace, _id) (hypershift_cluster_vcpus) * 0 + 1)
+                    )
             - name: OauthRecordingRules
               interval: 60s
               rules:
+                - record: sre:oauth:pod_status_ready
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    sum by (namespace, _id) (
+                      label_replace(
+                        max by (namespace, pod) (
+                          kube_pod_status_ready{condition="true",pod=~"oauth-openshift.*|openshift-oauth-apiserver.*", namespace=~"ocm-.*-.*"}
+                        ),
+                        "exported_namespace",
+                        "$1-$2",
+                        "namespace",
+                        "(ocm-[^-]+)-([^-]+)-.*"
+                        )
+                    * on (exported_namespace) group_left (_id)
+                      (max by (exported_namespace, _id) (hypershift_cluster_vcpus) * 0 + 1)
+                    )
                 - record: sre:oauth:deployment_pods_unavailable
+                  labels:
+                    otel_collect: "true"
                   expr: |
                     sum by (namespace, _id) ((
                       label_replace(
@@ -539,6 +635,168 @@ objects:
                     * on (exported_namespace) group_left (_id)
                       (max by (exported_namespace, _id) (hypershift_cluster_vcpus) * 0 + 1)
                     ))
+            - name: BillingRecordingRules
+              interval: 60s
+              rules:
+                - record: hostedcluster:hypershift_cluster_vcpus:max
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    max without(instance, pod) (hypershift_cluster_vcpus{})
+            - name: RequestServingRecordingRules
+              interval: 60s
+              rules:
+                - record: sre:node_request_serving:info
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    label_replace(
+                      kube_pod_info{
+                        pod=~"kube-apiserver.*",
+                        namespace=~"ocm.*-.*-.*"
+                      },
+                      "hc_namespace", "$1", "namespace", "(ocm-[^-]+-[^-]+)-.*"
+                    )
+                    * on(hc_namespace) group_left(label_api_openshift_com_id, label_api_openshift_com_name)
+                      max by (hc_namespace, label_api_openshift_com_id, label_api_openshift_com_name) (
+                        label_replace(
+                          kube_namespace_labels{
+                            namespace=~"ocm.*-.*-.*",
+                            label_api_openshift_com_id!=""
+                          },
+                          "hc_namespace", "$1", "namespace", "(.*)"
+                        )
+                      )
+                - record: sre:node_request_serving:excessive_consumption_cpu
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    avg by (request_node) (
+                      sum without (mode) (
+                        max by (request_node, cpu) (
+                          label_replace(
+                            rate(node_cpu_seconds_total{mode!="idle",mode!="iowait",mode!="steal"}[1h]),
+                            "request_node","$1","instance","(.*)"
+                          )
+                        )
+                      )
+                    )
+                    * on (request_node) group_left ()
+                      (label_replace(max by (node) (kube_node_labels{label_hypershift_openshift_io_cluster!~""}), "request_node", "$1", "node", "(.*)"))
+                    * 100
+                    > 70
+                - record: sre:node_request_serving:excessive_consumption_memory
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    avg by (request_node) (
+                      label_replace(
+                        1 - (
+                          node_memory_MemAvailable_bytes
+                          * on (instance) group_left() (
+                            label_replace(
+                              max by (node) (kube_node_labels{label_hypershift_openshift_io_cluster!~""}),
+                              "instance", "$1", "node", "(.*)"
+                            )
+                          )
+                        )
+                        /
+                        (
+                          node_memory_MemTotal_bytes
+                          * on (instance) group_left() (
+                            label_replace(
+                              max by (node) (kube_node_labels{label_hypershift_openshift_io_cluster!~""}),
+                              "instance", "$1", "node", "(.*)"
+                            )
+                          )
+                        ),
+                        "request_node", "$1", "instance", "(.*)"
+                      )
+                    ) * 100
+                    > 80
+            - name: NodepoolComponentRecordingRules
+              interval: 60s
+              rules:
+                - record: sre:nodepool_component:ignition_server:available
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    label_replace(
+                      label_replace(
+                              kube_deployment_status_replicas_available{namespace=~"ocm-.*",deployment="ignition-server"} > bool 0,
+                              "component", "$1", "deployment", "(.+)"),
+                          "exported_namespace", "$1-$2-$3", "namespace", "^(.*?)-(.*?)-(.*?)-.*$"
+                      )
+                - record: sre:nodepool_component:ignition_server_proxy:available
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    label_replace(
+                      label_replace(
+                              kube_deployment_status_replicas_available{namespace=~"ocm-.*",deployment="ignition-server-proxy"} > bool 0,
+                              "component", "$1", "deployment", "(.+)"),
+                          "exported_namespace", "$1-$2-$3", "namespace", "^(.*?)-(.*?)-(.*?)-.*$"
+                      )
+                - record: sre:nodepool_component:capi:available
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    label_replace(
+                      label_replace(
+                              kube_deployment_status_replicas_available{namespace=~"ocm-.*",deployment="cluster-api"} > bool 0,
+                              "component", "$1", "deployment", "(.+)"),
+                          "exported_namespace", "$1-$2-$3", "namespace", "^(.*?)-(.*?)-(.*?)-.*$"
+                      )
+                - record: sre:nodepool_component:capi_provider_aws:available
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    label_replace(
+                      label_replace(
+                              kube_deployment_status_replicas_available{namespace=~"ocm-.*",deployment="capi-provider"} > bool 0,
+                              "component", "$1", "deployment", "(.+)"),
+                          "exported_namespace", "$1-$2-$3", "namespace", "^(.*?)-(.*?)-(.*?)-.*$"
+                      )
+                - record: sre:nodepool_component:machine_approver:available
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    label_replace(
+                      label_replace(
+                              kube_deployment_status_replicas_available{namespace=~"ocm-.*",deployment="machine-approver"} > bool 0,
+                              "component", "$1", "deployment", "(.+)"),
+                          "exported_namespace", "$1-$2-$3", "namespace", "^(.*?)-(.*?)-(.*?)-.*$"
+                      )
+                - record: sre:nodepool:all_components_available
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    sum by (_id, namespace, region, type, exported_namespace) (cluster_infrastructure_provider * on (namespace) group_left (exported_namespace)
+                     min by (namespace, exported_namespace) (
+                        sre:nodepool_component:ignition_server:available and on (namespace)
+                        sre:nodepool_component:ignition_server_proxy:available and on (namespace)
+                        sre:nodepool_component:capi:available and on (namespace)
+                        sre:nodepool_component:capi_provider_aws:available and on (namespace)
+                        sre:nodepool_component:machine_approver:available
+                      )
+                    ) > bool 0
+                - record: sre:nodepool:invalid_payload_nodepool_provision_failure
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    hypershift_nodepool_state_info{ign_server_reached="True", payload_valid_reason!="AsExpected"}
+            - name: ClusterOperatorRecordingRules
+              interval: 60s
+              rules:
+                - record: core_cluster_operator:degraded:filtered
+                  labels:
+                    otel_collect: "true"
+                  expr: |
+                    max by (_id, namespace, name, reason) (
+                      cluster_operator_conditions{condition="Degraded", name=~"monitoring|network|console|dns|insights|service-ca|kube-storage-version-migrator|image-registry|storage"} == 1
+                    )
+                    and on (namespace) (hcp_worker_nodes:available_count >= 2)
+                    unless on (_id) hypershift_cluster_alerts_disabled
 
       # Node recording rules -- identify hypershift nodes, compute resource consumption
       # Ported from dynatrace-config/rules/monitoring/Nodes.yaml
