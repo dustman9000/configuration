@@ -1,0 +1,14 @@
+# RHOBS Configuration Code Owners
+# See https://docs.gitlab.com/ee/user/project/codeowners/
+
+# Default owners for everything
+* @drow @spasquie @dmellado @pgough @mzardab @samukher
+
+# HCP tenant rules (alert rules, recording rules)
+/resources/tenant-rules/hcp/ @drow @mzardab @pgough
+
+# SC tenant rules
+/resources/tenant-rules/sc/ @drow @mzardab @pgough
+
+# MC metric collection (monitoring stack, allowlist)
+/resources/collection/ @drow @mzardab @pgough
