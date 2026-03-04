@@ -785,7 +785,6 @@ objects:
                 namespace: openshift-route-monitor-operator
                 severity: soaking
                 short_window: 3m
-                alert_group: api-slo
                 otel_collect: "true"
   - apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
