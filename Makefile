@@ -21,6 +21,10 @@ sc-rules: $(YQ)
 	@echo ">>>>> Generating SC tenant rules from split files"
 	YQ=$(YQ) ./scripts/generate-sc-rules.sh
 
+.PHONY: go-lint
+go-lint: $(GOLANGCI_LINT)
+	$(GOLANGCI_LINT) run
+
 .PHONY: lint-hcp-rules
 lint-hcp-rules: hcp-rules $(PROMTOOL) $(YQ)
 	@echo ">>>>> Linting HCP tenant rules"
