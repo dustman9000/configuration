@@ -831,7 +831,7 @@ func receiveCR(namespace string, templates clusters.TemplateMaps) *v1alpha1.Than
 						},
 						Replicas: clusters.TemplateFn("RECEIVE_INGESTOR_TELEMETER", templates.Replicas),
 						TSDBConfig: v1alpha1.TSDBConfig{
-							Retention: v1alpha1.Duration("4h"),
+							Retention: v1alpha1.Duration("2h"),
 						},
 						AsyncForwardWorkerCount:  ptr.To(uint64(50)),
 						TooFarInFutureTimeWindow: ptr.To(v1alpha1.Duration("5m")),
@@ -864,7 +864,7 @@ func receiveCR(namespace string, templates clusters.TemplateMaps) *v1alpha1.Than
 						},
 						Replicas: clusters.TemplateFn("RECEIVE_INGESTOR_DEFAULT", templates.Replicas),
 						TSDBConfig: v1alpha1.TSDBConfig{
-							Retention: v1alpha1.Duration("1d"),
+							Retention: v1alpha1.Duration("2h"),
 						},
 						AsyncForwardWorkerCount:  ptr.To(uint64(5)),
 						TooFarInFutureTimeWindow: ptr.To(v1alpha1.Duration("5m")),
@@ -1248,7 +1248,7 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 						},
 						Replicas: clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Replicas),
 						TSDBConfig: v1alpha1.TSDBConfig{
-							Retention: v1alpha1.Duration("1d"),
+							Retention: v1alpha1.Duration("2h"),
 						},
 						AsyncForwardWorkerCount:  ptr.To(uint64(50)),
 						TooFarInFutureTimeWindow: ptr.To(v1alpha1.Duration("5m")),
