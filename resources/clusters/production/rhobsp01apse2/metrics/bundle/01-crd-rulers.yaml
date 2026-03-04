@@ -4734,13 +4734,6 @@ spec:
                   'dns+' or 'dnssrv+' to detect Alertmanager IPs through respective DNS lookups.
                 pattern: ^((dns\+)?(dnssrv\+)?(http|https):\/\/)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,}(:[0-9]{1,5})?$
                 type: string
-              annotations:
-                additionalProperties:
-                  type: string
-                description: |-
-                  Annotations are additional annotations to add to components.
-                  In case of conflicts, these annotations take precedence.
-                type: object
               baseImage:
                 description: Base container image (without tags) to use for the Thanos
                   components deployed via operator.
@@ -4796,7 +4789,7 @@ spec:
                   type: string
                 description: |-
                   Labels are additional labels to add to components.
-                  In case of conflicts, these labels take precedence.
+                  If labels are nested, the innermost nested label will take preference.
                 type: object
               logFormat:
                 default: logfmt
