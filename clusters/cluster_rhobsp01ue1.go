@@ -3,6 +3,8 @@ package clusters
 import (
 	"github.com/observatorium/api/rbac"
 	observatoriumapi "github.com/observatorium/observatorium/configuration_go/abstr/kubernetes/observatorium/api"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 const (
@@ -73,6 +75,14 @@ func rhobsp01ue1TemplateMaps() TemplateMaps {
 		Replicas{
 			// TODO: @moadz temporary scale out to deal with stampeding herd of retries
 			ReceiveIngestorDefault: 6,
+		},
+		Resources{
+			ReceiveIngestorDefault: corev1.ResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("4"),
+					corev1.ResourceMemory: resource.MustParse("40Gi"),
+				},
+			},
 		},
 	)
 }

@@ -35,8 +35,8 @@ spec:
       replicas: 6
       resourceRequirements:
         requests:
-          cpu: "2"
-          memory: 15Gi
+          cpu: "4"
+          memory: 40Gi
       securityContext:
         seccompProfile:
           type: RuntimeDefault
