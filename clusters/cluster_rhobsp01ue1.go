@@ -72,7 +72,7 @@ func rhobsp01ue1TemplateMaps() TemplateMaps {
 	return DefaultBaseTemplate().Override(
 		Replicas{
 			// TODO: @moadz temporary scale out to deal with stampeding herd of retries
-			ReceiveIngestorDefault: 4,
+			ReceiveIngestorDefault: 6,
 		},
 	)
 }
