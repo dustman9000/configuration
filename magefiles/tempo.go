@@ -13,7 +13,6 @@ import (
 	tempov1alpha1 "github.com/grafana/tempo-operator/api/tempo/v1alpha1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
-
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

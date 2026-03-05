@@ -44,8 +44,7 @@ var BuildStepFunctions = map[string]func(Build, clusters.ClusterConfig) error{
 		return b.SyntheticsApi(cfg)
 	},
 	clusters.StepAlertmanagerCR: func(b Build, cfg clusters.ClusterConfig) error {
-		b.AlertmanagerCR(cfg)
-		return nil
+		return b.AlertmanagerCR(cfg)
 	},
 	clusters.StepGateway: func(b Build, cfg clusters.ClusterConfig) error {
 		return b.Gateway(cfg)

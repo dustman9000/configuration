@@ -4,15 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
-
 	"github.com/bwplotka/mimic"
 	"github.com/bwplotka/mimic/encoding"
 	kitlog "github.com/go-kit/log"
-	"github.com/observatorium/observatorium/configuration_go/kubegen/openshift"
-	templatev1 "github.com/openshift/api/template/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-
+	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -72,65 +68,6 @@ func (f *syntheticsApiFlags) ToArgs() []string {
 func (f *syntheticsAgentFlags) ToArgs() []string {
 	var args []string
 	return args
-}
-
-func syntheticsApi(g func() *mimic.Generator, m clusters.TemplateMaps, confs []*syntheticsApiConfig) {
-	var sms []runtime.Object
-	var objs []runtime.Object
-
-	for _, c := range confs {
-		objs = append(objs, createBundleSyntheticsApiDeployment(c, m))
-		objs = append(objs, createSyntheticsApiServiceAccount(c))
-		objs = append(objs, createSyntheticsApiRole(c))
-		objs = append(objs, createSyntheticsApiRoleBinding(c))
-		objs = append(objs, createSyntheticsApiService(c))
-		sms = append(sms, createSyntheticsApiServiceMonitor(c))
-	}
-
-	// Set template params
-	params := []templatev1.Parameter{}
-	params = append(params, templatev1.Parameter{
-		Name:  "NAMESPACE",
-		Value: "rhobs",
-	}, templatev1.Parameter{
-		Name:  "IMAGE_TAG",
-		Value: "cea7d4656cd0ad338e580cc6ba266264a9938e5c",
-	}, templatev1.Parameter{
-		Name:  "IMAGE_DIGEST",
-		Value: "",
-	})
-
-	template := openshift.WrapInTemplate(objs, metav1.ObjectMeta{
-		Name: syntheticsApiName,
-	}, sortTemplateParams(params))
-	enc := encoding.GhodssYAML(template)
-	gen := g()
-	gen.Add(syntheticsApiTemplate, enc)
-	gen.Generate()
-
-	template = openshift.WrapInTemplate(sms, metav1.ObjectMeta{
-		Name: syntheticsApiName + "-service-monitor",
-	}, nil)
-	gen = g()
-	gen.Add("service-monitor-"+syntheticsApiTemplate, encoding.GhodssYAML(template))
-	gen.Generate()
-}
-
-func newSyntheticsApiConfig(m clusters.TemplateMaps, namespace string) *syntheticsApiConfig {
-	return &syntheticsApiConfig{
-		Flags:              &syntheticsApiFlags{},
-		Name:               syntheticsApiName,
-		Namespace:          namespace,
-		SyntheticsApiImage: m.Images[syntheticsAPI],
-		Labels: map[string]string{
-			"app.kubernetes.io/component": syntheticsApiName,
-			"app.kubernetes.io/instance":  "rhobs",
-			"app.kubernetes.io/name":      syntheticsApiName,
-			"app.kubernetes.io/part-of":   "rhobs",
-			"app.kubernetes.io/version":   m.Versions[syntheticsAPI],
-		},
-		Replicas: defaultGatewaySyntheticsApiReplicas,
-	}
 }
 
 func createSyntheticsApiServiceAccount(config *syntheticsApiConfig) *corev1.ServiceAccount {
@@ -218,38 +155,6 @@ func createSyntheticsApiService(config *syntheticsApiConfig) *corev1.Service {
 				},
 			},
 			Selector: config.Labels,
-		},
-	}
-}
-
-func createSyntheticsApiServiceMonitor(config *syntheticsApiConfig) *monitoringv1.ServiceMonitor {
-	labels := deepCopyMap(config.Labels)
-	// Remove version label as it goes stale
-	delete(labels, "app.kubernetes.io/version")
-
-	return &monitoringv1.ServiceMonitor{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "ServiceMonitor",
-			APIVersion: "monitoring.coreos.com/v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:   config.Name,
-			Labels: labels,
-		},
-		Spec: monitoringv1.ServiceMonitorSpec{
-			Endpoints: []monitoringv1.Endpoint{
-				{
-					Port:        "metrics",
-					Interval:    monitoringv1.Duration("30s"),
-					HonorLabels: true,
-				},
-			},
-			Selector: metav1.LabelSelector{
-				MatchLabels: createServiceSelectorLabels(config.Labels),
-			},
-			NamespaceSelector: monitoringv1.NamespaceSelector{
-				MatchNames: []string{config.Namespace},
-			},
 		},
 	}
 }

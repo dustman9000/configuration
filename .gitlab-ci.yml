@@ -6,6 +6,17 @@ default:
   tags:
     - itup-alm-x86
 
+go-lint:
+  stage: build
+  script:
+    - git config --global --add safe.directory "$PWD"
+    - go mod download
+    - make go-lint
+  variables:
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 2
+    KUBERNETES_MEMORY_LIMIT: "4Gi"
+
 clusters:
   stage: build
   script:

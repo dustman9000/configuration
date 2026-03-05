@@ -28,13 +28,6 @@ func generateServiceMonitors(gen *mimic.Generator, objs []runtime.Object) {
 	gen.Generate()
 }
 
-func serviceMonitorTemplateGen(gen *mimic.Generator, objs []runtime.Object) {
-	template := openshift.WrapInTemplate(objs, metav1.ObjectMeta{Name: "thanos-operator-servicemonitors"}, []templatev1.Parameter{})
-	encoder := encoding.GhodssYAML(template)
-	gen.Add("servicemonitors.yaml", encoder)
-	gen.Generate()
-}
-
 func thanosOperatorServiceMonitor(namespace string) []runtime.Object {
 	return []runtime.Object{
 		&monitoringv1.ServiceMonitor{
