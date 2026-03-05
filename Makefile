@@ -21,6 +21,20 @@ sc-rules: $(YQ)
 	@echo ">>>>> Generating SC tenant rules from split files"
 	YQ=$(YQ) ./scripts/generate-sc-rules.sh
 
+.PHONY: yaml-lint
+yaml-lint: $(YQ)
+	@echo ">>>>> Validating YAML syntax in resources/"
+	@ERRORS=0; \
+	for f in $$(find resources/ -name '*.yaml' -o -name '*.yml'); do \
+		if ! $(YQ) eval '.' "$$f" > /dev/null 2>&1; then \
+			echo "INVALID: $$f"; \
+			$(YQ) eval '.' "$$f" 2>&1 | head -5; \
+			ERRORS=$$((ERRORS + 1)); \
+		fi; \
+	done; \
+	if [ $$ERRORS -gt 0 ]; then echo "$$ERRORS file(s) failed YAML validation"; exit 1; fi; \
+	echo "All YAML files valid"
+
 .PHONY: go-lint
 go-lint: $(GOLANGCI_LINT)
 	$(GOLANGCI_LINT) run
