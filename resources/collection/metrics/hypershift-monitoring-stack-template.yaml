@@ -18,7 +18,8 @@ parameters:
     description: "OIDC client secret"
     required: true
   - name: HCP_RHOBS_ROOT_URL
-    required: true
+    description: "RHOBS cell URL"
+    value: '{{ fromCDLabel "ext-hypershift.openshift.io/rhobs-cell" }}'
   - name: RHOBS_SECRET_NAME
     value: rhobs-hcp-credential
   - name: NAMESPACE
@@ -94,6 +95,7 @@ objects:
               _mc_id: "{{ fromCDLabel \"api.openshift.com/id\" }}"
               region: "{{ fromCDLabel \"ext-hypershift.openshift.io/cluster-region\" }}"
               sector: "{{ fromCDLabel \"ext-hypershift.openshift.io/cluster-sector\" }}"
+              rhobs_cell: ${HCP_RHOBS_ROOT_URL}
               env: ${RHOBS_ENV}
             remoteWrite:
               - name: RHOBS

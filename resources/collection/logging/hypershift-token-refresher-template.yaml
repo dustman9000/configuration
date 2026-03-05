@@ -18,7 +18,7 @@ parameters:
     required: true
   - name: LOGS_WRITE_URL
     description: "URL for logs write endpoint"
-    required: true
+    value: '{{ fromCDLabel "ext-hypershift.openshift.io/rhobs-cell" }}'
   - name: SUFFIX
     description: "Optional suffix for resource names to support multiple deployments per hive cluster"
     value: ''
@@ -32,6 +32,7 @@ objects:
     name: rhobs-logs-token-refresher${SUFFIX}
   spec:
     resourceApplyMode: Sync
+    enableResourceTemplates: true
     clusterDeploymentSelector:
       matchLabels:
         api.openshift.com/managed: 'true'
