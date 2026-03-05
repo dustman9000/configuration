@@ -32,7 +32,7 @@ spec:
         key: thanos.yaml
         name: default-thanos-bucket
         optional: false
-      replicas: 4
+      replicas: 6
       resourceRequirements:
         requests:
           cpu: "2"
