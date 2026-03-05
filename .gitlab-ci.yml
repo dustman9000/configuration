@@ -30,6 +30,17 @@ clusters:
     KUBERNETES_CPU_LIMIT: 2
     KUBERNETES_MEMORY_LIMIT: "4Gi"
 
+yaml-lint:
+  stage: build
+  script:
+    - git config --global --add safe.directory "$PWD"
+    - go mod download
+    - make yaml-lint
+  variables:
+    KUBERNETES_CPU_REQUEST: 1
+    KUBERNETES_CPU_LIMIT: 1
+    KUBERNETES_MEMORY_LIMIT: "1Gi"
+
 rules:
   stage: build
   script:
