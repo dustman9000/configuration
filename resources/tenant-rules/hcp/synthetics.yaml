@@ -208,10 +208,10 @@ objects:
                 runbook_url: "https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAgentNoProbesManaged.md"
             - alert: SyntheticsAgentReconcileStale
               expr: |
-                (time() - rhobs_synthetics_agent_last_reconciliation_timestamp_seconds) > 300
-              for: 2m
+                (time() - rhobs_synthetics_agent_last_reconciliation_timestamp_seconds) > 600
+              for: 10m
               labels:
-                severity: critical
+                severity: warning
                 service: rhobs-synthetics
               annotations:
                 summary: "Synthetics Agent reconciliation is stale"
