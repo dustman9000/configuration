@@ -8,10 +8,10 @@ spec:
     global:
       ingestion:
         ingestionBurstSize: 256
-        ingestionRate: 12
+        ingestionRate: 20
         maxLineSize: 2097152
-        perStreamRateLimit: 5
-        perStreamRateLimitBurst: 15
+        perStreamRateLimit: 15
+        perStreamRateLimitBurst: 30
       otlp:
         streamLabels:
           resourceAttributes:
@@ -20,7 +20,7 @@ spec:
           - name: openshift.log.source
           - name: openshift.log.type
       queries:
-        queryTimeout: 3m
+        queryTimeout: 5m
   managementState: Managed
   size: 1x.extra-small
   storage:
