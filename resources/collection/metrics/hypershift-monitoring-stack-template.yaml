@@ -20,6 +20,8 @@ parameters:
   - name: HCP_RHOBS_ROOT_URL
     description: "RHOBS cell URL"
     value: '{{ fromCDLabel "ext-hypershift.openshift.io/rhobs-cell" }}'
+  - name: GLOBAL_SLO_HCP_RHOBS_ROOT_URL
+    description: 'Global SLO RHOBS cell URL'
   - name: RHOBS_SECRET_NAME
     value: rhobs-hcp-credential
   - name: NAMESPACE
@@ -98,6 +100,118 @@ objects:
               rhobs_cell: ${HCP_RHOBS_ROOT_URL}
               env: ${RHOBS_ENV}
             remoteWrite:
+              - name: RHOBS_SLO
+                url: ${GLOBAL_SLO_HCP_RHOBS_ROOT_URL}/api/metrics/v1/hcp/api/v1/receive
+                oauth2:
+                  clientId:
+                    secret:
+                      key: client-id
+                      name: ${RHOBS_SECRET_NAME}
+                  clientSecret:
+                    key: client-secret
+                    name: ${RHOBS_SECRET_NAME}
+                  scopes:
+                    - profile
+                  tokenUrl: https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+                queueConfig:
+                  capacity: 2500
+                  maxShards: 500
+                  minShards: 1
+                  maxSamplesPerSend: 2000
+                  batchSendDeadline: 60s
+                  minBackoff: 30ms
+                  maxBackoff: 256s
+                metadataConfig:
+                  send: false
+                writeRelabelConfigs:
+                  # Collect Prometheus scrape metrics.
+                  #
+                  # Record the identity of the Prometheus replica in the
+                  # "_prometheus_scraper" label because scrape metrics are
+                  # specific to the local replica and the "prometheus_replica"
+                  # label is already used on the receiving end to deduplicate
+                  # metrics.
+                  - action: Replace
+                    sourceLabels: [ __name__ ]
+                    regex: "(up|scrape_samples_scraped|scrape_samples_post_metric_relabeling|scrape_series_added|scrape_duration_seconds)"
+                    replacement: "true"
+                    targetLabel: __tmp_allowed
+                  - action: Replace
+                    sourceLabels: [ __name__, prometheus_replica ]
+                    regex: "(up|scrape_samples_scraped|scrape_samples_post_metric_relabeling|scrape_series_added|scrape_duration_seconds);(.+)"
+                    replacement: "$2"
+                    targetLabel: _prometheus_scraper
+                  # We filter MC metrics based on their names matching the global SLO allowlist
+                  - action: Replace
+                    sourceLabels: [ __name__, source ]
+                    targetLabel: __tmp_allowed
+                    replacement: "true"
+                    regex: "(\
+                      sre:slo.*;.*|\
+                      sre_mc_cluster_dynatrace_connectivity;.*|\
+                      sre:error_budget_burn:apiserver_28d_slo;.*|\
+                      hypershift_cluster_limited_support_enabled;.*|\
+                      hypershift_operator_info;.*|\
+                      hypershift_cluster_size_override_instances;.*|\
+                      ALERTS;.*|\
+                      capi_machine_info;.*|\
+                      hypershift_nodepool_state_info;.*|\
+                      sre:nodepool:invalid_payload_nodepool_provision_failure;.*|\
+                      sre:nodepool:all_components_available;.*|\
+                      sre:nodepool:provisioning_failure_notify;.*|\
+                      core_cluster_operator:down:filtered;.*|\
+                      hypershift_cluster_waiting_initial_avaibility_duration_seconds;.*|\
+                      certmanager_certificate_ready_status;.*|\
+                      certmanager_certificate_expiration_timestamp_seconds;.*|\
+                      certmanager_http_acme_client_request_duration_seconds_count;.*|\
+                      certmanager_http_acme_client_request_duration_seconds_sum;.*|\
+                      certmanager_controller_sync_call_count;.*|\
+                      mce_hs_addon_failed_reconcile_count;.*|\
+                      mce_hs_addon_total_reconcile_count;.*|\
+                      mce_hs_addon_kubeconfig_secret_copy_failure_count;.*|\
+                      mce_hs_addon_hub_sync_failure_count;.*|\
+                      policy_governance_info;.*|\
+                      sre_velero_csi_snapshot_attempt_total;.*|\
+                      sre_velero_csi_snapshot_success_total;.*|\
+                      sre_velero_csi_snapshot_failure_total;.*|\
+                      sre_velero_backup_duration_seconds_last;.*|\
+                      velero_backup_total;.*|\
+                      velero_backup_attempt_total;.*|\
+                      velero_backup_success_total;.*|\
+                      velero_backup_failure_total;.*|\
+                      velero_backup_partial_failure_total;.*|\
+                      velero_backup_validation_failure_total;.*|\
+                      velero_backup_warning_total;.*|\
+                      velero_backup_last_status;.*|\
+                      velero_backup_last_successful_timestamp;.*|\
+                      velero_backup_tarball_size_bytes;.*|\
+                      velero_backup_items_total;.*|\
+                      velero_backup_items_errors;.*|\
+                      velero_backup_deletion_attempt_total;.*|\
+                      velero_backup_deletion_success_total;.*|\
+                      velero_backup_deletion_failure_total;.*|\
+                      velero_restore_total;.*|\
+                      velero_restore_attempt_total;.*|\
+                      velero_restore_success_total;.*|\
+                      velero_restore_failed_total;.*|\
+                      velero_restore_partial_failure_total;.*|\
+                      velero_restore_validation_failed_total;.*|\
+                      )"
+                  # Keep allowed series and drop anything else.
+                  - action: Keep
+                    regex: "true"
+                    sourceLabels: [ __tmp_allowed ]
+                  # Add a default `source="MC"` label if the label isn't
+                  # already defined.
+                  - action: Replace
+                    regex: $^
+                    replacement: MC
+                    sourceLabels:
+                      - source
+                    targetLabel: source
+                  # Drop all temporary labels.
+                  - action: LabelDrop
+                    regex: "__tmp.*"
               - name: RHOBS
                 url: ${HCP_RHOBS_ROOT_URL}/api/metrics/v1/hcp/api/v1/receive
                 oauth2:
