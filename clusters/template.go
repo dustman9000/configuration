@@ -514,7 +514,7 @@ func DefaultBaseTemplate() TemplateMaps {
 			StoreDefault:           3,
 			ReceiveRouter:          3,
 			ReceiveIngestorDefault: 3,
-			Ruler:                  1,
+			Ruler:                  2,
 			Query:                  3,
 			QueryFrontend:          3,
 			CompactDefault:         1,
