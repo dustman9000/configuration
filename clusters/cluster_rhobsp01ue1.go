@@ -84,5 +84,8 @@ func rhobsp01ue1TemplateMaps() TemplateMaps {
 				},
 			},
 		},
+		StorageSizes{
+			CompactDefault: "80Gi",
+		},
 	)
 }
