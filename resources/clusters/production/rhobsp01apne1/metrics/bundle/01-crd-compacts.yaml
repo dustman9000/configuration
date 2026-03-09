@@ -4722,6 +4722,13 @@ spec:
                         x-kubernetes-list-type: atomic
                     type: object
                 type: object
+              annotations:
+                additionalProperties:
+                  type: string
+                description: |-
+                  Annotations are additional annotations to add to components.
+                  In case of conflicts, these annotations take precedence.
+                type: object
               baseImage:
                 description: Base container image (without tags) to use for the Thanos
                   components deployed via operator.
@@ -4877,7 +4884,7 @@ spec:
                   type: string
                 description: |-
                   Labels are additional labels to add to components.
-                  If labels are nested, the innermost nested label will take preference.
+                  In case of conflicts, these labels take precedence.
                 type: object
               logFormat:
                 default: logfmt
@@ -4929,6 +4936,35 @@ spec:
                   When a resource is paused, no actions except for deletion
                   will be performed on the underlying objects.
                 type: boolean
+              persistentVolumeClaimRetentionPolicy:
+                default:
+                  whenDeleted: Delete
+                  whenScaled: Delete
+                description: PersistentVolumeClaimRetentionPolicy specifies the policy
+                  for retaining PVCs created from StatefulSet VolumeClaimTemplates.
+                properties:
+                  whenDeleted:
+                    description: |-
+                      WhenDeleted specifies what happens to PVCs created from StatefulSet
+                      VolumeClaimTemplates when the StatefulSet is deleted.
+                      The RetainPersistentVolumeClaimRetentionPolicyType policy causes PVCs to not be affected by StatefulSet deletion.
+                      The DeletePersistentVolumeClaimRetentionPolicyType policy causes those PVCs to be deleted.
+                    enum:
+                    - Retain
+                    - Delete
+                    type: string
+                  whenScaled:
+                    description: |-
+                      WhenScaled specifies what happens to PVCs created from StatefulSet
+                      VolumeClaimTemplates when the StatefulSet is scaled down.
+                      The RetainPersistentVolumeClaimRetentionPolicyType policy causes PVCs to not be affected by StatefulSet deletion.
+                      The DeletePersistentVolumeClaimRetentionPolicyType policy causes the associated PVCs for any excess pods above
+                      the replica count to be deleted.
+                    enum:
+                    - Retain
+                    - Delete
+                    type: string
+                type: object
               podDisruptionBudgetConfig:
                 default:
                   enable: true
@@ -5399,6 +5435,28 @@ spec:
                   If not specified, the operator assumes the latest upstream version of
                   Thanos available at the time when the version of the operator was released.
                 type: string
+              verticalCompactionConfig:
+                description: |-
+                  VerticalCompaction configures vertical compaction for deduplicating samples across replica labels.
+                  This is an experimental feature.
+                properties:
+                  deduplicationFunc:
+                    description: DeduplicationFunc specifies the deduplication algorithm
+                      to use.
+                    enum:
+                    - ""
+                    - penalty
+                    type: string
+                  replicaLabels:
+                    description: |-
+                      ReplicaLabels is a list of labels to treat as replica labels for deduplication.
+                      These labels will be ignored when merging blocks during vertical compaction.
+                      Commonly set to "replica" for Prometheus HA setups.
+                      When set, vertical compaction will be automatically enabled.
+                    items:
+                      type: string
+                    type: array
+                type: object
             required:
             - objectStorageConfig
             - retentionConfig

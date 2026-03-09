@@ -17,7 +17,7 @@ require (
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.88.0
 	github.com/prometheus/prometheus v1.8.2-0.20220211202545-56e14463bccf
 	github.com/pyrra-dev/pyrra v0.7.2
-	github.com/thanos-community/thanos-operator v0.0.0-20260303102603-039f2a4d4c74
+	github.com/thanos-community/thanos-operator v0.0.0-20260306153124-b87d04ca1083
 	github.com/thanos-io/objstore v0.0.0-20241111205755-d1dd89d41f97
 	github.com/thanos-io/thanos v0.39.2
 	gopkg.in/yaml.v2 v2.4.0
