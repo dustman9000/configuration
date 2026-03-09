@@ -22,7 +22,7 @@ spec:
     matchLabels:
       app.kubernetes.io/part-of: thanos
       operator.thanos.io/query-api: "true"
-  replicas: 1
+  replicas: 2
   resourceRequirements:
     limits:
       memory: 5Gi
