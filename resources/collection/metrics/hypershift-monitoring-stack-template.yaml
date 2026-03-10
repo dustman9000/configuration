@@ -153,7 +153,6 @@ objects:
                       hypershift_cluster_limited_support_enabled;.*|\
                       hypershift_operator_info;.*|\
                       hypershift_cluster_size_override_instances;.*|\
-                      ALERTS;.*|\
                       capi_machine_info;.*|\
                       hypershift_nodepool_state_info;.*|\
                       sre:nodepool:invalid_payload_nodepool_provision_failure;.*|\
