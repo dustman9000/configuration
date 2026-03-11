@@ -32,12 +32,14 @@ spec:
       containers:
       - args:
         - --leader-elect
+        - --log.format=logfmt
+        - --log.level=debug
         - --enable-feature=prometheus-rule
         - --metrics-bind-address=:8080
         - --health-probe-bind-address=:8081
         command:
         - /manager
-        image: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos-operator:69dc892b5fb234443584042a70eb5235567d7f8f
+        image: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos-operator:d108e5fa73d945fe3f4ac4a50da9aa93152134bd
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
