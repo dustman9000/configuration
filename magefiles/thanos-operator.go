@@ -31,7 +31,7 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 	for i, container := range deployment.Spec.Template.Spec.Containers {
 		if container.Name == "manager" {
 			deployment.Spec.Template.Spec.Containers[i].Resources = clusters.TemplateFn(clusters.Manager, m.ResourceRequirements)
-			
+
 			// Add HTTP metrics and health probe addresses
 			deployment.Spec.Template.Spec.Containers[i].Args = append(
 				deployment.Spec.Template.Spec.Containers[i].Args,
