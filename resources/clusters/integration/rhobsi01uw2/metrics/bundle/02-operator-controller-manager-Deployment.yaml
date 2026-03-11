@@ -32,14 +32,19 @@ spec:
       containers:
       - args:
         - --leader-elect
-        - --enable-feature=prometheus-rule
-        - --metrics-bind-address=:8080
+        - --metrics-secure
+        - --metrics-bind-address=:8443
         - --health-probe-bind-address=:8081
         - --log.format=logfmt
         - --log.level=debug
+        - --enable-feature=prometheus-rule
+        - --metrics-cert-path=/etc/tls/private
+        - --metrics-cert-name=tls.crt
+        - --metrics-cert-key=tls.key
+        - --metrics-client-ca-file=/etc/service-ca/service-ca.crt
         command:
         - /manager
-        image: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos-operator:69dc892b5fb234443584042a70eb5235567d7f8f
+        image: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos-operator:d108e5fa73d945fe3f4ac4a50da9aa93152134bd
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
@@ -52,6 +57,10 @@ spec:
           successThreshold: 1
           timeoutSeconds: 1
         name: manager
+        ports:
+        - containerPort: 8443
+          name: https
+          protocol: TCP
         readinessProbe:
           failureThreshold: 3
           httpGet:
@@ -74,42 +83,12 @@ spec:
           capabilities:
             drop:
             - ALL
-      - args:
-        - --secure-listen-address=0.0.0.0:8443
-        - --upstream=http://127.0.0.1:8080/
-        - --v=4
-        - --tls-cert-file=/etc/tls/private/tls.crt
-        - --tls-private-key-file=/etc/tls/private/tls.key
-        - --client-ca-file=/etc/service-ca/service-ca.crt
-        - --config-file=/etc/config/config.yaml
-        image: registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:98455d503b797b6b02edcfd37045c8fab0796b95ee5cf4cfe73b221a07e805f0
-        imagePullPolicy: IfNotPresent
-        name: kube-rbac-proxy
-        ports:
-        - containerPort: 8443
-          name: https
-          protocol: TCP
-        resources:
-          limits:
-            cpu: 50m
-            memory: 64Mi
-          requests:
-            cpu: 25m
-            memory: 32Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
         volumeMounts:
         - mountPath: /etc/tls/private
           name: tls
           readOnly: true
         - mountPath: /etc/service-ca
           name: service-ca
-          readOnly: true
-        - mountPath: /etc/config
-          name: config
           readOnly: true
       securityContext:
         runAsNonRoot: true
