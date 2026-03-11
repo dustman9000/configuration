@@ -37,6 +37,30 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 				},
 			},
 		},
+		{
+			Name: "service-ca",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: "openshift-service-ca.crt",
+					},
+					DefaultMode: ptr.To(int32(420)),
+					Optional:    ptr.To(false),
+				},
+			},
+		},
+		{
+			Name: "config",
+			VolumeSource: corev1.VolumeSource{
+				ConfigMap: &corev1.ConfigMapVolumeSource{
+					LocalObjectReference: corev1.LocalObjectReference{
+						Name: "thanos-operator-rbac-config",
+					},
+					DefaultMode: ptr.To(int32(420)),
+					Optional:    ptr.To(false),
+				},
+			},
+		},
 	}
 
 	for i, container := range deployment.Spec.Template.Spec.Containers {
@@ -48,12 +72,18 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 					MountPath: "/etc/tls/private",
 					ReadOnly:  true,
 				},
+				{
+					Name:      "service-ca",
+					MountPath: "/etc/service-ca",
+					ReadOnly:  true,
+				},
 			}
 
 			deployment.Spec.Template.Spec.Containers[i].Args = append(deployment.Spec.Template.Spec.Containers[i].Args,
 				"--metrics-cert-path=/etc/tls/private",
 				"--metrics-cert-name=tls.crt",
 				"--metrics-cert-key=tls.key",
+				"--metrics-client-ca-file=/etc/service-ca/service-ca.crt",
 			)
 
 			// deployment.Spec.Template.Spec.Containers[i].Env = []corev1.EnvVar{
