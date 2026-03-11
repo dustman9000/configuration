@@ -35,8 +35,6 @@ spec:
         - --enable-feature=prometheus-rule
         - --metrics-bind-address=:8080
         - --health-probe-bind-address=:8081
-        - --log.format=logfmt
-        - --log.level=debug
         command:
         - /manager
         image: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos-operator:69dc892b5fb234443584042a70eb5235567d7f8f
@@ -52,6 +50,10 @@ spec:
           successThreshold: 1
           timeoutSeconds: 1
         name: manager
+        ports:
+        - containerPort: 8080
+          name: http-metrics
+          protocol: TCP
         readinessProbe:
           failureThreshold: 3
           httpGet:
@@ -74,61 +76,8 @@ spec:
           capabilities:
             drop:
             - ALL
-      - args:
-        - --secure-listen-address=0.0.0.0:8443
-        - --upstream=http://127.0.0.1:8080/
-        - --v=4
-        - --tls-cert-file=/etc/tls/private/tls.crt
-        - --tls-private-key-file=/etc/tls/private/tls.key
-        - --client-ca-file=/etc/service-ca/service-ca.crt
-        - --config-file=/etc/config/config.yaml
-        image: registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:98455d503b797b6b02edcfd37045c8fab0796b95ee5cf4cfe73b221a07e805f0
-        imagePullPolicy: IfNotPresent
-        name: kube-rbac-proxy
-        ports:
-        - containerPort: 8443
-          name: https
-          protocol: TCP
-        resources:
-          limits:
-            cpu: 50m
-            memory: 64Mi
-          requests:
-            cpu: 25m
-            memory: 32Mi
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-        volumeMounts:
-        - mountPath: /etc/tls/private
-          name: tls
-          readOnly: true
-        - mountPath: /etc/service-ca
-          name: service-ca
-          readOnly: true
-        - mountPath: /etc/config
-          name: config
-          readOnly: true
       securityContext:
         runAsNonRoot: true
       serviceAccountName: thanos-operator-controller-manager
       terminationGracePeriodSeconds: 10
-      volumes:
-      - name: tls
-        secret:
-          defaultMode: 420
-          optional: false
-          secretName: kube-rbac-proxy-tls
-      - configMap:
-          defaultMode: 420
-          name: openshift-service-ca.crt
-          optional: false
-        name: service-ca
-      - configMap:
-          defaultMode: 420
-          name: thanos-operator-rbac-config
-          optional: false
-        name: config
 status: {}

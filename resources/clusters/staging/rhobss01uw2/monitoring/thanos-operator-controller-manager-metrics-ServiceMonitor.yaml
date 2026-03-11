@@ -13,13 +13,8 @@ metadata:
   namespace: openshift-customer-monitoring
 spec:
   endpoints:
-  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-    port: https
-    scheme: https
-    tlsConfig:
-      ca: {}
-      cert: {}
-      insecureSkipVerify: true
+  - port: http-metrics
+    scheme: http
   namespaceSelector:
     matchNames:
     - rhobs-stage
