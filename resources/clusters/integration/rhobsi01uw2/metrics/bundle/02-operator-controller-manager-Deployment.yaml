@@ -41,7 +41,6 @@ spec:
         - --metrics-cert-path=/etc/tls/private
         - --metrics-cert-name=tls.crt
         - --metrics-cert-key=tls.key
-        - --metrics-client-ca-file=/etc/service-ca/service-ca.crt
         command:
         - /manager
         image: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos-operator:d108e5fa73d945fe3f4ac4a50da9aa93152134bd
@@ -87,9 +86,6 @@ spec:
         - mountPath: /etc/tls/private
           name: tls
           readOnly: true
-        - mountPath: /etc/service-ca
-          name: service-ca
-          readOnly: true
       securityContext:
         runAsNonRoot: true
       serviceAccountName: thanos-operator-controller-manager
@@ -100,14 +96,4 @@ spec:
           defaultMode: 420
           optional: false
           secretName: kube-rbac-proxy-tls
-      - configMap:
-          defaultMode: 420
-          name: openshift-service-ca.crt
-          optional: false
-        name: service-ca
-      - configMap:
-          defaultMode: 420
-          name: thanos-operator-rbac-config
-          optional: false
-        name: config
 status: {}
