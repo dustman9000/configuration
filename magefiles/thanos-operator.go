@@ -36,8 +36,8 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 			var newArgs []string
 			for _, arg := range args {
 				// Skip the HTTPS metrics arguments
-				if arg == "--metrics-secure" || 
-				   arg == "--metrics-bind-address=:8443" {
+				if arg == "--metrics-secure" ||
+					arg == "--metrics-bind-address=:8443" {
 					continue
 				}
 				// Replace health probe address to avoid duplicates
@@ -47,7 +47,7 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 				newArgs = append(newArgs, arg)
 			}
 			// Add HTTP metrics and health probe addresses
-			newArgs = append(newArgs, 
+			newArgs = append(newArgs,
 				"--metrics-bind-address=:8080",
 				"--health-probe-bind-address=:8081",
 			)
