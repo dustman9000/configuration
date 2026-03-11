@@ -26,43 +26,7 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 	config.SetGlobalManagerImage(clusters.TemplateFn(clusters.ThanosOperator, m.Images))
 	config.SetGlobalAuthProxyImage(clusters.TemplateFn(clusters.KubeRbacProxy, m.Images))
 
-	deployment := config.ControllerManagerDeployment(config.WithAuthProxy(), config.WithPrometheusRule())
-	deployment.Spec.Template.Spec.Volumes = []corev1.Volume{
-		{
-			Name: "tls",
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName:  "kube-rbac-proxy-tls",
-					DefaultMode: ptr.To(int32(420)),
-					Optional:    ptr.To(false),
-				},
-			},
-		},
-		{
-			Name: "service-ca",
-			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: "openshift-service-ca.crt",
-					},
-					DefaultMode: ptr.To(int32(420)),
-					Optional:    ptr.To(false),
-				},
-			},
-		},
-		{
-			Name: "config",
-			VolumeSource: corev1.VolumeSource{
-				ConfigMap: &corev1.ConfigMapVolumeSource{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: "thanos-operator-rbac-config",
-					},
-					DefaultMode: ptr.To(int32(420)),
-					Optional:    ptr.To(false),
-				},
-			},
-		},
-	}
+	deployment := config.ControllerManagerDeployment(config.WithPrometheusRule())
 
 	for i, container := range deployment.Spec.Template.Spec.Containers {
 		if container.Name == "manager" {
@@ -74,35 +38,6 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 			// 		Value: clusters.TemplateFn(clusters.ConfigReloader, m.Images),
 			// 	},
 			// }
-		}
-		if container.Name == "kube-rbac-proxy" {
-			deployment.Spec.Template.Spec.Containers[i].VolumeMounts = []corev1.VolumeMount{
-				{
-					Name:      "tls",
-					MountPath: "/etc/tls/private",
-					ReadOnly:  true,
-				},
-				{
-					Name:      "service-ca",
-					MountPath: "/etc/service-ca",
-					ReadOnly:  true,
-				},
-				{
-					Name:      "config",
-					MountPath: "/etc/config",
-					ReadOnly:  true,
-				},
-			}
-			deployment.Spec.Template.Spec.Containers[i].Resources = clusters.TemplateFn(clusters.KubeRbacProxy, m.ResourceRequirements)
-			deployment.Spec.Template.Spec.Containers[i].Args = []string{
-				"--secure-listen-address=0.0.0.0:8443",
-				"--upstream=http://127.0.0.1:8080/",
-				"--v=4",
-				"--tls-cert-file=/etc/tls/private/tls.crt",
-				"--tls-private-key-file=/etc/tls/private/tls.key",
-				"--client-ca-file=/etc/service-ca/service-ca.crt",
-				"--config-file=/etc/config/config.yaml",
-			}
 		}
 	}
 
@@ -128,13 +63,8 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 		managerRole,
 		config.ManagerServiceAccount(),
 		config.LeaderElectionRole(),
-		config.AuthProxyClusterRole(),
 		config.LeaderElectionRoleBinding(),
 		config.ManagerClusterRoleBinding(),
-		config.AuthProxyClusterRoleBinding(),
-	}
-	for _, cm := range operatorServingCertConfigMaps(namespace) {
-		objs = append(objs, cm)
 	}
 
 	for _, crd := range config.CRDList {
@@ -146,64 +76,9 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 		objs = append(objs, editor)
 	}
 
-	metricsReader := config.AuthProxyClientClusterRole()
-	metricsReader.Labels["rbac.authorization.k8s.io/aggregate-to-view"] = "true"
-	objs = append(objs, metricsReader)
-
-	service := config.AuthProxyService()
-	service.Annotations = map[string]string{
-		"service.beta.openshift.io/serving-cert-secret-name": "kube-rbac-proxy-tls",
-	}
+	service := config.ManagerService()
 	objs = append(objs, service)
 
 	return objs, nil
 }
 
-func operatorServingCertConfigMaps(namespace string) []*corev1.ConfigMap {
-	labels := map[string]string{
-		"app.kubernetes.io/component":  "manager",
-		"app.kubernetes.io/created-by": "thanos-operator",
-		"app.kubernetes.io/instance":   "controller-manager",
-		"app.kubernetes.io/managed-by": "rhobs",
-		"app.kubernetes.io/name":       "configmap",
-		"app.kubernetes.io/part-of":    "thanos-operator",
-	}
-
-	serviceCert := &corev1.ConfigMap{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "ConfigMap",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "thanos-operator-serving-cert",
-			Namespace: namespace,
-			Labels:    labels,
-			Annotations: map[string]string{
-				"service.beta.openshift.io/inject-cabundle": "true",
-			},
-		},
-		Data: map[string]string{},
-	}
-
-	rbacConfig := &corev1.ConfigMap{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "ConfigMap",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "thanos-operator-rbac-config",
-			Namespace: namespace,
-			Labels:    labels,
-		},
-		Data: map[string]string{
-			"config.yaml": `"authorization":
-  "static":
-  - "path": "/metrics"
-    "resourceRequest": false
-    "user":
-      "name": "system:serviceaccount:openshift-customer-monitoring:prometheus-k8s"
-    "verb": "get"`,
-		},
-	}
-	return []*corev1.ConfigMap{serviceCert, rbacConfig}
-}
