@@ -4,7 +4,6 @@ import (
 	"github.com/thanos-community/thanos-operator/config"
 	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
 	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/ptr"
@@ -92,7 +91,6 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 		config.LeaderElectionRoleBinding(),
 		config.ManagerClusterRoleBinding(),
 		config.MetricsAuthClusterRoleBinding(),
-		operatorPrometheusClusterRoleBinding(),
 	}
 	for _, cm := range operatorServingCertConfigMaps(namespace) {
 		objs = append(objs, cm)
@@ -167,32 +165,4 @@ func operatorServingCertConfigMaps(namespace string) []*corev1.ConfigMap {
 		},
 	}
 	return []*corev1.ConfigMap{serviceCert, rbacConfig}
-}
-
-func operatorPrometheusClusterRoleBinding() *rbacv1.ClusterRoleBinding {
-	return &rbacv1.ClusterRoleBinding{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "rbac.authorization.k8s.io/v1",
-			Kind:       "ClusterRoleBinding",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "thanos-operator-prometheus-rolebinding",
-			Labels: map[string]string{
-				"app.kubernetes.io/component":  "metrics-reader",
-				"app.kubernetes.io/created-by": "thanos-operator",
-				"app.kubernetes.io/instance":   "controller-manager",
-				"app.kubernetes.io/managed-by": "rhobs",
-				"app.kubernetes.io/name":       "clusterrolebinding",
-				"app.kubernetes.io/part-of":    "thanos-operator",
-			},
-		},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "ClusterRole",
-			Name:     "thanos-operator-metrics-reader",
-		},
-		Subjects: []rbacv1.Subject{
-			{Kind: "ServiceAccount", Name: "prometheus-k8s", Namespace: "openshift-customer-monitoring"},
-		},
-	}
 }
