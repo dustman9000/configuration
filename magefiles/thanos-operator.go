@@ -6,7 +6,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/ptr"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 const (
@@ -31,6 +31,22 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 	for i, container := range deployment.Spec.Template.Spec.Containers {
 		if container.Name == "manager" {
 			deployment.Spec.Template.Spec.Containers[i].Resources = clusters.TemplateFn(clusters.Manager, m.ResourceRequirements)
+			
+			// Add HTTP metrics and health probe addresses
+			deployment.Spec.Template.Spec.Containers[i].Args = append(
+				deployment.Spec.Template.Spec.Containers[i].Args,
+				"--metrics-bind-address=:8080",
+				"--health-probe-bind-address=:8081",
+			)
+
+			// Add HTTP metrics port
+			deployment.Spec.Template.Spec.Containers[i].Ports = []corev1.ContainerPort{
+				{
+					Name:          "http-metrics",
+					ContainerPort: 8080,
+					Protocol:      corev1.ProtocolTCP,
+				},
+			}
 
 			// deployment.Spec.Template.Spec.Containers[i].Env = []corev1.EnvVar{
 			// 	{
@@ -76,9 +92,40 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 		objs = append(objs, editor)
 	}
 
-	service := config.ManagerService()
+	service := &corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "thanos-operator-controller-manager-metrics-service",
+			Namespace: namespace,
+			Labels: map[string]string{
+				"app.kubernetes.io/component":  "metrics",
+				"app.kubernetes.io/created-by": "thanos-operator",
+				"app.kubernetes.io/instance":   "controller-manager-metrics-service",
+				"app.kubernetes.io/managed-by": "rhobs",
+				"app.kubernetes.io/name":       "service",
+				"app.kubernetes.io/part-of":    "thanos-operator",
+				"control-plane":                "controller-manager",
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Name:       "http-metrics",
+					Port:       8080,
+					Protocol:   corev1.ProtocolTCP,
+					TargetPort: intstr.FromString("http-metrics"),
+				},
+			},
+			Selector: map[string]string{
+				"control-plane": "controller-manager",
+			},
+		},
+	}
+
 	objs = append(objs, service)
 
 	return objs, nil
 }
-

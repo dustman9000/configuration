@@ -49,18 +49,8 @@ func thanosOperatorServiceMonitor(namespace string) []runtime.Object {
 			Spec: monitoringv1.ServiceMonitorSpec{
 				Endpoints: []monitoringv1.Endpoint{
 					{
-						BearerTokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token",
-						Port:            "https",
-						Scheme:          ptr.To(monitoringv1.Scheme("https")),
-						HTTPConfigWithProxyAndTLSFiles: monitoringv1.HTTPConfigWithProxyAndTLSFiles{
-							HTTPConfigWithTLSFiles: monitoringv1.HTTPConfigWithTLSFiles{
-								TLSConfig: &monitoringv1.TLSConfig{
-									SafeTLSConfig: monitoringv1.SafeTLSConfig{
-										InsecureSkipVerify: ptr.To(true),
-									},
-								},
-							},
-						},
+						Port:   "http-metrics",
+						Scheme: ptr.To(monitoringv1.Scheme("http")),
 					},
 				},
 				Selector: metav1.LabelSelector{
