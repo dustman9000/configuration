@@ -62,12 +62,13 @@ func operatorResources(namespace string, m clusters.TemplateMaps) ([]runtime.Obj
 				},
 			}
 
-			// deployment.Spec.Template.Spec.Containers[i].Env = []corev1.EnvVar{
-			// 	{
-			// 		Name:  "CONFIG_RELOADER_IMAGE",
-			// 		Value: clusters.TemplateFn(clusters.ConfigReloader, m.Images),
-			// 	},
-			// }
+			// Add CONFIG_RELOADER_IMAGE environment variable
+			deployment.Spec.Template.Spec.Containers[i].Env = []corev1.EnvVar{
+				{
+					Name:  "CONFIG_RELOADER_IMAGE",
+					Value: clusters.TemplateFn(clusters.ConfigReloader, m.Images),
+				},
+			}
 		}
 	}
 
