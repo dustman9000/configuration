@@ -112,18 +112,18 @@ objects:
           rules:
             - alert: CertManagerCertExpirySoon
               annotations:
-                description: Kubernetes API TLS certificate for Hosted Control Plane is expiring soon. The HCP API endpoint will become unavailable after {{ $value | humanizeDuration }}.
+                description: TLS certificate {{ $labels.name }} in namespace {{ $labels.exported_namespace }} on {{ $labels.mc_name }} is expiring soon. The endpoint will become unavailable after {{ $value | humanizeDuration }}.
                 runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/cert-manager/CertManagerCertExpirySoon.md
                 summary: The cert {{ $labels.name }} is {{ $value | humanizeDuration }} from expiry.
               expr: |
                 (
-                  avg by (exported_namespace, namespace, name, _id) (
+                  avg by (exported_namespace, namespace, name, _id, mc_name, _mc_id, sector, region) (
                     certmanager_certificate_expiration_timestamp_seconds - time()
                   ) < (21 * 24 * 3600)
                 )
                 and
                 (
-                  avg by (exported_namespace, namespace, name, _id) (
+                  avg by (exported_namespace, namespace, name, _id, mc_name, _mc_id, sector, region) (
                     certmanager_certificate_expiration_timestamp_seconds - time()
                   ) > 0
                 )
@@ -133,11 +133,11 @@ objects:
                 otel_collect: "true"
             - alert: CertManagerCertNotReady
               annotations:
-                description: Kubernetes API TLS certificate for Hosted Control Plane has not been ready for at least 10 minutes. This may indicate Let's Encrypt issuance issues or DNS-01 challenge failures.
+                description: TLS certificate {{ $labels.name }} in namespace {{ $labels.exported_namespace }} on {{ $labels.mc_name }} has not been ready for at least 10 minutes. This may indicate Let's Encrypt issuance issues or DNS-01 challenge failures.
                 runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/cert-manager/CertManagerCertNotReady.md
                 summary: The cert {{ $labels.name }} is not ready to serve traffic.
               expr: |
-                max by (name, exported_namespace, namespace, condition, _id) (
+                max by (name, exported_namespace, namespace, condition, _id, mc_name, _mc_id, sector, region) (
                   certmanager_certificate_ready_status{condition!="True"} == 1
                 )
               for: 10m
