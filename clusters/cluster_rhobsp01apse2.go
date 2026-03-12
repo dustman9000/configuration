@@ -69,5 +69,20 @@ func rhobsp01apse2BuildSteps() []string {
 
 // rhobsp01apse2TemplateMaps returns template mappings specific to the rhobsp01apse2 production cluster
 func rhobsp01apse2TemplateMaps() TemplateMaps {
-	return DefaultBaseTemplate().Override()
+
+	lokiOverrides := LokiOverridesMap{
+		LokiConfig: LokiOverrides{
+			LokiLimitOverrides: LokiLimitOverrides{
+				IngestionRateLimitMB: 20,
+				PerStreamRateLimitMB: 15,
+				PerStreamBurstSizeMB: 30,
+				QueryTimeout:         "5m",
+			},
+			Ingest: LokiComponentSpec{
+				Replicas: 3,
+			},
+		},
+	}
+
+	return DefaultBaseTemplate().Override(lokiOverrides)
 }
