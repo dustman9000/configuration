@@ -39,6 +39,9 @@ spec:
         - --health-probe-bind-address=:8081
         command:
         - /manager
+        env:
+        - name: CONFIG_RELOADER_IMAGE
+          value: cluster-observability-operator/obo-prometheus-operator-prometheus-config-reloader-rhel9:1.3.1-1770824050
         image: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos-operator:d108e5fa73d945fe3f4ac4a50da9aa93152134bd
         imagePullPolicy: IfNotPresent
         livenessProbe:
