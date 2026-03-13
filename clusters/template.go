@@ -347,7 +347,7 @@ const (
 
 const (
 	// Use the config reloader image coming from the Cluster Observability Operator.
-	ConfigReloaderImage = "cluster-observability-operator/obo-prometheus-operator-prometheus-config-reloader-rhel9:1.3.1-1770824050"
+	ConfigReloaderImage = "registry.redhat.io/cluster-observability-operator/obo-prometheus-operator-prometheus-config-reloader-rhel9:1.3.1-1770824050"
 )
 
 // Template key constants - exportable template parameter names
