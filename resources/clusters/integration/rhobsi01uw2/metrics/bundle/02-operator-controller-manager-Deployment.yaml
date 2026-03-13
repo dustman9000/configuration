@@ -41,7 +41,7 @@ spec:
         - /manager
         env:
         - name: CONFIG_RELOADER_IMAGE
-          value: cluster-observability-operator/obo-prometheus-operator-prometheus-config-reloader-rhel9:1.3.1-1770824050
+          value: registry.redhat.io/cluster-observability-operator/obo-prometheus-operator-prometheus-config-reloader-rhel9:1.3.1-1770824050
         image: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos-operator:11a20f8c7d9e4f84784ab01709561f17e405b88a
         imagePullPolicy: IfNotPresent
         livenessProbe:
