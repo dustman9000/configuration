@@ -209,6 +209,10 @@ objects:
                     sourceLabels:
                       - source
                     targetLabel: source
+                  # Label SLO Metrics Uniquely to avoid conflicts
+                  - action: Replace
+                    replacement: "true"
+                    targetLabel: is_global
                   # Drop all temporary labels.
                   - action: LabelDrop
                     regex: "__tmp.*"
