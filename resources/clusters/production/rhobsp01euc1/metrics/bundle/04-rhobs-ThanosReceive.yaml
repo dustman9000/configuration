@@ -24,6 +24,7 @@ spec:
       baseImage: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos
       externalLabels:
         replica: $(POD_NAME)
+      hashingAlgorithm: hashmod
       imagePullPolicy: IfNotPresent
       logFormat: logfmt
       logLevel: info

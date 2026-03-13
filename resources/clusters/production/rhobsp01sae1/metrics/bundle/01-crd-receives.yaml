@@ -4820,6 +4820,14 @@ spec:
                           - none
                           - snappy
                           type: string
+                        hashingAlgorithm:
+                          default: ketama
+                          description: HashingAlgorithm defines the hashing algorithm
+                            to use for the hashring.
+                          enum:
+                          - ketama
+                          - hashmod
+                          type: string
                         imagePullPolicy:
                           default: IfNotPresent
                           description: |-
@@ -10622,6 +10630,11 @@ spec:
                 - replicas
                 - replicationFactor
                 type: object
+              terminationGracePeriodSeconds:
+                description: TerminationGracePeriodSeconds is the duration in seconds
+                  the pod is allowed to terminate gracefully after SIGTERM.
+                format: int64
+                type: integer
             required:
             - ingesterSpec
             - routerSpec
