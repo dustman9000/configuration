@@ -455,6 +455,7 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 						StorageConfiguration: v1alpha1.StorageConfiguration{
 							Size: clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.StorageSize),
 						},
+						HashingAlgorithm: ptr.To("hashmod"),
 					},
 				},
 			},
