@@ -67,6 +67,7 @@ objects:
                         or
                         label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")),
                     "_id_or_ns", "", "_id_or_ns", ".*")
+              keep_firing_for: 15m
               labels:
                 long_window: 1h
                 namespace: openshift-route-monitor-operator
@@ -93,6 +94,7 @@ objects:
                         or
                         label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")),
                     "_id_or_ns", "", "_id_or_ns", ".*")
+              keep_firing_for: 15m
               labels:
                 long_window: 6h
                 namespace: openshift-route-monitor-operator
@@ -187,6 +189,7 @@ objects:
                         # Do not fire if the cluster is uninstalling.
                         label_replace(hypershift_cluster_deleting_duration_seconds, "_id_or_ns", "$0", "_id", ".*")),
                     "_id_or_ns", "", "_id_or_ns", ".*")
+              keep_firing_for: 15m
               labels:
                 namespace: openshift-route-monitor-operator
                 severity: critical
