@@ -227,3 +227,16 @@ objects:
                 summary: "Synthetics Agent metrics are absent"
                 description: "No metrics are being received from the synthetics-agent. The service may be completely down or its metrics endpoint may be unreachable."
                 runbook_url: "https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAgentMetricsAbsent.md"
+            - alert: SyntheticsProbeMetricsAbsent
+              expr: |
+                (absent(probe_success) == 1)
+                unless
+                (absent_over_time(probe_success[1h]) == 1)
+              for: 15m
+              labels:
+                severity: critical
+                service: rhobs-synthetics
+              annotations:
+                summary: "Synthetics probe metrics are absent"
+                description: "No probe_success metrics have been received for 15 minutes, but they were present within the last hour. The synthetics-agent Prometheus may be crashlooping (OOMKilled) or unable to remote-write."
+                runbook_url: "https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsProbeMetricsAbsent.md"
