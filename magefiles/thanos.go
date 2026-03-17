@@ -340,6 +340,129 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
   }
 }`
 
+	hashrings := []v1alpha1.IngesterHashringSpec{
+		{
+			Name: "active-default",
+			CommonFields: v1alpha1.CommonFields{
+				Image:                ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Images)),
+				Version:              ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Versions)),
+				ImagePullPolicy:      ptr.To(corev1.PullIfNotPresent),
+				LogLevel:             ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.LogLevels)),
+				LogFormat:            ptr.To("logfmt"),
+				ResourceRequirements: ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorActiveDefault, templates.ResourceRequirements)),
+				SecurityContext: &corev1.PodSecurityContext{
+					SeccompProfile: &corev1.SeccompProfile{
+						Type: corev1.SeccompProfileTypeRuntimeDefault,
+					},
+				},
+				Affinity: &corev1.Affinity{
+					PodAntiAffinity: &corev1.PodAntiAffinity{
+						PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
+							{
+								Weight: 100,
+								PodAffinityTerm: corev1.PodAffinityTerm{
+									TopologyKey: "kubernetes.io/hostname",
+									LabelSelector: &metav1.LabelSelector{
+										MatchLabels: map[string]string{
+											"app.kubernetes.io/component": "thanos-receive-ingester",
+											"app.kubernetes.io/instance":  "thanos-receive-ingester-rhobs-active-default",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ExternalLabels: map[string]string{
+				"replica": "$(POD_NAME)",
+			},
+			Replicas: clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Replicas),
+			TSDBConfig: v1alpha1.TSDBConfig{
+				Retention: v1alpha1.Duration("2h"),
+			},
+			AsyncForwardWorkerCount:  ptr.To(uint64(50)),
+			TooFarInFutureTimeWindow: ptr.To(v1alpha1.Duration("5m")),
+			StoreLimitsOptions: &v1alpha1.StoreLimitsOptions{
+				StoreLimitsRequestSamples: 0,
+				StoreLimitsRequestSeries:  0,
+			},
+			TenancyConfig: &v1alpha1.TenancyConfig{
+				TenantMatcherType: "exact",
+				DefaultTenantID:   "EFD08939-FE1D-41A1-A28A-BE9A9BC68003",
+				TenantHeader:      "THANOS-TENANT",
+				TenantLabelName:   "tenant_id",
+			},
+			ObjectStorageConfig: ptr.To(clusters.TemplateFn(clusters.DefaultBucket, templates.ObjectStorageBucket)),
+			StorageConfiguration: v1alpha1.StorageConfiguration{
+				Size: clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.StorageSize),
+			},
+			HashingAlgorithm: ptr.To("ketama"),
+		},
+		{
+			Name: "default",
+			CommonFields: v1alpha1.CommonFields{
+				Image:                ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Images)),
+				Version:              ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Versions)),
+				ImagePullPolicy:      ptr.To(corev1.PullIfNotPresent),
+				LogLevel:             ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.LogLevels)),
+				LogFormat:            ptr.To("logfmt"),
+				ResourceRequirements: ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.ResourceRequirements)),
+				SecurityContext: &corev1.PodSecurityContext{
+					SeccompProfile: &corev1.SeccompProfile{
+						Type: corev1.SeccompProfileTypeRuntimeDefault,
+					},
+				},
+				Affinity: &corev1.Affinity{
+					PodAntiAffinity: &corev1.PodAntiAffinity{
+						PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
+							{
+								Weight: 100,
+								PodAffinityTerm: corev1.PodAffinityTerm{
+									TopologyKey: "kubernetes.io/hostname",
+									LabelSelector: &metav1.LabelSelector{
+										MatchLabels: map[string]string{
+											"app.kubernetes.io/component": "thanos-receive-ingester",
+											"app.kubernetes.io/instance":  "thanos-receive-ingester-rhobs-default",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			ExternalLabels: map[string]string{
+				"replica": "$(POD_NAME)",
+			},
+			Replicas: clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Replicas),
+			TSDBConfig: v1alpha1.TSDBConfig{
+				Retention: v1alpha1.Duration("2h"),
+			},
+			AsyncForwardWorkerCount:  ptr.To(uint64(50)),
+			TooFarInFutureTimeWindow: ptr.To(v1alpha1.Duration("5m")),
+			StoreLimitsOptions: &v1alpha1.StoreLimitsOptions{
+				StoreLimitsRequestSamples: 0,
+				StoreLimitsRequestSeries:  0,
+			},
+			TenancyConfig: &v1alpha1.TenancyConfig{
+				TenantMatcherType: "exact",
+				DefaultTenantID:   "FB870BF3-9F3A-44FF-9BF7-D7A047A52F43",
+				TenantHeader:      "THANOS-TENANT",
+				TenantLabelName:   "tenant_id",
+			},
+			ObjectStorageConfig: ptr.To(clusters.TemplateFn(clusters.DefaultBucket, templates.ObjectStorageBucket)),
+			StorageConfiguration: v1alpha1.StorageConfiguration{
+				Size: clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.StorageSize),
+			},
+			HashingAlgorithm: ptr.To("hashmod"),
+		},
+	}
+
+	if namespace != "rhobs-int" {
+		hashrings = hashrings[1:] // only "default", not "active-default"
+	}
+
 	return &v1alpha1.ThanosReceive{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "monitoring.thanos.io/v1alpha1",
@@ -398,66 +521,7 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 			Ingester: v1alpha1.IngesterSpec{
 				DefaultObjectStorageConfig: clusters.TemplateFn(clusters.DefaultBucket, templates.ObjectStorageBucket),
 				Additional:                 v1alpha1.Additional{},
-				Hashrings: []v1alpha1.IngesterHashringSpec{
-					{
-						Name: "default",
-						CommonFields: v1alpha1.CommonFields{
-							Image:                ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Images)),
-							Version:              ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Versions)),
-							ImagePullPolicy:      ptr.To(corev1.PullIfNotPresent),
-							LogLevel:             ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.LogLevels)),
-							LogFormat:            ptr.To("logfmt"),
-							ResourceRequirements: ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.ResourceRequirements)),
-							SecurityContext: &corev1.PodSecurityContext{
-								SeccompProfile: &corev1.SeccompProfile{
-									Type: corev1.SeccompProfileTypeRuntimeDefault,
-								},
-							},
-							Affinity: &corev1.Affinity{
-								PodAntiAffinity: &corev1.PodAntiAffinity{
-									PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
-										{
-											Weight: 100,
-											PodAffinityTerm: corev1.PodAffinityTerm{
-												TopologyKey: "kubernetes.io/hostname",
-												LabelSelector: &metav1.LabelSelector{
-													MatchLabels: map[string]string{
-														"app.kubernetes.io/component": "thanos-receive-ingester",
-														"app.kubernetes.io/instance":  "thanos-receive-ingester-rhobs-default",
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-						},
-						ExternalLabels: map[string]string{
-							"replica": "$(POD_NAME)",
-						},
-						Replicas: clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Replicas),
-						TSDBConfig: v1alpha1.TSDBConfig{
-							Retention: v1alpha1.Duration("2h"),
-						},
-						AsyncForwardWorkerCount:  ptr.To(uint64(50)),
-						TooFarInFutureTimeWindow: ptr.To(v1alpha1.Duration("5m")),
-						StoreLimitsOptions: &v1alpha1.StoreLimitsOptions{
-							StoreLimitsRequestSamples: 0,
-							StoreLimitsRequestSeries:  0,
-						},
-						TenancyConfig: &v1alpha1.TenancyConfig{
-							TenantMatcherType: "exact",
-							DefaultTenantID:   "FB870BF3-9F3A-44FF-9BF7-D7A047A52F43",
-							TenantHeader:      "THANOS-TENANT",
-							TenantLabelName:   "tenant_id",
-						},
-						ObjectStorageConfig: ptr.To(clusters.TemplateFn(clusters.DefaultBucket, templates.ObjectStorageBucket)),
-						StorageConfiguration: v1alpha1.StorageConfiguration{
-							Size: clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.StorageSize),
-						},
-						HashingAlgorithm: ptr.To("hashmod"),
-					},
-				},
+				Hashrings:                  hashrings,
 			},
 		},
 	}
