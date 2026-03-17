@@ -362,17 +362,18 @@ const (
 	SyntheticsAgent   = "SYNTHETICS_AGENT"
 
 	// Thanos component keys
-	ThanosOperator         = "THANOS_OPERATOR"
-	KubeRbacProxy          = "KUBE_RBAC_PROXY"
-	StoreDefault           = "STORE_DEFAULT"
-	ReceiveRouter          = "RECEIVE_ROUTER"
-	ReceiveIngestorDefault = "RECEIVE_INGESTOR_DEFAULT"
-	Ruler                  = "RULER"
-	CompactDefault         = "COMPACT_DEFAULT"
-	Query                  = "QUERY"
-	QueryFrontend          = "QUERY_FRONTEND"
-	Manager                = "MANAGER"
-	ConfigReloader         = "CONFIG_RELOADER"
+	ThanosOperator               = "THANOS_OPERATOR"
+	KubeRbacProxy                = "KUBE_RBAC_PROXY"
+	StoreDefault                 = "STORE_DEFAULT"
+	ReceiveRouter                = "RECEIVE_ROUTER"
+	ReceiveIngestorDefault       = "RECEIVE_INGESTOR_DEFAULT"
+	ReceiveIngestorActiveDefault = "RECEIVE_INGESTOR_ACTIVE_DEFAULT"
+	Ruler                        = "RULER"
+	CompactDefault               = "COMPACT_DEFAULT"
+	Query                        = "QUERY"
+	QueryFrontend                = "QUERY_FRONTEND"
+	Manager                      = "MANAGER"
+	ConfigReloader               = "CONFIG_RELOADER"
 
 	LokiConfig = "LOKI_CONFIG"
 
@@ -451,6 +452,12 @@ func DefaultBaseTemplate() TemplateMaps {
 				Requests: corev1.ResourceList{
 					corev1.ResourceCPU:    resource.MustParse("2"),
 					corev1.ResourceMemory: resource.MustParse("15Gi"),
+				},
+			},
+			ReceiveIngestorActiveDefault: {
+				Requests: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("4"),
+					corev1.ResourceMemory: resource.MustParse("40Gi"),
 				},
 			},
 			Ruler: {
