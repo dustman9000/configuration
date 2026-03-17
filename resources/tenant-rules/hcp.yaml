@@ -1411,3 +1411,14 @@ objects:
                 summary: Synthetics probe metrics are absent
                 description: No probe_success metrics have been received for 15 minutes, but they were present within the last hour. The synthetics-agent Prometheus may be crashlooping (OOMKilled) or unable to remote-write.
                 runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsProbeMetricsAbsent.md
+            - alert: SyntheticsProbeOrphanAccumulation
+              expr: |
+                count(probe_success) > 3 * count(group by(_id) (probe_success))
+              for: 1h
+              labels:
+                severity: warning
+                service: rhobs-synthetics
+              annotations:
+                summary: Synthetics probe targets exceed 3x unique HCP count
+                description: The total number of probe_success series ({{ $value }}) exceeds 3x the number of unique HCPs being probed. This indicates orphaned Probe CRs are accumulating, which will cause the synthetics Prometheus to OOMKill due to excessive memory consumption.
+                runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsProbeOrphanAccumulation.md
