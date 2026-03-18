@@ -53,49 +53,6 @@ spec:
       tsdbConfig:
         retention: 2h
       version: 0dcacf2a5108328d537dbcf59fcabc9b69f08a2b
-    - affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/component: thanos-receive-ingester
-                  app.kubernetes.io/instance: thanos-receive-ingester-rhobs-default
-              topologyKey: kubernetes.io/hostname
-            weight: 100
-      asyncForwardWorkerCount: 50
-      baseImage: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos
-      externalLabels:
-        replica: $(POD_NAME)
-      hashingAlgorithm: hashmod
-      imagePullPolicy: IfNotPresent
-      logFormat: logfmt
-      logLevel: info
-      name: default
-      objectStorageConfig:
-        key: thanos.yaml
-        name: default-thanos-bucket
-        optional: false
-      replicas: 6
-      resourceRequirements:
-        requests:
-          cpu: "4"
-          memory: 40Gi
-      securityContext:
-        seccompProfile:
-          type: RuntimeDefault
-      storage:
-        size: 50Gi
-      storeLimitsOptions: {}
-      tenancyConfig:
-        defaultTenantID: FB870BF3-9F3A-44FF-9BF7-D7A047A52F43
-        tenantHeader: THANOS-TENANT
-        tenantLabelName: tenant_id
-        tenantMatcherType: exact
-      tooFarInFutureTimeWindow: 5m
-      tsdbConfig:
-        retention: 2h
-      version: 0dcacf2a5108328d537dbcf59fcabc9b69f08a2b
   routerSpec:
     additionalArgs:
     - "--receive.grpc-service-config={\n  \"loadBalancingPolicy\":\"round_robin\",\n
