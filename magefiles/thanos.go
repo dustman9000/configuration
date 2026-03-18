@@ -485,6 +485,10 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 		hashrings = hashrings[0:1] // remove temp active-default hashring Step 7
 	}
 
+	if namespace != "rhobs-int" {
+		hashrings = hashrings[0:1] // remove old hashring Step 4
+	}
+
 	return &v1alpha1.ThanosReceive{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "monitoring.thanos.io/v1alpha1",
