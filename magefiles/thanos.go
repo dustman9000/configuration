@@ -459,10 +459,6 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 		},
 	}
 
-	if namespace != "rhobs-int" {
-		hashrings = hashrings[1:] // only "default", not "active-default" Step 4
-	}
-
 	if namespace == "rhobs-int" {
 		hashrings = hashrings[0:1]                  // remove old hashring Step 5
 		hashrings = append(hashrings, hashrings...) // add new default hashring with new config Step 6
