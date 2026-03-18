@@ -317,7 +317,7 @@ func defaultStoreCR(namespace string, templates clusters.TemplateMaps) runtime.O
 			},
 			IgnoreDeletionMarksDelay: v1alpha1.Duration("24h"),
 			TimeRangeConfig: &v1alpha1.TimeRangeConfig{
-				MaxTime: ptr.To(v1alpha1.Duration("-22h")),
+				MaxTime: ptr.To(v1alpha1.Duration("-2h")),
 			},
 			StorageConfiguration: v1alpha1.StorageConfiguration{
 				Size: clusters.TemplateFn(clusters.StoreDefault, templates.StorageSize),
