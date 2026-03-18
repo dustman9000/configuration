@@ -760,12 +760,7 @@ func generateMetricsBundle(config clusters.ClusterConfig) error {
 
 	// 4. CUSTOM RESOURCES (prefix: 04-*)
 	thanosObjs := make([]runtime.Object, 0, 7) // Pre-allocate for expected ~7 resources (query+route, receive, compact+route, ruler, store)
-	
-	// Skip thanosquery CR generation for rhobsi01uw2 cluster
-	if string(config.Name) != "rhobsi01uw2" {
-		thanosObjs = append(thanosObjs, defaultQueryCR(ns, config.Templates, true)...)
-	}
-	
+	thanosObjs = append(thanosObjs, defaultQueryCR(ns, config.Templates, true)...)
 	thanosObjs = append(thanosObjs, defaultReceiveCR(ns, config.Templates))
 	thanosObjs = append(thanosObjs, defaultCompactCR(ns, config.Templates, true)...)
 	thanosObjs = append(thanosObjs, defaultRulerCR(ns, config.Templates))
