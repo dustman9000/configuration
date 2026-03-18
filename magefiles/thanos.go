@@ -486,7 +486,27 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 	}
 
 	if namespace != "rhobs-int" {
-		hashrings = hashrings[0:1] // remove old hashring Step 4
+		hashrings = hashrings[0:1]                  // remove old hashring Step 4
+		hashrings = append(hashrings, hashrings...) // add new default hashring with new config Step 6
+		hashrings[0].Name = "default"
+		hashrings[0].Affinity = &corev1.Affinity{
+			PodAntiAffinity: &corev1.PodAntiAffinity{
+				PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
+					{
+						Weight: 100,
+						PodAffinityTerm: corev1.PodAffinityTerm{
+							TopologyKey: "kubernetes.io/hostname",
+							LabelSelector: &metav1.LabelSelector{
+								MatchLabels: map[string]string{
+									"app.kubernetes.io/component": "thanos-receive-ingester",
+									"app.kubernetes.io/instance":  "thanos-receive-ingester-rhobs-default",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
 	}
 
 	return &v1alpha1.ThanosReceive{
