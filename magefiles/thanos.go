@@ -464,7 +464,9 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 	}
 
 	if namespace == "rhobs-int" {
-		hashrings = hashrings[0:1] // remove old hashring Step 5
+		hashrings = hashrings[0:1]                  // remove old hashring Step 5
+		hashrings = append(hashrings, hashrings...) // add new default hashring with new config Step 6
+		hashrings[0].Name = "default"
 	}
 
 	return &v1alpha1.ThanosReceive{
