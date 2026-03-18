@@ -486,6 +486,7 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 			},
 		}
 
+		hashrings = hashrings[0:1] // remove temp active-default hashring Step 7
 	}
 
 	return &v1alpha1.ThanosReceive{
