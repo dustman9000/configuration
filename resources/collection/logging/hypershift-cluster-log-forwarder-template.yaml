@@ -104,6 +104,8 @@ objects:
                 excludes:
                   - container: kube-eventrouter
                     namespace: rhobs-eventrouter
+                  - container: webhooks
+                  - container: webhook
               type: application
           serviceAccount:
             name: rhobs-logs
