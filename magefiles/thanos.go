@@ -549,6 +549,9 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 				Additional:                 v1alpha1.Additional{},
 				Hashrings:                  hashrings,
 			},
+			StatefulSetFields: v1alpha1.StatefulSetFields{
+				MinReadySeconds: ptr.To(int32(120)),
+			},
 		},
 	}
 }
