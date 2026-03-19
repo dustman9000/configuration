@@ -78,3 +78,27 @@ objects:
                 summary: "ServiceMonitor {{ $labels.name }} in namespace {{ $labels.namespace }} is down."
                 runbook_url: "https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/HCPPrometheusServiceMonitorDown.md"
                 description: "ServiceMonitor {{ $labels.name }} in namespace {{ $labels.namespace }} has been down for 30m."
+  - apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      name: metrics-ingestion
+      namespace: ${NAMESPACE}
+      labels:
+        operator.thanos.io/prometheus-rule: "true"
+        operator.thanos.io/tenant: ${TENANT}
+    spec:
+      groups:
+        - name: metrics-ingestion
+          interval: 1m
+          rules:
+            - alert: NoMetricReceived
+              expr: absent({env=~"${ENVIRONMENT}",region=~"${REGION}",_mc_id!="",mc_name!="",is_global!="true"})
+              for: 30m
+              labels:
+                severity: warning
+                env: ${ENVIRONMENT}
+                region: ${REGION}
+              annotations:
+                summary: "No metric received for environment {{ $labels.environment }} in region {{ $labels.region }}."
+                runbook_url: "https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/NoMetricReceived.md"
+                description: "Environment {{ $labels.environment }} in region {{ $labels.region }} has received no metrics from any management cluster for the last 30m."

@@ -88,7 +88,9 @@ HEADER
   },
   "parameters": [
     {"name": "NAMESPACE", "description": "Namespace to deploy the rules to", "required": true},
-    {"name": "TENANT", "description": "Tenant to deploy the rules to", "required": true}
+    {"name": "TENANT", "description": "Tenant to deploy the rules to", "required": true},
+    {"name": "REGION", "description": "Region where the RHOBS cell is deployed", "required": false, "value": ".+"},
+    {"name": "ENVIRONMENT", "description": "Environment where the RHOBS cell is deployed", "required": false, "value": ".+"}
   ]
 }' >> "$OUTPUT_FILE"
 
