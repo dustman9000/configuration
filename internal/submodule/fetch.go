@@ -134,7 +134,18 @@ func fetchSubmoduleCommit(repoType repoType, repoURL, branch, submodulePath stri
 	switch repoType {
 	case gitHub:
 		url = fmt.Sprintf("https://api.github.com/repos/%s/contents/%s?ref=%s", extractRepoPath(repoURL), submodulePath, branch)
-		resp, err := http.Get(url)
+		
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return "", fmt.Errorf("failed to create request: %w", err)
+		}
+		
+		// Add GitHub token if available
+		if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+			req.Header.Set("Authorization", "token "+token)
+		}
+		
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return "", fmt.Errorf("failed to fetch submodule info: %w", err)
 		}
@@ -215,7 +226,17 @@ type gitHubCommit struct {
 func GithubLatestCommit(apiURL string) (string, error) {
 	url := fmt.Sprintf("%s/commits/main", apiURL)
 
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	// Add GitHub token if available
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		req.Header.Set("Authorization", "token "+token)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
