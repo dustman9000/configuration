@@ -200,10 +200,14 @@ func generateSyntheticsBundle(config clusters.ClusterConfig) error {
 		bundleGen.Add(filename, encoding.GhodssYAML(obj))
 	}
 
-	// Generate the bundle files
-	bundleGen.Generate()
+	// For now, the manifests for the synthetic API resources (expect
+	// monitoring) are stored in the
+	// https://github.com/rhobs/rhobs-synthetics-api repository.
+	// They may eventually move in this repository but for now the
+	// SyntheticsApi step doesn't generate the manifests.
+	// bundleGen.Generate()
 
-	// Add consolidated ServiceMonitors to monitoring bundle
+	// Add consolidated ServiceMonitors to monitoring bundle.
 	monBundle := GetMonitoringBundle(config)
 	syntheticsServiceMonitors := createConsolidatedSyntheticsServiceMonitors(ns)
 
