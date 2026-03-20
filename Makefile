@@ -9,17 +9,33 @@ ifeq ($(OS),darwin)
 endif
 
 .PHONY: all
-all: hcp-rules sc-rules lint-hcp-rules
+all: hcp-rules sc-rules
 
 .PHONY: hcp-rules
-hcp-rules: $(YQ)
+hcp-rules: generate-hcp-rules lint-hcp-rules
+
+.PHONY: generate-hcp-rules
+generate-hcp-rules: $(YQ)
 	@echo ">>>>> Generating HCP tenant rules from split files"
 	YQ=$(YQ) ./scripts/generate-hcp-rules.sh
 
+.PHONY: lint-hcp-rules
+lint-hcp-rules: $(PROMTOOL) $(YQ)
+	@echo ">>>>> Linting HCP tenant rules"
+	./scripts/lint-rules.sh ./resources/tenant-rules/hcp.yaml $(PROMTOOL) $(YQ)
+
 .PHONY: sc-rules
-sc-rules: $(YQ)
+sc-rules: generate-sc-rules lint-sc-rules
+
+.PHONY: generate-sc-rules
+generate-sc-rules: $(YQ)
 	@echo ">>>>> Generating SC tenant rules from split files"
 	YQ=$(YQ) ./scripts/generate-sc-rules.sh
+
+.PHONY: lint-sc-rules
+lint-sc-rules: $(PROMTOOL) $(YQ)
+	@echo ">>>>> Linting SC tenant rules"
+	./scripts/lint-rules.sh ./resources/tenant-rules/sc.yaml $(PROMTOOL) $(YQ)
 
 .PHONY: yaml-lint
 yaml-lint: $(YQ)
@@ -38,11 +54,6 @@ yaml-lint: $(YQ)
 .PHONY: go-lint
 go-lint: $(GOLANGCI_LINT)
 	$(GOLANGCI_LINT) run
-
-.PHONY: lint-hcp-rules
-lint-hcp-rules: hcp-rules $(PROMTOOL) $(YQ)
-	@echo ">>>>> Linting HCP tenant rules"
-	./scripts/lint-hcp-rules.sh $(PROMTOOL) $(YQ)
 
 .PHONY: validate
 validate: $(OC)
