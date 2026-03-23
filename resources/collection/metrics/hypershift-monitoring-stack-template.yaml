@@ -119,7 +119,7 @@ objects:
                   minShards: 1
                   maxSamplesPerSend: 2000
                   batchSendDeadline: 60s
-                  minBackoff: 30ms
+                  minBackoff: 1s
                   maxBackoff: 256s
                 metadataConfig:
                   send: false
@@ -234,7 +234,7 @@ objects:
                   minShards: 1
                   maxSamplesPerSend: 2000
                   batchSendDeadline: 60s
-                  minBackoff: 30ms
+                  minBackoff: 1s
                   maxBackoff: 256s
                 metadataConfig:
                   send: false
