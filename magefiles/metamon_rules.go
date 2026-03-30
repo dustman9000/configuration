@@ -15,14 +15,16 @@ import (
 
 // Dashboard URLs
 const (
-	dashboardThanosReceive = "https://grafana.app-sre.devshift.net/d/thanos-receive-overview/thanos-receive-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-router_job=thanos-receive-router-rhobs&var-ingester_job=thanos-receive-ingester-rhobs-default&var-namespace={{$labels.namespace}}&var-tenant=EFD08939-FE1D-41A1-A28A-BE9A9BC68003"
-	dashboardThanosCompact = "https://grafana.app-sre.devshift.net/d/thanos-compact-overview/thanos-compact-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-compact-rhobs"
-	dashboardThanosQuery   = "https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs"
-	dashboardThanosStore   = "https://grafana.app-sre.devshift.net/d/thanos-store-overview/thanos-store-gateway-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-job=thanos-store-default&var-namespace={{$labels.namespace}}"
-	dashboardThanosRule    = "https://grafana.app-sre.devshift.net/d/thanos-ruler-overview/thanos-ruler-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-job=thanos-ruler-rhobs&var-namespace={{$labels.namespace}}"
-
-	dashboardAlertmanager   = "https://grafana.app-sre.devshift.net/d/50b36e28785705570854022296f14821/alertmanager?orgId=1&refresh=10s&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=All&var-pod=All&var-interval=5m"
+	dashboardThanosReceive  = "https://grafana.app-sre.devshift.net/d/thanos-receive-overview/thanos-receive-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-router_job=thanos-receive-router-rhobs&var-ingester_job=thanos-receive-ingester-rhobs-default&var-namespace={{$labels.namespace}}&var-tenant=EFD08939-FE1D-41A1-A28A-BE9A9BC68003"
+	dashboardThanosCompact  = "https://grafana.app-sre.devshift.net/d/thanos-compact-overview/thanos-compact-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-compact-rhobs"
+	dashboardThanosQuery    = "https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs"
+	dashboardThanosStore    = "https://grafana.app-sre.devshift.net/d/thanos-store-overview/thanos-store-gateway-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-job=thanos-store-default&var-namespace={{$labels.namespace}}"
+	dashboardThanosRule     = "https://grafana.app-sre.devshift.net/d/thanos-ruler-overview/thanos-ruler-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-job=thanos-ruler-rhobs&var-namespace={{$labels.namespace}}"
 	dashboardThanosOperator = "https://grafana.app-sre.devshift.net/d/72e0e05bef5099e5f049b05fdc429ed4/thanos-operator-controller-manager?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&refresh=30s"
+
+	dashboardAlertmanager = "https://grafana.app-sre.devshift.net/d/50b36e28785705570854022296f14821/alertmanager?orgId=1&refresh=10s&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=All&var-pod=All&var-interval=5m"
+
+	dashboardLokiWrites = "https://grafana.app-sre.devshift.net/d/rhobs-lokistack-writes/lokistack-writes?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}"
 )
 
 // Runbook URLs
