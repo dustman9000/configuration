@@ -1258,3 +1258,416 @@ spec:
         service: rhobs.regional
         slo: api-metrics-write-latency-slo
       record: pyrra_errors_total
+  - interval: 2m30s
+    name: api-logs-write-availability-slo-increase
+    rules:
+    - expr: sum by (code) (increase(http_requests_total{group="logsv1",handler="otlp",job="rhobs-gateway"}[4w]))
+      labels:
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: http_requests:increase4w
+    - alert: SLOMetricAbsent
+      annotations:
+        dashboard: https://grafana.app-sre.devshift.net/d/rhobs-lokistack-writes/lokistack-writes?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}
+        description: Loki OTLP ingestion API is burning too much error budget to guarantee
+          availability SLOs.
+        message: Loki OTLP ingestion API is burning too much error budget to guarantee
+          availability SLOs.
+        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsWriteAvailabilityErrorBudgetBurning
+      expr: absent(http_requests_total{group="logsv1",handler="otlp",job="rhobs-gateway"})
+        == 1
+      for: 2m
+      labels:
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        service: rhobs.regional
+        severity: medium
+        slo: api-logs-write-availability-slo
+  - interval: 30s
+    name: api-logs-write-availability-slo
+    rules:
+    - expr: sum(rate(http_requests_total{code=~"^5..$",group="logsv1",handler="otlp",job="rhobs-gateway"}[5m]))
+        / sum(rate(http_requests_total{group="logsv1",handler="otlp",job="rhobs-gateway"}[5m]))
+      labels:
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: http_requests:burnrate5m
+    - expr: sum(rate(http_requests_total{code=~"^5..$",group="logsv1",handler="otlp",job="rhobs-gateway"}[30m]))
+        / sum(rate(http_requests_total{group="logsv1",handler="otlp",job="rhobs-gateway"}[30m]))
+      labels:
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: http_requests:burnrate30m
+    - expr: sum(rate(http_requests_total{code=~"^5..$",group="logsv1",handler="otlp",job="rhobs-gateway"}[1h]))
+        / sum(rate(http_requests_total{group="logsv1",handler="otlp",job="rhobs-gateway"}[1h]))
+      labels:
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: http_requests:burnrate1h
+    - expr: sum(rate(http_requests_total{code=~"^5..$",group="logsv1",handler="otlp",job="rhobs-gateway"}[2h]))
+        / sum(rate(http_requests_total{group="logsv1",handler="otlp",job="rhobs-gateway"}[2h]))
+      labels:
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: http_requests:burnrate2h
+    - expr: sum(rate(http_requests_total{code=~"^5..$",group="logsv1",handler="otlp",job="rhobs-gateway"}[6h]))
+        / sum(rate(http_requests_total{group="logsv1",handler="otlp",job="rhobs-gateway"}[6h]))
+      labels:
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: http_requests:burnrate6h
+    - expr: sum(rate(http_requests_total{code=~"^5..$",group="logsv1",handler="otlp",job="rhobs-gateway"}[1d]))
+        / sum(rate(http_requests_total{group="logsv1",handler="otlp",job="rhobs-gateway"}[1d]))
+      labels:
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: http_requests:burnrate1d
+    - expr: sum(rate(http_requests_total{code=~"^5..$",group="logsv1",handler="otlp",job="rhobs-gateway"}[4d]))
+        / sum(rate(http_requests_total{group="logsv1",handler="otlp",job="rhobs-gateway"}[4d]))
+      labels:
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: http_requests:burnrate4d
+    - alert: APILogsWriteAvailabilityErrorBudgetBurning
+      annotations:
+        dashboard: https://grafana.app-sre.devshift.net/d/rhobs-lokistack-writes/lokistack-writes?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}
+        description: Loki OTLP ingestion API is burning too much error budget to guarantee
+          availability SLOs.
+        message: Loki OTLP ingestion API is burning too much error budget to guarantee
+          availability SLOs.
+        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsWriteAvailabilityErrorBudgetBurning
+      expr: http_requests:burnrate5m{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
+        > (14 * (1-0.9990000000000001)) and http_requests:burnrate1h{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
+        > (14 * (1-0.9990000000000001))
+      for: 2m0s
+      labels:
+        exhaustion: 2d
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        long_burnrate_window: 1h
+        service: rhobs.regional
+        severity: high
+        short_burnrate_window: 5m
+        slo: api-logs-write-availability-slo
+    - alert: APILogsWriteAvailabilityErrorBudgetBurning
+      annotations:
+        dashboard: https://grafana.app-sre.devshift.net/d/rhobs-lokistack-writes/lokistack-writes?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}
+        description: Loki OTLP ingestion API is burning too much error budget to guarantee
+          availability SLOs.
+        message: Loki OTLP ingestion API is burning too much error budget to guarantee
+          availability SLOs.
+        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsWriteAvailabilityErrorBudgetBurning
+      expr: http_requests:burnrate30m{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
+        > (7 * (1-0.9990000000000001)) and http_requests:burnrate6h{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
+        > (7 * (1-0.9990000000000001))
+      for: 15m0s
+      labels:
+        exhaustion: 4d
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        long_burnrate_window: 6h
+        service: rhobs.regional
+        severity: high
+        short_burnrate_window: 30m
+        slo: api-logs-write-availability-slo
+    - alert: APILogsWriteAvailabilityErrorBudgetBurning
+      annotations:
+        dashboard: https://grafana.app-sre.devshift.net/d/rhobs-lokistack-writes/lokistack-writes?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}
+        description: Loki OTLP ingestion API is burning too much error budget to guarantee
+          availability SLOs.
+        message: Loki OTLP ingestion API is burning too much error budget to guarantee
+          availability SLOs.
+        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsWriteAvailabilityErrorBudgetBurning
+      expr: http_requests:burnrate2h{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
+        > (2 * (1-0.9990000000000001)) and http_requests:burnrate1d{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
+        > (2 * (1-0.9990000000000001))
+      for: 1h0m0s
+      labels:
+        exhaustion: 2w
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        long_burnrate_window: 1d
+        service: rhobs.regional
+        severity: medium
+        short_burnrate_window: 2h
+        slo: api-logs-write-availability-slo
+    - alert: APILogsWriteAvailabilityErrorBudgetBurning
+      annotations:
+        dashboard: https://grafana.app-sre.devshift.net/d/rhobs-lokistack-writes/lokistack-writes?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}
+        description: Loki OTLP ingestion API is burning too much error budget to guarantee
+          availability SLOs.
+        message: Loki OTLP ingestion API is burning too much error budget to guarantee
+          availability SLOs.
+        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsWriteAvailabilityErrorBudgetBurning
+      expr: http_requests:burnrate6h{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
+        > (1 * (1-0.9990000000000001)) and http_requests:burnrate4d{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
+        > (1 * (1-0.9990000000000001))
+      for: 3h0m0s
+      labels:
+        exhaustion: 4w
+        group: logsv1
+        handler: otlp
+        job: rhobs-gateway
+        long_burnrate_window: 4d
+        service: rhobs.regional
+        severity: medium
+        short_burnrate_window: 6h
+        slo: api-logs-write-availability-slo
+  - interval: 30s
+    name: api-logs-write-availability-slo-generic
+    rules:
+    - expr: "0.9990000000000001"
+      labels:
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: pyrra_objective
+    - expr: 2419200
+      labels:
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: pyrra_window
+    - expr: 1 - sum(http_requests:increase4w{code=~"^5..$",group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
+        or vector(0)) / sum(http_requests:increase4w{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"})
+      labels:
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: pyrra_availability
+    - expr: sum(http_requests_total{group="logsv1",handler="otlp",job="rhobs-gateway"})
+      labels:
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: pyrra_requests_total
+    - expr: sum(http_requests_total{code=~"^5..$",group="logsv1",handler="otlp",job="rhobs-gateway"}
+        or vector(0))
+      labels:
+        service: rhobs.regional
+        slo: api-logs-write-availability-slo
+      record: pyrra_errors_total
+  - interval: 2m30s
+    name: api-logs-query-availability-slo-increase
+    rules:
+    - expr: sum by (code, handler) (increase(http_requests_total{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[4w]))
+      labels:
+        group: logsv1
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: http_requests:increase4w
+    - alert: SLOMetricAbsent
+      annotations:
+        dashboard: https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs
+        description: Loki query handlers are burning too much error budget to guarantee
+          availability SLOs.
+        message: Loki query handlers are burning too much error budget to guarantee
+          availability SLOs.
+        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsQueryAvailabilityErrorBudgetBurning
+      expr: absent(http_requests_total{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"})
+        == 1
+      for: 2m
+      labels:
+        group: logsv1
+        job: rhobs-gateway
+        service: rhobs.regional
+        severity: medium
+        slo: api-logs-query-availability-slo
+  - interval: 30s
+    name: api-logs-query-availability-slo
+    rules:
+    - expr: sum by (handler) (rate(http_requests_total{code=~"^5..$",group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[5m]))
+        / sum by (handler) (rate(http_requests_total{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[5m]))
+      labels:
+        group: logsv1
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: http_requests:burnrate5m
+    - expr: sum by (handler) (rate(http_requests_total{code=~"^5..$",group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[30m]))
+        / sum by (handler) (rate(http_requests_total{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[30m]))
+      labels:
+        group: logsv1
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: http_requests:burnrate30m
+    - expr: sum by (handler) (rate(http_requests_total{code=~"^5..$",group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[1h]))
+        / sum by (handler) (rate(http_requests_total{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[1h]))
+      labels:
+        group: logsv1
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: http_requests:burnrate1h
+    - expr: sum by (handler) (rate(http_requests_total{code=~"^5..$",group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[2h]))
+        / sum by (handler) (rate(http_requests_total{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[2h]))
+      labels:
+        group: logsv1
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: http_requests:burnrate2h
+    - expr: sum by (handler) (rate(http_requests_total{code=~"^5..$",group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[6h]))
+        / sum by (handler) (rate(http_requests_total{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[6h]))
+      labels:
+        group: logsv1
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: http_requests:burnrate6h
+    - expr: sum by (handler) (rate(http_requests_total{code=~"^5..$",group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[1d]))
+        / sum by (handler) (rate(http_requests_total{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[1d]))
+      labels:
+        group: logsv1
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: http_requests:burnrate1d
+    - expr: sum by (handler) (rate(http_requests_total{code=~"^5..$",group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[4d]))
+        / sum by (handler) (rate(http_requests_total{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}[4d]))
+      labels:
+        group: logsv1
+        job: rhobs-gateway
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: http_requests:burnrate4d
+    - alert: APILogsQueryAvailabilityErrorBudgetBurning
+      annotations:
+        dashboard: https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs
+        description: Loki query handlers are burning too much error budget to guarantee
+          availability SLOs.
+        message: Loki query handlers are burning too much error budget to guarantee
+          availability SLOs.
+        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsQueryAvailabilityErrorBudgetBurning
+      expr: http_requests:burnrate5m{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
+        > (14 * (1-0.9990000000000001)) and http_requests:burnrate1h{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
+        > (14 * (1-0.9990000000000001))
+      for: 2m0s
+      labels:
+        exhaustion: 2d
+        group: logsv1
+        job: rhobs-gateway
+        long_burnrate_window: 1h
+        service: rhobs.regional
+        severity: high
+        short_burnrate_window: 5m
+        slo: api-logs-query-availability-slo
+    - alert: APILogsQueryAvailabilityErrorBudgetBurning
+      annotations:
+        dashboard: https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs
+        description: Loki query handlers are burning too much error budget to guarantee
+          availability SLOs.
+        message: Loki query handlers are burning too much error budget to guarantee
+          availability SLOs.
+        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsQueryAvailabilityErrorBudgetBurning
+      expr: http_requests:burnrate30m{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
+        > (7 * (1-0.9990000000000001)) and http_requests:burnrate6h{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
+        > (7 * (1-0.9990000000000001))
+      for: 15m0s
+      labels:
+        exhaustion: 4d
+        group: logsv1
+        job: rhobs-gateway
+        long_burnrate_window: 6h
+        service: rhobs.regional
+        severity: high
+        short_burnrate_window: 30m
+        slo: api-logs-query-availability-slo
+    - alert: APILogsQueryAvailabilityErrorBudgetBurning
+      annotations:
+        dashboard: https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs
+        description: Loki query handlers are burning too much error budget to guarantee
+          availability SLOs.
+        message: Loki query handlers are burning too much error budget to guarantee
+          availability SLOs.
+        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsQueryAvailabilityErrorBudgetBurning
+      expr: http_requests:burnrate2h{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
+        > (2 * (1-0.9990000000000001)) and http_requests:burnrate1d{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
+        > (2 * (1-0.9990000000000001))
+      for: 1h0m0s
+      labels:
+        exhaustion: 2w
+        group: logsv1
+        job: rhobs-gateway
+        long_burnrate_window: 1d
+        service: rhobs.regional
+        severity: medium
+        short_burnrate_window: 2h
+        slo: api-logs-query-availability-slo
+    - alert: APILogsQueryAvailabilityErrorBudgetBurning
+      annotations:
+        dashboard: https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs
+        description: Loki query handlers are burning too much error budget to guarantee
+          availability SLOs.
+        message: Loki query handlers are burning too much error budget to guarantee
+          availability SLOs.
+        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsQueryAvailabilityErrorBudgetBurning
+      expr: http_requests:burnrate6h{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
+        > (1 * (1-0.9990000000000001)) and http_requests:burnrate4d{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
+        > (1 * (1-0.9990000000000001))
+      for: 3h0m0s
+      labels:
+        exhaustion: 4w
+        group: logsv1
+        job: rhobs-gateway
+        long_burnrate_window: 4d
+        service: rhobs.regional
+        severity: medium
+        short_burnrate_window: 6h
+        slo: api-logs-query-availability-slo
+  - interval: 30s
+    name: api-logs-query-availability-slo-generic
+    rules:
+    - expr: "0.9990000000000001"
+      labels:
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: pyrra_objective
+    - expr: 2419200
+      labels:
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: pyrra_window
+    - expr: 1 - sum(http_requests:increase4w{code=~"^5..$",group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
+        or vector(0)) / sum(http_requests:increase4w{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"})
+      labels:
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: pyrra_availability
+    - expr: sum(http_requests_total{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"})
+      labels:
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: pyrra_requests_total
+    - expr: sum(http_requests_total{code=~"^5..$",group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"}
+        or vector(0))
+      labels:
+        service: rhobs.regional
+        slo: api-logs-query-availability-slo
+      record: pyrra_errors_total
