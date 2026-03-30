@@ -16,19 +16,50 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
+const (
+	lokiStackName       = "observatorium-lokistack"
+	lokiRulerConfigName = "observatorium-lokistack-ruler"
+	// lokiRulesInstanceLabelKey is the Loki operator label linking AlertingRule/RecordingRule CRs to this LokiStack (not Thanos PrometheusRule labels).
+	lokiRulesInstanceLabelKey = "loki.grafana.com/loki-rule"
+)
+
 func (b Build) DefaultLokiStack(config clusters.ClusterConfig) error {
 	return generateLogsBundle(config)
 }
 
-// NewBundleLokiStack creates a LokiStack with concrete values for bundle deployment (no template parameters)
-func NewBundleLokiStack(namespace string, overrides clusters.TemplateMaps) *lokiv1.LokiStack {
+// NewBundleLokiStack creates a LokiStack with concrete values for bundle deployment (no template parameters).
+// rules sets spec.rules (ruler enablement, LokiRule selector, PrometheusRule namespace selection). If nil, ruler is disabled.
+func NewBundleLokiStack(namespace string, overrides clusters.TemplateMaps, rules *lokiv1.RulesSpec) *lokiv1.LokiStack {
+	templateSpec := &lokiv1.LokiTemplateSpec{
+		Distributor: &lokiv1.LokiComponentSpec{
+			Replicas: overrides.LokiOverrides[clusters.LokiConfig].Router.Replicas,
+		},
+		Ingester: &lokiv1.LokiComponentSpec{
+			Replicas: overrides.LokiOverrides[clusters.LokiConfig].Ingest.Replicas,
+		},
+		Querier: &lokiv1.LokiComponentSpec{
+			Replicas: overrides.LokiOverrides[clusters.LokiConfig].Query.Replicas,
+		},
+		QueryFrontend: &lokiv1.LokiComponentSpec{
+			Replicas: overrides.LokiOverrides[clusters.LokiConfig].QueryFrontend.Replicas,
+		},
+	}
+	if rules != nil && rules.Enabled {
+		templateSpec.Ruler = &lokiv1.LokiComponentSpec{
+			Replicas: overrides.LokiOverrides[clusters.LokiConfig].Ruler.Replicas,
+		}
+	}
+
+	if rules == nil {
+		rules = &lokiv1.RulesSpec{Enabled: false}
+	}
 	return &lokiv1.LokiStack{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "loki.grafana.com/v1",
 			Kind:       "LokiStack",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "observatorium-lokistack",
+			Name:      lokiStackName,
 			Namespace: namespace,
 		},
 		Spec: lokiv1.LokiStackSpec{
@@ -79,20 +110,8 @@ func NewBundleLokiStack(namespace string, overrides clusters.TemplateMaps) *loki
 				},
 			},
 			StorageClassName: "gp3-csi", // Concrete value instead of ${LOKI_STORAGE_CLASS}
-			Template: &lokiv1.LokiTemplateSpec{
-				Distributor: &lokiv1.LokiComponentSpec{
-					Replicas: overrides.LokiOverrides[clusters.LokiConfig].Router.Replicas,
-				},
-				Ingester: &lokiv1.LokiComponentSpec{
-					Replicas: overrides.LokiOverrides[clusters.LokiConfig].Ingest.Replicas,
-				},
-				Querier: &lokiv1.LokiComponentSpec{
-					Replicas: overrides.LokiOverrides[clusters.LokiConfig].Query.Replicas,
-				},
-				QueryFrontend: &lokiv1.LokiComponentSpec{
-					Replicas: overrides.LokiOverrides[clusters.LokiConfig].QueryFrontend.Replicas,
-				},
-			},
+			Template:         templateSpec,
+			Rules:            rules,
 		},
 	}
 }
@@ -127,9 +146,17 @@ func generateLogsBundle(config clusters.ClusterConfig) error {
 		bundleGen.Add(filename, encoding.GhodssYAML(obj))
 	}
 
+	rulesSpec, rulerConfig, err := newRulerResources(ns, config.LoggingRulerMode())
+	if err != nil {
+		return err
+	}
+
 	// 3. LOKISTACK RESOURCES (prefix: 03-*)
-	lokiStackObjs := make([]runtime.Object, 0, 1)
-	lokiStackObjs = append(lokiStackObjs, NewBundleLokiStack(ns, config.Templates))
+	lokiStackObjs := make([]runtime.Object, 0, 2)
+	lokiStackObjs = append(lokiStackObjs, NewBundleLokiStack(ns, config.Templates, rulesSpec))
+	if rulerConfig != nil {
+		lokiStackObjs = append(lokiStackObjs, rulerConfig)
+	}
 
 	for _, obj := range lokiStackObjs {
 		resourceKind := getResourceKind(obj)
@@ -197,6 +224,50 @@ func getLokiResourceName(obj runtime.Object) string {
 
 	// Fallback to the object type
 	return "unnamed"
+}
+
+// newRulerResources builds spec.rules for the LokiStack and, when the ruler is enabled, a RulerConfig.
+// AlertingRule / RecordingRule / LokiRule CRs must include label lokiRulesInstanceLabelKey=lokiStackName.
+func newRulerResources(namespace string, rulerMode clusters.LokiRulerMode) (*lokiv1.RulesSpec, *lokiv1.RulerConfig, error) {
+	if !rulerMode.Enabled() {
+		return &lokiv1.RulesSpec{Enabled: false}, nil, nil
+	}
+	rules := &lokiv1.RulesSpec{
+		Enabled: true,
+		Selector: &metav1.LabelSelector{
+			MatchLabels: map[string]string{
+				lokiRulesInstanceLabelKey: "true",
+			},
+		},
+	}
+
+	return rules, newBundleLokiRulerConfig(namespace, rulerMode), nil
+}
+
+// newBundleLokiRulerConfig builds RulerConfig. When recordingRemoteWrite is true, tenantID must be the HCP
+// gateway tenant for THANOS-TENANT; when false, only Alertmanager is configured (log-based alerts only).
+func newBundleLokiRulerConfig(namespace string, rulerMode clusters.LokiRulerMode) *lokiv1.RulerConfig {
+	spec := lokiv1.RulerConfigSpec{
+		AlertManagerSpec: &lokiv1.AlertManagerSpec{
+			EnableV2: true,
+			Endpoints: []string{
+				fmt.Sprintf("http://alertmanager-0.alertmanager-cluster.%s.svc.cluster.local:9093", namespace),
+				fmt.Sprintf("http://alertmanager-1.alertmanager-cluster.%s.svc.cluster.local:9093", namespace),
+			},
+		},
+	}
+
+	return &lokiv1.RulerConfig{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "loki.grafana.com/v1",
+			Kind:       "RulerConfig",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      lokiRulerConfigName,
+			Namespace: namespace,
+		},
+		Spec: spec,
+	}
 }
 
 // createConsolidatedLokiServiceMonitors creates ServiceMonitors for Loki components

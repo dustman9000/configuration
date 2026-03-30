@@ -59,6 +59,8 @@ spec:
         - --logs.read.endpoint=http://observatorium-lokistack-query-frontend-http.rhobs-int.svc.cluster.local:3100
         - --logs.tail.endpoint=http://observatorium-lokistack-query-frontend-http.rhobs-int.svc.cluster.local:3100
         - --logs.write.endpoint=http://observatorium-lokistack-distributor-http.rhobs-int.svc.cluster.local:3100
+        - --logs.rules.endpoint=http://observatorium-lokistack-ruler-http.rhobs-int.svc.cluster.local:3100
+        - --logs.rules.read-only=true
         - --probes.endpoint=http://synthetics-api.rhobs-int.svc.cluster.local:8080
         image: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-observatorium-api:f761087109f960b59cd5a1ecf6f6912e2041443b
         livenessProbe:

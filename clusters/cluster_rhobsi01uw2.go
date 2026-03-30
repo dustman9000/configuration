@@ -17,6 +17,7 @@ func init() {
 		GatewayConfig: NewGatewayConfig(
 			WithMetricsEnabled(),
 			WithLoggingEnabled(),
+			WithLogsRulerEnabled(),
 			WithSyntheticsEnabled(),
 			WithInternalTracingSDKEnabled(),
 			WithTenants(rhobsi01uw2Tenants()),
@@ -25,6 +26,9 @@ func init() {
 		),
 		Templates:  rhobsi01uw2TemplateMaps(),
 		BuildSteps: rhobsi01uw2BuildSteps(),
+		LoggingConfig: &LoggingConfig{
+			LokiRuler: LokiRulerAlertingRulesOnly,
+		},
 	})
 }
 

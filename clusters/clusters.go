@@ -30,6 +30,24 @@ const (
 	RHOBSMonitoringAPIGroup MonitoringAPIGroup = "monitoring.rhobs"
 )
 
+// LoggingConfig holds optional logging stack overrides per cluster.
+type LoggingConfig struct {
+	// LokiRuler configures in which mode should the ruler run
+	LokiRuler LokiRulerMode
+}
+
+// LokiRulerMode selects how the LokiStack ruler is deployed.
+type LokiRulerMode int
+
+const (
+	// LokiRulerDisabled turns off the ruler (no RulerConfig, spec.rules disabled).
+	LokiRulerDisabled LokiRulerMode = iota
+	// LokiRulerAlertingRulesOnly: ruler for log-based alerts only (Alertmanager; no Thanos remote_write).
+	LokiRulerAlertingRulesOnly
+	// LokiRulerAlertingAndRecordingRules: alerts plus recording-rule metrics to Thanos.
+	LokiRulerAlertingAndRecordingRules
+)
+
 // ClusterConfig holds the configuration for a specific cluster deployment
 type ClusterConfig struct {
 	Name               ClusterName
@@ -39,11 +57,13 @@ type ClusterConfig struct {
 	GatewayConfig      *GatewayConfig
 	BuildSteps         []string
 	MonitoringAPIGroup MonitoringAPIGroup
+	LoggingConfig      *LoggingConfig
 }
 
 type GatewayConfig struct {
 	metricsEnabled    bool
 	logsEnabled       bool
+	logsRulerEnabled  bool
 	tracesEnabled     bool
 	syntheticsEnabled bool
 	// internalTracingSDKEnabled refers to internal tracing of the gateway itself
@@ -87,6 +107,31 @@ func (c ClusterConfig) Validate() error {
 	}
 	if len(c.BuildSteps) == 0 {
 		return fmt.Errorf("cluster must have at least one build step")
+	}
+	if c.LoggingConfig != nil {
+		switch c.LoggingConfig.LokiRuler {
+		case LokiRulerDisabled, LokiRulerAlertingRulesOnly:
+		case LokiRulerAlertingAndRecordingRules:
+			return fmt.Errorf("loki RulerMode LokiRulerAlertingAndRecordingRules is still not implemented")
+		default:
+			return fmt.Errorf(
+				"cluster %s: invalid LoggingConfig.LokiRuler; use LokiRulerDisabled(0), LokiRulerAlertingRulesOnly(1), or LokiRulerAlertingAndRecordingRules(2)",
+				c.Name,
+			)
+		}
+
+	}
+	if c.GatewayConfig != nil {
+		loggingLrEnabled := c.LoggingRulerMode().Enabled()
+		gatewayLrEnabled := c.GatewayConfig.LogsRulerEnabled()
+		if gatewayLrEnabled != loggingLrEnabled {
+			return fmt.Errorf(
+				"cluster %s: GatewayConfig.LogsRulerEnabled (%v) must match Loki ruler configured in LoggingConfig.LokiRuler (%v)",
+				c.Name,
+				gatewayLrEnabled,
+				loggingLrEnabled,
+			)
+		}
 	}
 	return nil
 }
@@ -199,6 +244,13 @@ func WithLoggingEnabled() func(*GatewayConfig) {
 	}
 }
 
+// WithLogsRulerEnabled enables the logs rules (Loki ruler) endpoint on the gateway; must match LoggingConfig Loki ruler.
+func WithLogsRulerEnabled() func(*GatewayConfig) {
+	return func(g *GatewayConfig) {
+		g.logsRulerEnabled = true
+	}
+}
+
 // WithTracesEnabled enables traces functionality for the gateway
 func WithTracesEnabled() func(*GatewayConfig) {
 	return func(g *GatewayConfig) {
@@ -259,6 +311,11 @@ func (g *GatewayConfig) LogsEnabled() bool {
 	return g.logsEnabled
 }
 
+// LogsRulerEnabled returns whether the gateway exposes the Loki ruler endpoint.
+func (g *GatewayConfig) LogsRulerEnabled() bool {
+	return g.LogsEnabled() && g.logsRulerEnabled
+}
+
 // TracesEnabled returns whether traces are enabled for the gateway
 func (g *GatewayConfig) TracesEnabled() bool {
 	return g.tracesEnabled
@@ -292,4 +349,23 @@ func (g *GatewayConfig) RBAC() ObservatoriumRBAC {
 // CustomRoute returns the custom route for the gateway
 func (g *GatewayConfig) CustomRoute() string {
 	return g.customRoute
+}
+
+// LoggingRulerMode returns the ruler mode used when generating manifests.
+// Nil LoggingConfig means LokiRulerDisabled.
+func (c ClusterConfig) LoggingRulerMode() LokiRulerMode {
+	if c.LoggingConfig == nil {
+		return LokiRulerDisabled
+	}
+	return c.LoggingConfig.LokiRuler
+}
+
+// Enabled reports whether the Loki ruler component and RulerConfig should be deployed.
+func (m LokiRulerMode) Enabled() bool {
+	switch m {
+	case LokiRulerAlertingRulesOnly, LokiRulerAlertingAndRecordingRules:
+		return true
+	default:
+		return false
+	}
 }
