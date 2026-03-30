@@ -147,6 +147,7 @@ objects:
                     targetLabel: __tmp_allowed
                     replacement: "true"
                     regex: "(\
+                      ALERTS;.*|\
                       sre:slo.*;.*|\
                       sre_mc_cluster_dynatrace_connectivity;.*|\
                       sre:error_budget_burn:apiserver_28d_slo;.*|\
