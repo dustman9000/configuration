@@ -22,6 +22,8 @@ spec:
       queries:
         queryTimeout: 5m
   managementState: Managed
+  rules:
+    enabled: false
   size: 1x.extra-small
   storage:
     schemas:

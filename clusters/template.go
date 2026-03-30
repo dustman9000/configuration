@@ -31,6 +31,7 @@ type LokiOverrides struct {
 	Ingest        LokiComponentSpec
 	Query         LokiComponentSpec
 	QueryFrontend LokiComponentSpec
+	Ruler         LokiComponentSpec
 }
 
 type LokiLimitOverrides struct {
@@ -191,6 +192,7 @@ func (l LokiOverridesMap) Apply(t TemplateMaps) TemplateMaps {
 			Ingest:             mergeComponentSpec(existing.Ingest, v.Ingest),
 			Query:              mergeComponentSpec(existing.Query, v.Query),
 			QueryFrontend:      mergeComponentSpec(existing.QueryFrontend, v.QueryFrontend),
+			Ruler:              mergeComponentSpec(existing.Ruler, v.Ruler),
 		}
 
 		t.LokiOverrides[k] = merged
@@ -569,6 +571,9 @@ func DefaultBaseTemplate() TemplateMaps {
 					Replicas: 2,
 				},
 				QueryFrontend: LokiComponentSpec{
+					Replicas: 2,
+				},
+				Ruler: LokiComponentSpec{
 					Replicas: 2,
 				},
 			},

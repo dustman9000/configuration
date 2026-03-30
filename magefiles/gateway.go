@@ -37,6 +37,7 @@ const (
 	routerService = "thanos-receive-router-rhobs"
 
 	logsQfeService    = "observatorium-lokistack-query-frontend-http"
+	logsRulerService  = "observatorium-lokistack-ruler-http"
 	logsRouterService = "observatorium-lokistack-distributor-http"
 
 	tracesDistributorService   = "tempo-observatorium-tempostack-distributor"
@@ -269,6 +270,12 @@ func createObservatoriumAPIContainer(m clusters.TemplateMaps, namespace string, 
 			fmt.Sprintf("--logs.tail.endpoint=http://%s.%s.svc.cluster.local:3100", logsQfeService, namespace),
 			fmt.Sprintf("--logs.write.endpoint=http://%s.%s.svc.cluster.local:3100", logsRouterService, namespace),
 		)
+		if conf.LogsRulerEnabled() {
+			args = append(args,
+				fmt.Sprintf("--logs.rules.endpoint=http://%s.%s.svc.cluster.local:3100", logsRulerService, namespace),
+				"--logs.rules.read-only=true",
+			)
+		}
 	}
 
 	if conf.TracesEnabled() {

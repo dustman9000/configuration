@@ -53,7 +53,7 @@ yaml-lint: $(YQ)
 
 .PHONY: go-lint
 go-lint: $(GOLANGCI_LINT)
-	$(GOLANGCI_LINT) run
+	$(GOLANGCI_LINT) run --fix
 
 .PHONY: validate
 validate: $(OC)
