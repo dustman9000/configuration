@@ -137,7 +137,15 @@ func getRunbookLink(alert string) string {
 //
 // This set of SLOs are driven by the RHOBS Service Level Objectives document
 // https://docs.google.com/document/d/1wJjcpgg-r8rlnOtRiqWGv0zwr1MB6WwkQED1XDWXVQs/edit
-func ObservatoriumSLOs(signal Resource) []pyrrav1alpha1.ServiceLevelObjective {
+func ObservatoriumSLOs(signals ...Resource) []pyrrav1alpha1.ServiceLevelObjective {
+	slos := []pyrrav1alpha1.ServiceLevelObjective{}
+	for _, signal := range signals {
+		slos = append(slos, signalSLOs(signal)...)
+	}
+	return slos
+}
+
+func signalSLOs(signal Resource) []pyrrav1alpha1.ServiceLevelObjective {
 	var slos rhobSLOList
 	switch signal {
 	case MetricsResource:
@@ -225,6 +233,7 @@ func ObservatoriumSLOs(signal Resource) []pyrrav1alpha1.ServiceLevelObjective {
 				sloType:             sloTypeLatency,
 				dashboardURL:        dashboardThanosReceive,
 			},
+
 			// These are commented out as we are not deploying synthetic avalanche/up jobs to rhobs.regional yet.
 			// We might choose to use other metrics/deploy those later on. For now dropping these SLOs.
 			//
@@ -267,6 +276,36 @@ func ObservatoriumSLOs(signal Resource) []pyrrav1alpha1.ServiceLevelObjective {
 			// 	sloType:             sloTypeLatency,
 			// },
 		}
+	case LogsResource:
+		slos = rhobSLOList{
+			// Observatorium Logs Availability SLOs.
+			{
+				name: "api-logs-write-availability-slo",
+				labels: map[string]string{
+					slo.PropagationLabelsPrefix + "service": rhobsNextServiceLabel,
+				},
+				description:         "Loki OTLP ingestion API is burning too much error budget to guarantee availability SLOs.",
+				summary:             "Loki OTLP ingestion API is burning too much error budget to guarantee availability SLOs.",
+				successOrErrorsExpr: `http_requests_total{job="rhobs-gateway", group="logsv1", handler="otlp", code=~"^5..$"}`,
+				totalExpr:           `http_requests_total{job="rhobs-gateway", group="logsv1", handler="otlp"}`,
+				alertName:           "APILogsWriteAvailabilityErrorBudgetBurning",
+				sloType:             sloTypeAvailability,
+				dashboardURL:        dashboardLokiWrites,
+			},
+			{
+				name: "api-logs-query-availability-slo",
+				labels: map[string]string{
+					slo.PropagationLabelsPrefix + "service": rhobsNextServiceLabel,
+				},
+				description:         "Loki query handlers are burning too much error budget to guarantee availability SLOs.",
+				summary:             "Loki query handlers are burning too much error budget to guarantee availability SLOs.",
+				successOrErrorsExpr: `http_requests_total{job="rhobs-gateway", group="logsv1", handler=~"query(_range)?", code=~"^5..$"}`,
+				totalExpr:           `http_requests_total{job="rhobs-gateway", group="logsv1", handler=~"query(_range)?"}`,
+				alertName:           "APILogsQueryAvailabilityErrorBudgetBurning",
+				sloType:             sloTypeAvailability,
+				dashboardURL:        dashboardThanosQuery,
+			},
+		}
 	default:
 		panic(signal + " is not an Observatorium Resource")
 	}
@@ -274,12 +313,12 @@ func ObservatoriumSLOs(signal Resource) []pyrrav1alpha1.ServiceLevelObjective {
 	return slos.GetObjectives()
 }
 
-// GenSLO is the function responsible for tying together Pyrra Objectives and converting them into Rule files.
+// SLORules is the function responsible for tying together Pyrra Objectives and converting them into Rule files.
 func (b Build) SLORules() {
 	gen := b.o11yGenerator("rhobs-next-slo-rules")
 
 	envSLOs(
-		ObservatoriumSLOs(MetricsResource),
+		ObservatoriumSLOs(MetricsResource, LogsResource),
 		"rhobs-next-slos",
 		gen,
 	)
