@@ -230,12 +230,17 @@ func LokiPrometheusRule(nonCriticalPostProcessing bool) *appInterfacePrometheusR
 }
 
 func RuleCriticalPostProcessing(rule v1.PrometheusRule) v1.PrometheusRule {
+	keepCriticalAlerts := map[string]bool{
+		"LokiIngesterFlushFailureRateCritical": true,
+	}
 	for i := range rule.Spec.Groups {
 		for j := range rule.Spec.Groups[i].Rules {
 			if v, ok := rule.Spec.Groups[i].Rules[j].Labels["severity"]; ok {
 				// Downgrade critical to warning for critical rule path
 				if v == "critical" {
-					rule.Spec.Groups[i].Rules[j].Labels["severity"] = "warning"
+					if !keepCriticalAlerts[rule.Spec.Groups[i].Rules[j].Alert] {
+						rule.Spec.Groups[i].Rules[j].Labels["severity"] = "warning"
+					}
 				}
 			}
 		}

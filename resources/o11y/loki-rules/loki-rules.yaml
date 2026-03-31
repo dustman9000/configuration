@@ -161,7 +161,7 @@ spec:
       for: 15m
       labels:
         service: rhobs.regional
-        severity: warning
+        severity: critical
     - alert: LokistackComponentsNotReadyWarning
       annotations:
         description: The LokiStack "{{ $labels.stack_name }}" in namespace "{{ $labels.namespace
