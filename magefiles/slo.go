@@ -403,6 +403,20 @@ func makePrometheusRule(objs []pyrrav1alpha1.ServiceLevelObjective, name string,
 				grp[i].Rules[j].Labels["severity"] = "medium"
 				continue
 			}
+			// Downgrade most SLO alerts from critical to warning, except write path alerts
+			if !nonCriticalPostProcessing {
+				writePathAlerts := map[string]bool{
+					"APIMetricsWriteAvailabilityErrorBudgetBurning": true,
+					"APIMetricsWriteLatencyErrorBudgetBurning":      true,
+					"APILogsWriteAvailabilityErrorBudgetBurning":    true,
+				}
+				if v, ok := grp[i].Rules[j].Labels["severity"]; ok && v == "critical" {
+					// Keep write path alerts as critical, downgrade others to warning
+					if !writePathAlerts[grp[i].Rules[j].Alert] {
+						grp[i].Rules[j].Labels["severity"] = "warning"
+					}
+				}
+			}
 			if nonCriticalPostProcessing {
 				if v, ok := grp[i].Rules[j].Labels["severity"]; ok {
 					switch v {

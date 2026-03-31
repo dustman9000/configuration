@@ -861,4 +861,4 @@ spec:
       for: 5m
       labels:
         service: rhobs.regional
-        severity: critical
+        severity: warning

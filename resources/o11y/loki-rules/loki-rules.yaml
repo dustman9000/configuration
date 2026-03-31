@@ -40,7 +40,7 @@ spec:
       for: 15m
       labels:
         service: rhobs.regional
-        severity: critical
+        severity: warning
     - alert: LokiRequestPanics
       annotations:
         description: '{{ $labels.job }} is experiencing an increase of {{ $value }}
@@ -50,7 +50,7 @@ spec:
       expr: sum by (job, namespace) (increase(loki_panic_total[10m])) > 0
       labels:
         service: rhobs.regional
-        severity: critical
+        severity: warning
     - alert: LokiRequestLatency
       annotations:
         description: '{{ $labels.job }} {{ $labels.route }} is experiencing {{ printf
@@ -69,7 +69,7 @@ spec:
       for: 15m
       labels:
         service: rhobs.regional
-        severity: critical
+        severity: warning
     - alert: LokiTenantRateLimit
       annotations:
         description: '{{ $labels.job }} {{ $labels.route }} is experiencing 429 errors.'

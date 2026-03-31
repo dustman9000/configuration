@@ -29,7 +29,7 @@ spec:
       labels:
         component: thanos-operator
         service: rhobs.regional
-        severity: critical
+        severity: warning
     - alert: ThanosOperatorHighReconcileErrorRate
       annotations:
         dashboard: https://grafana.app-sre.devshift.net/d/72e0e05bef5099e5f049b05fdc429ed4/thanos-operator-controller-manager?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&refresh=30s
@@ -192,7 +192,7 @@ spec:
       labels:
         component: thanos-receive
         service: rhobs.regional
-        severity: critical
+        severity: warning
     - alert: ThanosReceiveHashringConfigurationChange
       annotations:
         dashboard: https://grafana.app-sre.devshift.net/d/72e0e05bef5099e5f049b05fdc429ed4/thanos-operator-controller-manager?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&refresh=30s
@@ -310,7 +310,7 @@ spec:
       labels:
         component: thanos-ruler
         service: rhobs.regional
-        severity: critical
+        severity: warning
     - alert: ThanosRulerHighConfigMapCreationRate
       annotations:
         dashboard: https://grafana.app-sre.devshift.net/d/72e0e05bef5099e5f049b05fdc429ed4/thanos-operator-controller-manager?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&refresh=30s
@@ -399,7 +399,7 @@ spec:
       labels:
         component: thanos-store
         service: rhobs.regional
-        severity: critical
+        severity: warning
   - interval: 30s
     name: thanos-operator.compact
     rules:
@@ -438,7 +438,7 @@ spec:
       labels:
         component: thanos-compact
         service: rhobs.regional
-        severity: critical
+        severity: warning
   - interval: 30s
     name: thanos-operator.paused
     rules:
