@@ -27,7 +27,7 @@ spec:
         runbook: https://loki-operator.dev/docs/sop.md/#loki-request-errors
       expr: |2-
               sum by (job, namespace, route) (
-                job_namespace_route_statuscode:loki_request_duration_seconds_count:irate1m{status_code=~"5xx"}
+                job_namespace_route_statuscode:loki_request_duration_seconds_count:irate1m{status_code=~"5.."}
               )
             /
               sum by (job, namespace, route) (
