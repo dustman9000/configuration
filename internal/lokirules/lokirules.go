@@ -87,7 +87,7 @@ func (cfg *RulesConfig) lokiAlerts() []rulegroup.Option {
 								vector.New(
 									vector.WithMetricName("job_namespace_route_statuscode:loki_request_duration_seconds_count:irate1m"),
 									vector.WithLabelMatchers(
-										label.New("status_code").EqualRegexp("5xx"),
+										label.New("status_code").EqualRegexp("5.."),
 									),
 								),
 							).By("job", "namespace", "route"),
