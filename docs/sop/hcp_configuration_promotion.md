@@ -16,6 +16,14 @@ Currently, all saas file targets use `ref: main`, which means changes deploy to 
 | rhobss01uw2 | Stage | us-west-2 | `ref: main` (auto-deploy) |
 | rhobss01ue1 | Stage | us-east-1 | `ref: main` (auto-deploy) |
 | rhobsp01ue1 | Production | us-east-1 | `ref: <pinned-sha>` |
+| rhobsp02ue1 | Production | us-east-1 | `ref: <pinned-sha>` |
+| rhobsp03ue1 | Production | us-east-1 | `ref: <pinned-sha>` |
+| rhobsp01uw2 | Production | us-west-2 | `ref: <pinned-sha>` |
+| rhobsp01euc1 | Production | eu-central-1 | `ref: <pinned-sha>` |
+| rhobsp01euw1 | Production | eu-west-1 | `ref: <pinned-sha>` |
+| rhobsp01apne1 | Production | ap-northeast-1 | `ref: <pinned-sha>` |
+| rhobsp01apse2 | Production | ap-southeast-2 | `ref: <pinned-sha>` |
+| rhobsp01sae1 | Production | sa-east-1 | `ref: <pinned-sha>` |
 
 ## Prerequisites
 
