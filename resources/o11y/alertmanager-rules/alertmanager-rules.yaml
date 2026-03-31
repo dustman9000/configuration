@@ -77,9 +77,11 @@ spec:
                 alertmanager_notifications_failed_total{integration=~"slack|pagerduty|email|webhook",job="alertmanager"}[15m]
               )
             / ignoring (reason) group_left ()
-              rate(
-                alertmanager_notifications_total{integration=~"slack|pagerduty|email|webhook",job="alertmanager"}[15m]
-              )
+                rate(
+                  alertmanager_notifications_total{integration=~"slack|pagerduty|email|webhook",job="alertmanager"}[15m]
+                )
+              >
+                0
           )
         >
           0.01
@@ -102,9 +104,11 @@ spec:
                 alertmanager_notifications_failed_total{integration!~"slack|pagerduty|email|webhook",job="alertmanager"}[15m]
               )
             / ignoring (reason) group_left ()
-              rate(
-                alertmanager_notifications_total{integration!~"slack|pagerduty|email|webhook",job="alertmanager"}[15m]
-              )
+                rate(
+                  alertmanager_notifications_total{integration!~"slack|pagerduty|email|webhook",job="alertmanager"}[15m]
+                )
+              >
+                0
           )
         >
           0.01

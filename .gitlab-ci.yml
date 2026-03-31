@@ -24,7 +24,7 @@ clusters:
     - go mod download
     - go install github.com/magefile/mage@latest
     - rm -rf resources/clusters/ && $(go env GOPATH)/bin/mage build:clusters
-    - rm -rf resources/o11y/rhobs-next-slo-rules && $(go env GOPATH)/bin/mage build:sloRules
+    - rm -rf resources/o11y && $(go env GOPATH)/bin/mage build:sloRules && $(go env GOPATH)/bin/mage build:rules
     - if [ -n "$(git status --porcelain)" ]; then git status && git diff && false; fi
   variables:
     KUBERNETES_CPU_REQUEST: 2

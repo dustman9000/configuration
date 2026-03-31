@@ -56,6 +56,23 @@ The commit SHAs for container images are based on the Konflux downstream reposit
 
 More details in https://docs.google.com/document/d/1wSS3H_6irgRHCoglaIVEZyWt-s8vPAthjcEwN6cfY7s/edit?usp=sharing
 
+### Observability
+
+The PrometheusRule resources used to monitor the RHOBS components are defined under the `resources/o11y` directory.
+
+```bash
+mage build:rules     # Generate component-specific rules
+mage build:sloRules  # Generate SLO-based rules
+```
+
+For each component, there are 2 versions of the rule definitions:
+* `<component>-rules.yaml` deployed to the production clusters.
+* `<component>-non-critical-rules.yaml` deployed to the integration and stage clusters for which `critical` and `warning` severity labels are changed to `high` and `medium` to avoid paging the SREs.
+
+Rule definitions for Thanos, Thanos operator and Alertmanager are pulled from (https://github.com/perses/community-mixins), updating the version in the `go.mod` file and regenerating the files is enough to bring the upstream updates.
+
+After update, the files should be copied to app-interface: https://gitlab.cee.redhat.com/service/app-interface/-/tree/master/resources/services/rhobs/rules/
+
 ## Tenant rules
 
 Tenant rules can be based on metrics or logs. They are defined under
