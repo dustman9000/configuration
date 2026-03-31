@@ -336,7 +336,7 @@ spec:
         job: rhobs-gateway
         long_burnrate_window: 1h
         service: rhobs.regional
-        severity: critical
+        severity: warning
         short_burnrate_window: 5m
         slo: api-metrics-query-availability-slo
     - alert: APIMetricsQueryAvailabilityErrorBudgetBurning
@@ -358,7 +358,7 @@ spec:
         job: rhobs-gateway
         long_burnrate_window: 6h
         service: rhobs.regional
-        severity: critical
+        severity: warning
         short_burnrate_window: 30m
         slo: api-metrics-query-availability-slo
     - alert: APIMetricsQueryAvailabilityErrorBudgetBurning
@@ -549,7 +549,7 @@ spec:
         job: rhobs-gateway
         long_burnrate_window: 1h
         service: rhobs.regional
-        severity: critical
+        severity: warning
         short_burnrate_window: 5m
         slo: api-metrics-query-range-availability-slo
     - alert: APIMetricsQueryRangeAvailabilityErrorBudgetBurning
@@ -571,7 +571,7 @@ spec:
         job: rhobs-gateway
         long_burnrate_window: 6h
         service: rhobs.regional
-        severity: critical
+        severity: warning
         short_burnrate_window: 30m
         slo: api-metrics-query-range-availability-slo
     - alert: APIMetricsQueryRangeAvailabilityErrorBudgetBurning
@@ -740,7 +740,7 @@ spec:
         exhaustion: 2d
         long_burnrate_window: 1h
         service: rhobs.regional
-        severity: critical
+        severity: warning
         short_burnrate_window: 5m
         slo: api-alerting-availability-slo
     - alert: APIAlertmanagerAvailabilityErrorBudgetBurning
@@ -759,7 +759,7 @@ spec:
         exhaustion: 4d
         long_burnrate_window: 6h
         service: rhobs.regional
-        severity: critical
+        severity: warning
         short_burnrate_window: 30m
         slo: api-alerting-availability-slo
     - alert: APIAlertmanagerAvailabilityErrorBudgetBurning
@@ -924,7 +924,7 @@ spec:
         job: alertmanager
         long_burnrate_window: 1h
         service: rhobs.regional
-        severity: critical
+        severity: warning
         short_burnrate_window: 5m
         slo: api-alerting-notif-availability-slo
     - alert: APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
@@ -944,7 +944,7 @@ spec:
         job: alertmanager
         long_burnrate_window: 6h
         service: rhobs.regional
-        severity: critical
+        severity: warning
         short_burnrate_window: 30m
         slo: api-alerting-notif-availability-slo
     - alert: APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
@@ -1575,7 +1575,7 @@ spec:
         job: rhobs-gateway
         long_burnrate_window: 1h
         service: rhobs.regional
-        severity: critical
+        severity: warning
         short_burnrate_window: 5m
         slo: api-logs-query-availability-slo
     - alert: APILogsQueryAvailabilityErrorBudgetBurning
@@ -1596,7 +1596,7 @@ spec:
         job: rhobs-gateway
         long_burnrate_window: 6h
         service: rhobs.regional
-        severity: critical
+        severity: warning
         short_burnrate_window: 30m
         slo: api-logs-query-availability-slo
     - alert: APILogsQueryAvailabilityErrorBudgetBurning
