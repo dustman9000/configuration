@@ -23,10 +23,7 @@ spec:
         queryTimeout: 5m
   managementState: Managed
   rules:
-    enabled: true
-    selector:
-      matchLabels:
-        loki.grafana.com/loki-rule: "true"
+    enabled: false
   size: 1x.extra-small
   storage:
     schemas:
@@ -44,8 +41,6 @@ spec:
     querier:
       replicas: 2
     queryFrontend:
-      replicas: 2
-    ruler:
       replicas: 2
 status:
   components: {}
