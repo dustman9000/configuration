@@ -30,5 +30,6 @@ objects:
                 summary: "Loki ruler pipeline signal for the HCP Loki tenant"
                 description: "Alerting Rule that validates that the Loki ruler can evaluate rules for the HCP log tenant and reach Alertmanager."
               expr: vector(1)
+              for: 0s
               labels:
                 severity: soaking
