@@ -7,6 +7,9 @@
 # HCP tenant rules (alert rules, recording rules)
 /resources/tenant-rules/hcp/ @drow @mzardab @pgough
 
+# HCP tenant loki rules (alerting rules templates)
+/resources/tenant-rules/hcp-loki-rules/ @drow @mzardab @rojacob
+
 # SC tenant rules
 /resources/tenant-rules/sc/ @drow @mzardab @pgough
 

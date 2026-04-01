@@ -9,7 +9,7 @@ ifeq ($(OS),darwin)
 endif
 
 .PHONY: all
-all: hcp-rules sc-rules
+all: hcp-rules sc-rules hcp-loki-rules
 
 .PHONY: hcp-rules
 hcp-rules: generate-hcp-rules lint-hcp-rules
@@ -36,6 +36,19 @@ generate-sc-rules: $(YQ)
 lint-sc-rules: $(PROMTOOL) $(YQ)
 	@echo ">>>>> Linting SC tenant rules"
 	./scripts/lint-rules.sh ./resources/tenant-rules/sc.yaml $(PROMTOOL) $(YQ)
+
+.PHONY: hcp-loki-rules
+hcp-loki-rules: generate-hcp-loki-rules lint-hcp-loki-alerting-rules
+
+.PHONY: generate-hcp-loki-rules
+generate-hcp-loki-rules: $(YQ)
+	@echo ">>>>> Generating HCP Loki AlertingRule template"
+	YQ=$(YQ) ./scripts/generate-hcp-loki-rules.sh
+
+.PHONY: lint-hcp-loki-alerting-rules
+lint-hcp-loki-alerting-rules: $(LOGCLI) $(YQ)
+	@echo ">>>>> Linting HCP Loki AlertingRule template"
+	./scripts/lint-loki-rules.sh ./resources/tenant-rules/hcp-loki-alerting-rules.yaml $(LOGCLI) $(YQ)
 
 .PHONY: yaml-lint
 yaml-lint: $(YQ)
