@@ -1,0 +1,34 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: rhobs-hcp-loki-observability-alerting-rules
+  annotations:
+    description: "Template for deploying HCP loki observability alerting rules to RHOBS (watchdog, loki alerting rules)"
+parameters:
+  - name: NAMESPACE
+    description: Namespace to deploy the alerting rules to
+    required: true
+  - name: TENANT
+    description: Loki tenant ID for alerting rules evaluation
+    required: true
+objects:
+  - apiVersion: loki.grafana.com/v1
+    kind: AlertingRule
+    metadata:
+      name: watchdog
+      namespace: ${NAMESPACE}
+      labels:
+        loki.grafana.com/loki-rule: "true"
+    spec:
+      tenantID: ${TENANT}
+      groups:
+        - name: watchdog
+          interval: 30s
+          rules:
+            - alert: LokiRulerWatchdog
+              annotations:
+                summary: "Loki ruler pipeline signal for the HCP Loki tenant"
+                description: "Alerting Rule that validates that the Loki ruler can evaluate rules for the HCP log tenant and reach Alertmanager."
+              expr: vector(1)
+              labels:
+                severity: soaking
