@@ -18,7 +18,6 @@ import (
 
 const (
 	lokiStackName       = "observatorium-lokistack"
-	lokiRulerConfigName = "observatorium-lokistack-ruler"
 	// lokiRulesInstanceLabelKey is the Loki operator label linking AlertingRule/RecordingRule CRs to this LokiStack (not Thanos PrometheusRule labels).
 	lokiRulesInstanceLabelKey = "loki.grafana.com/loki-rule"
 )
@@ -263,7 +262,7 @@ func newBundleLokiRulerConfig(namespace string, rulerMode clusters.LokiRulerMode
 			Kind:       "RulerConfig",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      lokiRulerConfigName,
+			Name:      lokiStackName,
 			Namespace: namespace,
 		},
 		Spec: spec,
