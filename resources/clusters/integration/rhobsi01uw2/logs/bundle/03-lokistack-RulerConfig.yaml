@@ -9,4 +9,11 @@ spec:
     endpoints:
     - http://alertmanager-0.alertmanager-cluster.rhobs-int.svc.cluster.local:9093
     - http://alertmanager-1.alertmanager-cluster.rhobs-int.svc.cluster.local:9093
+    relabelConfigs:
+    - sourceLabels:
+      - tenantId
+      targetLabel: tenant_id
+    - action: labeldrop
+      regex: tenantId
+      sourceLabels: []
 status: {}
