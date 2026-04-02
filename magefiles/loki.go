@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	lokiStackName       = "observatorium-lokistack"
+	lokiStackName = "observatorium-lokistack"
 	// lokiRulesInstanceLabelKey is the Loki operator label linking AlertingRule/RecordingRule CRs to this LokiStack (not Thanos PrometheusRule labels).
 	lokiRulesInstanceLabelKey = "loki.grafana.com/loki-rule"
 )
@@ -171,7 +171,7 @@ func generateLogsBundle(config clusters.ClusterConfig) error {
 
 	// Add consolidated ServiceMonitors to monitoring bundle
 	monBundle := GetMonitoringBundle(config)
-	lokiServiceMonitors := createConsolidatedLokiServiceMonitors(ns)
+	lokiServiceMonitors := createConsolidatedLokiServiceMonitors()
 
 	for _, sm := range lokiServiceMonitors {
 		if smObj, ok := sm.(*monitoringv1.ServiceMonitor); ok && smObj != nil {
@@ -270,7 +270,7 @@ func newBundleLokiRulerConfig(namespace string, rulerMode clusters.LokiRulerMode
 }
 
 // createConsolidatedLokiServiceMonitors creates ServiceMonitors for Loki components
-func createConsolidatedLokiServiceMonitors(namespace string) []runtime.Object {
+func createConsolidatedLokiServiceMonitors() []runtime.Object {
 	return []runtime.Object{
 		// Loki Operator Controller Manager
 		&monitoringv1.ServiceMonitor{
@@ -294,9 +294,6 @@ func createConsolidatedLokiServiceMonitors(namespace string) []runtime.Object {
 					{
 						Port: "metrics",
 					},
-				},
-				NamespaceSelector: monitoringv1.NamespaceSelector{
-					MatchNames: []string{namespace},
 				},
 				Selector: metav1.LabelSelector{
 					MatchLabels: map[string]string{
@@ -327,9 +324,6 @@ func createConsolidatedLokiServiceMonitors(namespace string) []runtime.Object {
 						Interval: "30s",
 						Port:     "metrics",
 					},
-				},
-				NamespaceSelector: monitoringv1.NamespaceSelector{
-					MatchNames: []string{namespace},
 				},
 				Selector: metav1.LabelSelector{
 					MatchLabels: map[string]string{
@@ -365,9 +359,6 @@ func createConsolidatedLokiServiceMonitors(namespace string) []runtime.Object {
 						Port:     "metrics",
 					},
 				},
-				NamespaceSelector: monitoringv1.NamespaceSelector{
-					MatchNames: []string{namespace},
-				},
 				Selector: metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"app.kubernetes.io/component":  "distributor",
@@ -401,9 +392,6 @@ func createConsolidatedLokiServiceMonitors(namespace string) []runtime.Object {
 						Interval: "30s",
 						Port:     "metrics",
 					},
-				},
-				NamespaceSelector: monitoringv1.NamespaceSelector{
-					MatchNames: []string{namespace},
 				},
 				Selector: metav1.LabelSelector{
 					MatchLabels: map[string]string{
@@ -439,9 +427,6 @@ func createConsolidatedLokiServiceMonitors(namespace string) []runtime.Object {
 						Port:     "metrics",
 					},
 				},
-				NamespaceSelector: monitoringv1.NamespaceSelector{
-					MatchNames: []string{namespace},
-				},
 				Selector: metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"app.kubernetes.io/component":  "ingester",
@@ -475,9 +460,6 @@ func createConsolidatedLokiServiceMonitors(namespace string) []runtime.Object {
 						Interval: "30s",
 						Port:     "metrics",
 					},
-				},
-				NamespaceSelector: monitoringv1.NamespaceSelector{
-					MatchNames: []string{namespace},
 				},
 				Selector: metav1.LabelSelector{
 					MatchLabels: map[string]string{
@@ -513,12 +495,43 @@ func createConsolidatedLokiServiceMonitors(namespace string) []runtime.Object {
 						Port:     "metrics",
 					},
 				},
-				NamespaceSelector: monitoringv1.NamespaceSelector{
-					MatchNames: []string{namespace},
-				},
 				Selector: metav1.LabelSelector{
 					MatchLabels: map[string]string{
 						"app.kubernetes.io/component":  "query-frontend",
+						"app.kubernetes.io/created-by": "lokistack-controller",
+						"app.kubernetes.io/instance":   "observatorium-lokistack",
+						"app.kubernetes.io/managed-by": "lokistack-controller",
+						"app.kubernetes.io/name":       "lokistack",
+					},
+				},
+			},
+		},
+		// Loki Ruler
+		&monitoringv1.ServiceMonitor{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "monitoring.coreos.com/v1",
+				Kind:       "ServiceMonitor",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "loki-ruler-http",
+				Labels: map[string]string{
+					"app.kubernetes.io/component":  "ruler",
+					"app.kubernetes.io/created-by": "lokistack-controller",
+					"app.kubernetes.io/instance":   "observatorium-lokistack",
+					"app.kubernetes.io/managed-by": "lokistack-controller",
+					"app.kubernetes.io/name":       "lokistack",
+				},
+			},
+			Spec: monitoringv1.ServiceMonitorSpec{
+				Endpoints: []monitoringv1.Endpoint{
+					{
+						Interval: "30s",
+						Port:     "metrics",
+					},
+				},
+				Selector: metav1.LabelSelector{
+					MatchLabels: map[string]string{
+						"app.kubernetes.io/component":  "ruler",
 						"app.kubernetes.io/created-by": "lokistack-controller",
 						"app.kubernetes.io/instance":   "observatorium-lokistack",
 						"app.kubernetes.io/managed-by": "lokistack-controller",
