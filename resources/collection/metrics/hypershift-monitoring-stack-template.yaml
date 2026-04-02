@@ -19,7 +19,7 @@ parameters:
     required: true
   - name: HCP_RHOBS_ROOT_URL
     description: "RHOBS cell URL"
-    value: 'https://{{ fromCDLabel "ext-hypershift.openshift.io/rhobs-cell" }}'
+    value: '{{ with fromCDLabel "ext-hypershift.openshift.io/rhobs-cell" }}https://{{ . }}{{ end }}'
   - name: GLOBAL_SLO_HCP_RHOBS_ROOT_URL
     description: 'Global SLO RHOBS cell URL'
   - name: RHOBS_SECRET_NAME
