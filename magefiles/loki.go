@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	lokiStackName       = "observatorium-lokistack"
+	lokiStackName = "observatorium-lokistack"
 	// lokiRulesInstanceLabelKey is the Loki operator label linking AlertingRule/RecordingRule CRs to this LokiStack (not Thanos PrometheusRule labels).
 	lokiRulesInstanceLabelKey = "loki.grafana.com/loki-rule"
 )
@@ -252,6 +252,20 @@ func newBundleLokiRulerConfig(namespace string, rulerMode clusters.LokiRulerMode
 			Endpoints: []string{
 				fmt.Sprintf("http://alertmanager-0.alertmanager-cluster.%s.svc.cluster.local:9093", namespace),
 				fmt.Sprintf("http://alertmanager-1.alertmanager-cluster.%s.svc.cluster.local:9093", namespace),
+			},
+			// Rename the built-in "tenantId" label to "tenant_id" until we
+			// have the possibility to customize the tenant ID label in the
+			// Ruler definition.
+			RelabelConfigs: []lokiv1.RelabelConfig{
+				{
+					SourceLabels: []string{"tenantId"},
+					TargetLabel:  "tenant_id",
+				},
+				{
+					SourceLabels: []string{},
+					Regex:        "tenantId",
+					Action:       "labeldrop",
+				},
 			},
 		},
 	}
