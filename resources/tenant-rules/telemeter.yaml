@@ -36,7 +36,7 @@ objects:
           ) > 0
         for: 5m
         labels:
-          severity: critical
+          severity: warning
           tenant_id: ${TENANT_ID}
         annotations:
           summary: "HCP clusters billing metrics are missing"
