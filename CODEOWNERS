@@ -2,16 +2,16 @@
 # See https://docs.gitlab.com/ee/user/project/codeowners/
 
 # Default owners for everything
-* @drow @spasquie @dmellado @pgough @mzardab @samukher
+* @drow @spasquie @dmellado @pgough @mzardab @samukher @jbranham
 
 # HCP tenant rules (alert rules, recording rules)
-/resources/tenant-rules/hcp/ @drow @mzardab @pgough
+/resources/tenant-rules/hcp/ @drow @mzardab @pgough @jbranham
 
 # HCP tenant loki rules (alerting rules templates)
-/resources/tenant-rules/hcp-loki-rules/ @drow @mzardab @rojacob
+/resources/tenant-rules/hcp-loki-rules/ @drow @mzardab @rojacob @jbranham
 
 # SC tenant rules
-/resources/tenant-rules/sc/ @drow @mzardab @pgough
+/resources/tenant-rules/sc/ @drow @mzardab @pgough @jbranham
 
 # MC metric collection (monitoring stack, allowlist)
-/resources/collection/ @drow @mzardab @pgough
+/resources/collection/ @drow @mzardab @pgough @jbranham
