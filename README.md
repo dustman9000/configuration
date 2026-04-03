@@ -85,6 +85,22 @@ After update, they should be regenerated:
 make all
 ```
 
+### Promoting tenant rules to production
+
+Changes merged to `main` auto-deploy to integration and stage RHOBS cells. Production cells use pinned SHAs and require manual promotion.
+
+To promote to production after validating on stage:
+
+```bash
+# From the rhobs/configuration repo checkout
+./scripts/promote-hcp-rules.sh
+
+# Or promote a specific SHA
+./scripts/promote-hcp-rules.sh <sha>
+```
+
+The script updates the app-interface saas file and prints the commands to create the promotion MR. See [hcp_configuration_promotion.md](./docs/sop/hcp_configuration_promotion.md) for the full workflow.
+
 ## Collection stacks
 
 The repository also contains manifests under `resources/collection` for the components collecting and sending metrics and logs to the RHOBS cells. These manifests can be edited manually.
