@@ -76,26 +76,22 @@ Compare with Dynatrace stage to confirm parity (see the [alerting validation run
 
 ### Step 3: Promote to production
 
-Once validated, submit an MR to app-interface updating the production target's `ref` to the validated SHA.
-
-File: `data/services/rhobs/rhobs/cicd/saas-metric-collection.yaml`
-
-```yaml
-# Before
-- name: hypershift-rhobs-monitoring-stack-production-us-east-1-canary
-  ref: <old-sha>
-
-# After
-- name: hypershift-rhobs-monitoring-stack-production-us-east-1-canary
-  ref: <validated-sha>  # validated in stage on YYYY-MM-DD
-```
-
-Get the SHA to promote:
+Once validated, use the promotion script to update the app-interface saas file:
 
 ```bash
-# Use the commit that's currently deployed to stage
-git log --oneline -1 main
+# From your rhobs/configuration checkout
+./scripts/promote-hcp-rules.sh
 ```
+
+This pins all 9 production RHOBS cell targets in `saas-hcp-rules.yaml` to the current HEAD SHA and shows the commits being promoted. Follow the printed instructions to create the app-interface MR.
+
+To promote a specific SHA (e.g., if HEAD has moved since validation):
+
+```bash
+./scripts/promote-hcp-rules.sh <validated-sha>
+```
+
+The saas file is: `data/services/rhobs/rhobs/cicd/saas-hcp-rules.yaml`
 
 The MR is self-serviceable for `rhobs-dev` role members via the `saas-file-self-service` changetype.
 
