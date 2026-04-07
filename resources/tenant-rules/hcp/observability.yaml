@@ -41,6 +41,14 @@ objects:
             # Recording rule for watchdog heartbeat
             - record: watchdog
               expr: vector(1)
+            # Recording rule that combines all alert suppression conditions.
+            # Use `unless on (_id) sre:hcp:alerts_suppressed` in alert expressions
+            # instead of listing individual suppression metrics.
+            # Conditions:
+            #   - hypershift_cluster_alerts_disabled: cluster is in limited support, deleting, or silenced
+            #   - hypershift_cluster_waiting_initial_avaibility_duration_seconds: cluster is installing
+            - record: sre:hcp:alerts_suppressed
+              expr: hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled
   # Prometheus target health alerts - ServiceMonitors and PodMonitors
   - apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule

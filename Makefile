@@ -79,3 +79,8 @@ validate: $(OC)
 $(OC): $(GOBIN)
 	@echo ">>>>> Downloading OpenShift CLI (if necessary)"
 	[ -x $(OC) ] || curl -sNL "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/$(OC_VERSION)/openshift-client-$(OS).tar.gz" | tar -xzf - -C $(GOBIN)
+
+.PHONY: check-alert-suppression
+check-alert-suppression:
+	@echo ">>>>> Checking HCP alert suppression"
+	./scripts/check-alert-suppression.sh ./resources/tenant-rules/hcp/*.yaml
