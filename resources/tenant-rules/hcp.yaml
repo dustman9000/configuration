@@ -298,10 +298,15 @@ objects:
           rules:
             - alert: RequestServingNodesNeedUpscale
               annotations:
-                description: Request serving node pair {{ $labels.request_node }} on MC {{ $labels._mc_id }} has been undersized for 1 hour and needs to be assigned to a bigger request serving node pair.
+                description: Request serving node pair {{ $labels.request_node }} on MC {{ $labels._mc_id }} for HCP {{ $labels.label_api_openshift_com_name }} ({{ $labels.label_api_openshift_com_id }}) has been undersized for 1 hour and needs to be assigned to a bigger request serving node pair.
                 runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/RequestServingNodesNeedUpscale.md
                 summary: HCP Request Serving Nodes Need Upsizing
-              expr: count(sre:node_request_serving:excessive_consumption_cpu or sre:node_request_serving:excessive_consumption_memory) by (request_node, _mc_id)
+              expr: |
+                (
+                  (sre:node_request_serving:excessive_consumption_cpu or sre:node_request_serving:excessive_consumption_memory)
+                  * on (request_node) group_left(label_api_openshift_com_id, label_api_openshift_com_name)
+                    label_replace(sre:node_request_serving:info, "request_node", "$1", "node", "(.*)")
+                )
               for: 1h
               labels:
                 severity: critical
