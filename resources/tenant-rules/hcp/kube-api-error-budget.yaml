@@ -198,6 +198,7 @@ objects:
                 otel_collect: "true"
               expr: |
                 max_over_time(count by (_id, job, namespace,type,verb)(apiserver_request:error_rate_1h > (14.40 * 0.0001) and apiserver_request:error_rate_5m > (14.40 * 0.0001))[5m:])
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 2m
             - alert: KubeAPIErrorBudgetBurn
               annotations:
@@ -211,6 +212,7 @@ objects:
                 otel_collect: "true"
               expr: |
                 max_over_time(count by (_id, job, namespace,type,verb)(apiserver_request:error_rate_6h > (6.00 * 0.0001) and apiserver_request:error_rate_30m > (6.00 * 0.0001))[10m:])
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 15m
         # Long-window error rates and slow burn alerts (15m eval interval)
         - name: KubeAPIErrorBudgetBurn_15m_eval
@@ -271,6 +273,7 @@ objects:
                 apiserver_request:error_rate_1d > (3.00 * 0.0001)
                 and
                 apiserver_request:error_rate_2h > (3.00 * 0.0001)
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 15m
             - alert: KubeAPIErrorBudgetBurn
               annotations:
@@ -286,4 +289,5 @@ objects:
                 apiserver_request:error_rate_3d > (1.00 * 0.0001)
                 and
                 apiserver_request:error_rate_6h > (1.00 * 0.0001)
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 15m

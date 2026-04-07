@@ -42,6 +42,7 @@ objects:
                     certmanager_certificate_expiration_timestamp_seconds - time()
                   ) > 0
                 )
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 1h
               labels:
                 severity: warning
@@ -55,6 +56,7 @@ objects:
                 max by (name, exported_namespace, namespace, condition, _id, mc_name, _mc_id, sector, region) (
                   certmanager_certificate_ready_status{condition!="True"} == 1
                 )
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 10m
               labels:
                 severity: warning

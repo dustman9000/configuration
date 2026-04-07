@@ -67,6 +67,7 @@ objects:
                         or
                         label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")),
                     "_id_or_ns", "", "_id_or_ns", ".*")
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 5m
               keep_firing_for: 15m
               labels:
@@ -95,6 +96,7 @@ objects:
                         or
                         label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")),
                     "_id_or_ns", "", "_id_or_ns", ".*")
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 5m
               keep_firing_for: 15m
               labels:
@@ -121,6 +123,7 @@ objects:
                     label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "_id", ".*")
                     or
                     label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*"))
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 1h
               labels:
                 long_window: 1d
@@ -146,6 +149,7 @@ objects:
                     label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "_id", ".*")
                     or
                     label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*"))
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 3h
               labels:
                 long_window: 3d
@@ -191,6 +195,7 @@ objects:
                         # Do not fire if the cluster is uninstalling.
                         label_replace(hypershift_cluster_deleting_duration_seconds, "_id_or_ns", "$0", "_id", ".*")),
                     "_id_or_ns", "", "_id_or_ns", ".*")
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 3m
               keep_firing_for: 15m
               labels:
@@ -237,6 +242,7 @@ objects:
                 (
                   sre:kube_apiserver:container_restarts_total > sre:kube_apiserver:container_restarts_total offset 1h
                 )
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 2m
               labels:
                 severity: critical
@@ -265,7 +271,7 @@ objects:
               labels:
                 severity: critical
                 otel_collect: "true"
-              expr: (sre:kube_apiserver:pod_status_ready == 0) unless on (_id) (hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled)
+              expr: (sre:kube_apiserver:pod_status_ready == 0) unless on (_id) sre:hcp:alerts_suppressed
               for: 15m
             # This alert fires when sre:kube_apiserver:deployment_pods_unavailable is greater than 0
             # for 15 minutes, indicating partial degradation.
@@ -275,7 +281,7 @@ objects:
                 runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/KubeAPIServerDegraded.md
                 summary: "Unavailable replicas in KubeAPIServer deployment in the HCP namespace."
               expr: |
-                (sre:kube_apiserver:deployment_pods_unavailable > 0) unless on (_id) (hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled)
+                (sre:kube_apiserver:deployment_pods_unavailable > 0) unless on (_id) sre:hcp:alerts_suppressed
               for: 15m
               labels:
                 severity: warning
@@ -290,7 +296,7 @@ objects:
               labels:
                 severity: critical
                 otel_collect: "true"
-              expr: (sre:openshift_apiserver:pod_status_ready == 0) unless on (_id) (hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled)
+              expr: (sre:openshift_apiserver:pod_status_ready == 0) unless on (_id) sre:hcp:alerts_suppressed
               for: 15m
             # This alert fires when sre:openshift_apiserver:deployment_pods_unavailable is greater than 0
             # for 15 minutes, indicating partial degradation.
@@ -300,7 +306,7 @@ objects:
                 runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/OpenshiftAPIServerDegraded.md
                 summary: "Unavailable replicas in OpenShiftAPIServer deployment in the HCP namespace."
               expr: |
-                (sre:openshift_apiserver:deployment_pods_unavailable > 0) unless on (_id) (hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled)
+                (sre:openshift_apiserver:deployment_pods_unavailable > 0) unless on (_id) sre:hcp:alerts_suppressed
               for: 15m
               labels:
                 severity: warning

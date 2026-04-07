@@ -38,7 +38,7 @@ objects:
               expr: |
                 (cluster_operator_conditions{condition="Degraded",_id!=""} == 1)
                 and on (namespace) (hcp_worker_nodes:available_count >= 2)
-                unless on (_id) (hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled)
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 60m
               labels:
                 severity: soaking
@@ -55,7 +55,7 @@ objects:
               expr: |
                 max by (_id, namespace, name, reason) (cluster_operator_up{name=~"ingress"} == 0)
                 and on (namespace) (hcp_worker_nodes:available_count >= 2)
-                unless on (_id) (hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled)
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 10m
               labels:
                 severity: critical
@@ -77,13 +77,14 @@ objects:
                   cluster_operator_up{name=~"monitoring|network|console|dns|insights|service-ca|kube-storage-version-migrator|image-registry|storage"} == 0
                 )
                 and on (namespace) (hcp_worker_nodes:available_count >= 2)
-                unless on (_id) hypershift_cluster_alerts_disabled
+                unless on (_id) sre:hcp:alerts_suppressed
             - alert: CoreClusterOperatorDown
               annotations:
                 summary: "Core cluster operator {{ $labels.name }} has been down for 15 minutes."
                 description: "The {{ $labels.name }} operator has been down for 15 minutes, and the components it manages may be unavailable or degraded."
                 runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/CoreCriticalClusterOperatorDown.md
               expr: core_cluster_operator:down:filtered{name=~"console|network|monitoring|dns"}
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 15m
               labels:
                 severity: warning
@@ -97,7 +98,7 @@ objects:
               expr: |
                 (max by (_id, condition, name, namespace) (ingress_controller_conditions{name="default", condition="Degraded"} == 1))
                 and on (namespace) (hcp_worker_nodes:available_count >= 2)
-                unless on (_id) hypershift_cluster_alerts_disabled
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 30m
               labels:
                 severity: warning
