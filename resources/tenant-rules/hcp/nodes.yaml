@@ -166,10 +166,10 @@ objects:
             ## If the CPU or Memory consumption is excessive, a critical alert to SRE to assign a new request serving node size.
             - alert: RequestServingNodesNeedUpscale
               annotations:
-                description: "The cluster's request serving nodes have been undersized for 1 hour and need to be assigned to a bigger request serving node pair."
+                description: "Request serving node pair {{ $labels.request_node }} on MC {{ $labels._mc_id }} has been undersized for 1 hour and needs to be assigned to a bigger request serving node pair."
                 runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/RequestServingNodesNeedUpscale.md
                 summary: "HCP Request Serving Nodes Need Upsizing"
-              expr: count(sre:node_request_serving:excessive_consumption_cpu or sre:node_request_serving:excessive_consumption_memory) by (request_node, _mc_id) unless on (_id) sre:hcp:alerts_suppressed
+              expr: count(sre:node_request_serving:excessive_consumption_cpu or sre:node_request_serving:excessive_consumption_memory) by (request_node, _mc_id)
               for: 1h
               labels:
                 severity: critical
