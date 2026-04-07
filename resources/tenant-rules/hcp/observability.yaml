@@ -35,6 +35,7 @@ objects:
                 description: "No `watchdog` heartbeat for {{ $labels._id }} detected. This means the alerting stack is not functioning properly and alerts may not fire."
                 runbook_url: "https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/HCPWatchdogDown.md"
               expr: sum by (_id, _mc_id, region, sector) (vector(1)) unless on (_id) (watchdog or hypershift_cluster_alerts_disabled)
+                unless on (_id) sre:hcp:alerts_suppressed
               for: 15m
               labels:
                 severity: critical
@@ -66,7 +67,7 @@ objects:
             - alert: HCPPrometheusPodMonitorDown
               # Gate on hypershift_cluster_vcpus to avoid firing for deleted clusters
               # whose HCP namespace still exists on the MC (SREP-4071)
-              expr: ((sre:hcp_podmonitor_up:sum{name!~"karpenter"} == 0) and on (_id) hypershift_cluster_vcpus) unless on (_id) hypershift_cluster_alerts_disabled
+              expr: ((sre:hcp_podmonitor_up:sum{name!~"karpenter"} == 0) and on (_id) hypershift_cluster_vcpus) unless on (_id) sre:hcp:alerts_suppressed
               for: 30m
               labels:
                 severity: critical
@@ -82,7 +83,7 @@ objects:
             - alert: HCPPrometheusServiceMonitorDown
               # Gate on hypershift_cluster_vcpus to avoid firing for deleted clusters
               # whose HCP namespace still exists on the MC (SREP-4071)
-              expr: ((sre:hcp_servicemonitor_up:sum{name!~"node-tuning-operator|ovnkube-control-plane|cluster-version-operator|olm-operator-metrics|catalog-operator-metrics"} == 0) and on (_id) hypershift_cluster_vcpus) unless on (_id) (hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled)
+              expr: ((sre:hcp_servicemonitor_up:sum{name!~"node-tuning-operator|ovnkube-control-plane|cluster-version-operator|olm-operator-metrics|catalog-operator-metrics"} == 0) and on (_id) hypershift_cluster_vcpus) unless on (_id) sre:hcp:alerts_suppressed
               for: 30m
               labels:
                 severity: critical

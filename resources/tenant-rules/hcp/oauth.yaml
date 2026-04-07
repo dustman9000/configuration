@@ -35,7 +35,7 @@ objects:
                 runbook_url: https://github.com/openshift/ops-sop/blob/master/v4/alerts/hypershift/OauthServiceDeploymentDegraded.md
                 summary: "An Oauth Service deployment does not have the expected number of available replicas."
               expr: |
-                (sre:oauth:deployment_pods_unavailable > 0) unless on (_id) hypershift_cluster_alerts_disabled
+                (sre:oauth:deployment_pods_unavailable > 0) unless on (_id) sre:hcp:alerts_suppressed
               for: 10m
               labels:
                 severity: warning
@@ -48,5 +48,5 @@ objects:
               labels:
                 severity: warning
                 otel_collect: "true"
-              expr: (sre:sre:oauth:pod_status_ready == 0) unless on (_id) hypershift_cluster_alerts_disabled
+              expr: (sre:sre:oauth:pod_status_ready == 0) unless on (_id) sre:hcp:alerts_suppressed
               for: 15m
