@@ -20,7 +20,7 @@ spec:
         dashboard: https://grafana.app-sre.devshift.net/d/50b36e28785705570854022296f14821/alertmanager?orgId=1&refresh=10s&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=All&var-pod=All&var-interval=5m
         description: Configuration has failed to load for {{$labels.instance}}.
         message: Reloading an Alertmanager configuration has failed.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#alertmanagerfailedreload
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/alertmanager.md#alertmanagerfailedreload
       expr: max_over_time(alertmanager_config_last_reload_successful{job="alertmanager"}[5m])
         == 0
       for: 10m
@@ -34,7 +34,7 @@ spec:
           members of the {{$labels.job}} cluster.
         message: A member of an Alertmanager cluster has not found all other cluster
           members.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#alertmanagermembersinconsistent
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/alertmanager.md#alertmanagermembersinconsistent
       expr: |2-
           max_over_time(alertmanager_cluster_members{job="alertmanager"}[5m])
         < on (job) group_left ()
@@ -49,7 +49,7 @@ spec:
         description: Alertmanager {{$labels.instance}} failed to send {{ $value |
           humanizePercentage }} of notifications to {{ $labels.integration }}.
         message: An Alertmanager instance failed to send notifications.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#alertmanagerfailedtosendalerts
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/alertmanager.md#alertmanagerfailedtosendalerts
       expr: |2-
           (
               rate(alertmanager_notifications_failed_total{job="alertmanager"}[15m])
@@ -70,7 +70,7 @@ spec:
           humanizePercentage }}.
         message: All Alertmanager instances in a cluster failed to send notifications
           to a critical integration.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#alertmanagerclusterfailedtosendalerts
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/alertmanager.md#alertmanagerclusterfailedtosendalerts
       expr: |2-
           min by (job, integration) (
               rate(
@@ -97,7 +97,7 @@ spec:
           humanizePercentage }}.
         message: All Alertmanager instances in a cluster failed to send notifications
           to a non-critical integration.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#alertmanagerclusterfailedtosendalertsnonCrit
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/alertmanager.md#alertmanagerclusterfailedtosendalertsnonCrit
       expr: |2-
           min by (job, integration) (
               rate(
@@ -122,7 +122,7 @@ spec:
         description: Alertmanager instances within the {{$labels.job}} cluster have
           different configurations.
         message: Alertmanager instances within the same cluster have different configurations.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#alertmanagerconfiginconsistent
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/alertmanager.md#alertmanagerconfiginconsistent
       expr: |2-
           count by (job) (count_values by (job) ("config_hash", alertmanager_config_hash{job="alertmanager"}))
         !=
@@ -139,7 +139,7 @@ spec:
           last 5m.'
         message: Half or more of the Alertmanager instances within the same cluster
           are down.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#alertmanagerclusterdown
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/alertmanager.md#alertmanagerclusterdown
       expr: |2-
           (
               count by (job) (avg_over_time(up{job="alertmanager"}[5m]) < 0.5)
@@ -160,7 +160,7 @@ spec:
           last 10m.'
         message: Half or more of the Alertmanager instances within the same cluster
           are crashlooping.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#alertmanagerclustercrashlooping
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/alertmanager.md#alertmanagerclustercrashlooping
       expr: |2-
           (
               count by (job) (changes(process_start_time_seconds{job="alertmanager"}[10m]) > 4)

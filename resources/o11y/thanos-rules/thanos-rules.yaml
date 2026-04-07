@@ -21,7 +21,7 @@ spec:
         description: ThanosCompact has disappeared from {{$labels.namespace}}. Prometheus
           target for the component cannot be discovered.
         message: Thanos component has disappeared from {{$labels.namespace}}.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanoscompactisdown
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanoscompactisdown
       expr: absent(up{job=~"thanos-compact-rhobs.*"} == 1)
       for: 5m
       labels:
@@ -33,7 +33,7 @@ spec:
         description: ThanosQuery has disappeared from {{$labels.namespace}}. Prometheus
           target for the component cannot be discovered.
         message: Thanos component has disappeared from {{$labels.namespace}}.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosqueryisdown
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosqueryisdown
       expr: absent(up{job=~"thanos-query-rhobs.*"} == 1)
       for: 5m
       labels:
@@ -45,7 +45,7 @@ spec:
         description: ThanosReceiveRouter has disappeared from {{$labels.namespace}}.
           Prometheus target for the component cannot be discovered.
         message: Thanos component has disappeared from {{$labels.namespace}}.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceiveisdown
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceiveisdown
       expr: absent(up{job=~"thanos-receive-router-rhobs.*"} == 1)
       for: 5m
       labels:
@@ -57,7 +57,7 @@ spec:
         description: ThanosReceiveIngester has disappeared from {{$labels.namespace}}.
           Prometheus target for the component cannot be discovered.
         message: Thanos component has disappeared from {{$labels.namespace}}.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceiveisdown
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceiveisdown
       expr: absent(up{job=~"thanos-receive-ingester-rhobs.*"} == 1)
       for: 5m
       labels:
@@ -69,7 +69,7 @@ spec:
         description: ThanosRule has disappeared from {{$labels.namespace}}. Prometheus
           target for the component cannot be discovered.
         message: Thanos component has disappeared from {{$labels.namespace}}.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosruleisdown
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosruleisdown
       expr: absent(up{job=~"thanos-ruler-rhobs.*"} == 1)
       for: 5m
       labels:
@@ -81,7 +81,7 @@ spec:
         description: ThanosStore has disappeared from {{$labels.namespace}}. Prometheus
           target for the component cannot be discovered.
         message: Thanos component has disappeared from {{$labels.namespace}}.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosstoreisdown
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosstoreisdown
       expr: absent(up{job=~"thanos-store-.*"} == 1)
       for: 5m
       labels:
@@ -95,7 +95,7 @@ spec:
         description: No more than one Thanos Compact instance should be running at
           once. There are {{$value}} in {{$labels.namespace}} instances running.
         message: Thanos Compact has multiple instances running.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanoscompactmultiplerunning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanoscompactmultiplerunning
       expr: sum by (namespace, job) (up{job=~"thanos-compact-rhobs.*"} > 1)
       for: 5m
       labels:
@@ -107,7 +107,7 @@ spec:
         description: Thanos Compact {{$labels.job}} in {{$labels.namespace}} has failed
           to run and now is halted.
         message: Thanos Compact has failed to run and is now halted.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanoscompacthalted
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanoscompacthalted
       expr: thanos_compact_halted{job=~"thanos-compact-rhobs.*"} == 1
       for: 5m
       labels:
@@ -119,7 +119,7 @@ spec:
         description: Thanos Compact {{$labels.job}} in {{$labels.namespace}} is failing
           to execute {{$value | humanize}}% of compactions.
         message: Thanos Compact is failing to execute compactions.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanoscompacthighcompactionfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanoscompacthighcompactionfailures
       expr: |2-
             (
                 sum by (namespace, job) (
@@ -144,7 +144,7 @@ spec:
         description: Thanos Compact {{$labels.job}} in {{$labels.namespace}} Bucket
           is failing to execute {{$value | humanize}}% of operations.
         message: Thanos Compact Bucket is having a high number of operation failures.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanoscompactbuckethighoperationfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanoscompactbuckethighoperationfailures
       expr: |2-
             (
                 sum by (namespace, job) (
@@ -169,7 +169,7 @@ spec:
         description: Thanos Compact {{$labels.job}} in {{$labels.namespace}} has not
           uploaded anything for 24 hours.
         message: Thanos Compact has not uploaded anything for last 24 hours.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanoscompacthasnotrun
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanoscompacthasnotrun
       expr: |2-
               (
                   time()
@@ -196,7 +196,7 @@ spec:
         description: Thanos Query {{$labels.job}} in {{$labels.namespace}} is failing
           to handle {{$value | humanize}}% of "query" requests.
         message: Thanos Query is failing to handle requests.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosqueryhttprequestqueryerrorratehigh
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosqueryhttprequestqueryerrorratehigh
       expr: |2-
             (
                 sum by (namespace, job) (
@@ -219,7 +219,7 @@ spec:
         description: Thanos Query {{$labels.job}} in {{$labels.namespace}} is failing
           to handle {{$value | humanize}}% of requests.
         message: Thanos Query is failing to handle requests.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosquerygrpcservererrorrate
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosquerygrpcservererrorrate
       expr: |2-
             (
                 sum by (namespace, job) (
@@ -244,7 +244,7 @@ spec:
         description: Thanos Query {{$labels.job}} in {{$labels.namespace}} is failing
           to send {{$value | humanize}}% of requests.
         message: Thanos Query is failing to send requests.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosquerygrpcclienterrorrate
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosquerygrpcclienterrorrate
       expr: |2-
             (
                 sum by (namespace, job) (
@@ -267,7 +267,7 @@ spec:
         description: Thanos Query {{$labels.job}} in {{$labels.namespace}} have {{$value
           | humanize}}% of failing DNS queries for store endpoints.
         message: Thanos Query is having high number of DNS failures.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosqueryhighdnsfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosqueryhighdnsfailures
       expr: |2-
             (
                 sum by (namespace, job) (
@@ -292,7 +292,7 @@ spec:
         description: Thanos Query {{$labels.job}} in {{$labels.namespace}} has a 99th
           percentile latency of {{$value}} seconds for instant queries.
         message: Thanos Query has high latency for queries.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosqueryinstantlatencyhigh
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosqueryinstantlatencyhigh
       expr: |2-
             histogram_quantile(
               0.99,
@@ -320,7 +320,7 @@ spec:
         description: Thanos Receive {{$labels.job}} in {{$labels.namespace}} is failing
           to handle {{$value | humanize}}% of requests.
         message: Thanos Receive is failing to handle requests.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivehttprequesterrorratehigh
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceivehttprequesterrorratehigh
       expr: |2-
             (
                 sum by (namespace, job) (
@@ -345,7 +345,7 @@ spec:
         description: Thanos Receive {{$labels.job}} in {{$labels.namespace}} has a
           99th percentile latency of {{ $value }} seconds for requests.
         message: Thanos Receive has high HTTP requests latency.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivehttprequestlatencyhigh
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceivehttprequestlatencyhigh
       expr: |2-
             histogram_quantile(
               0.99,
@@ -375,7 +375,7 @@ spec:
         description: Thanos Receive {{$labels.job}} in {{$labels.namespace}} is failing
           to replicate {{$value | humanize}}% of requests.
         message: Thanos Receive is having high number of replication failures.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivehighreplicationfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceivehighreplicationfailures
       expr: |2-
           thanos_receive_replication_factor > 1
         and
@@ -410,7 +410,7 @@ spec:
         description: Thanos Receive {{$labels.job}} in {{$labels.namespace}} is failing
           to forward {{$value | humanize}}% of requests.
         message: Thanos Receive is failing to forward requests.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivehighforwardrequestfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceivehighforwardrequestfailures
       expr: |2-
             (
                 sum by (namespace, job) (
@@ -435,7 +435,7 @@ spec:
         description: Thanos Receive {{$labels.job}} in {{$labels.namespace}} is failing
           to refresh hashring file, {{$value | humanize}} of attempts failed.
         message: Thanos Receive is failing to refresh hasring file.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivehighhashringfilerefreshfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceivehighhashringfilerefreshfailures
       expr: |2-
           (
               sum by (namespace, job) (
@@ -458,7 +458,7 @@ spec:
         description: Thanos Receive {{$labels.job}} in {{$labels.namespace}} has not
           been able to reload hashring configurations.
         message: Thanos Receive is failing to reload hashring configurations.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceiveconfigreloadfailure
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceiveconfigreloadfailure
       expr: |2-
           avg by (namespace, job) (
             thanos_receive_config_last_reload_successful{job=~"thanos-receive-router-rhobs.*"}
@@ -475,7 +475,7 @@ spec:
         description: Thanos Receive {{$labels.instance}} in {{$labels.namespace}}
           has not uploaded latest data to object storage.
         message: Thanos Receive has not uploaded latest data to object storage.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivenoupload
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceivenoupload
       expr: |2-
           (up{job=~"thanos-receive-ingester-rhobs.*"} - 1)
         + on (namespace, job, instance)
@@ -496,7 +496,7 @@ spec:
         description: Thanos Receive {{$labels.job}} in {{$labels.namespace}} has not
           been able to reload the limits configuration.
         message: Thanos Receive has not been able to reload the limits configuration.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivelimitsconfigreloadfailure
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceivelimitsconfigreloadfailure
       expr: |2-
           sum by (namespace, job) (
             increase(thanos_receive_limits_config_reload_err_total{job=~"thanos-receive-router-rhobs.*"}[5m])
@@ -513,7 +513,7 @@ spec:
         description: Thanos Receive {{$labels.job}} in {{$labels.namespace}} is failing
           for {{$value | humanize}}% of meta monitoring queries.
         message: Thanos Receive has not been able to update the number of head series.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivelimitshighmetamonitoringqueriesfailurerate
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceivelimitshighmetamonitoringqueriesfailurerate
       expr: |2-
               sum by (namespace, job) (
                 increase(
@@ -536,7 +536,7 @@ spec:
         description: Thanos Receive tenant {{$labels.tenant}} in {{$labels.namespace}}
           is limited by head series.
         message: Thanos Receive tenant is limited by head series.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivetenantlimitedbyheadseries
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosreceivetenantlimitedbyheadseries
       expr: |2-
           sum by (namespace, job, tenant) (
             increase(
@@ -557,7 +557,7 @@ spec:
         description: Thanos Store {{$labels.job}} in {{$labels.namespace}} is failing
           to handle {{$value | humanize}}% of requests.
         message: Thanos Store is failing to handle gRPC requests.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosstoregrpcerrorrate
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosstoregrpcerrorrate
       expr: |2-
             (
                 sum by (namespace, job) (
@@ -582,7 +582,7 @@ spec:
         description: Thanos Store {{$labels.job}} in {{$labels.namespace}} Bucket
           is failing to execute {{$value | humanize}}% of operations.
         message: Thanos Store Bucket is failing to execute operations.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosstorebuckethighoperationfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosstorebuckethighoperationfailures
       expr: |2-
             (
                 sum by (namespace, job) (
@@ -607,7 +607,7 @@ spec:
         description: Thanos Store {{$labels.job}} in {{$labels.namespace}} Bucket
           has a 99th percentile latency of {{$value}} seconds for the bucket operations.
         message: Thanos Store is having high latency for bucket operations.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosstoreobjstoreoperationlatencyhigh
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosstoreobjstoreoperationlatencyhigh
       expr: |2-
             histogram_quantile(
               0.99,
@@ -635,7 +635,7 @@ spec:
         description: Thanos Rule {{$labels.instance}} in {{$labels.namespace}} is
           failing to queue rulehelpers.
         message: Thanos Rule is failing to queue rulehelpers.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulequeueisdroppingalerts
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosrulequeueisdroppingalerts
       expr: |2-
           sum by (namespace, job, instance) (
             rate(thanos_alert_queue_alerts_dropped_total{job=~"thanos-ruler-rhobs.*"}[5m])
@@ -652,7 +652,7 @@ spec:
         description: Thanos Rule {{$labels.instance}} in {{$labels.namespace}} is
           failing to send alerts to alertmanager.
         message: Thanos Rule is failing to send alerts to alertmanager.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulesenderisfailingalerts
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosrulesenderisfailingalerts
       expr: |2-
           sum by (namespace, job, instance) (
             rate(thanos_alert_sender_alerts_dropped_total{job=~"thanos-ruler-rhobs.*"}[5m])
@@ -669,7 +669,7 @@ spec:
         description: Thanos Rule {{$labels.instance}} in {{$labels.namespace}} is
           failing to evaluate rules.
         message: Thanos Rule is failing to evaluate rules.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulehighruleevaluationfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosrulehighruleevaluationfailures
       expr: |2-
             (
                 sum by (namespace, job, instance) (
@@ -694,7 +694,7 @@ spec:
         description: Thanos Rule {{$labels.instance}} in {{$labels.namespace}} has
           high number of evaluation warnings.
         message: Thanos Rule has high number of evaluation warnings.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulehighruleevaluationwarnings
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosrulehighruleevaluationwarnings
       expr: |2-
           sum by (namespace, job, instance) (
             rate(thanos_rule_evaluation_with_warnings_total{job=~"thanos-ruler-rhobs.*"}[5m])
@@ -711,7 +711,7 @@ spec:
         description: Thanos Rule {{$labels.instance}} in {{$labels.namespace}} has
           higher evaluation latency than interval for {{$labels.rule_group}}.
         message: Thanos Rule has high rule evaluation latency.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosruleruleevaluationlatencyhigh
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosruleruleevaluationlatencyhigh
       expr: |2-
           sum by (namespace, job, instance, rule_group) (
             prometheus_rule_group_last_duration_seconds{job=~"thanos-ruler-rhobs.*"}
@@ -730,7 +730,7 @@ spec:
         description: Thanos Rule {{$labels.job}} in {{$labels.namespace}} is failing
           to handle {{$value | humanize}}% of requests.
         message: Thanos Rule is failing to handle grpc requests.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulegrpcerrorrate
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosrulegrpcerrorrate
       expr: |2-
             (
                 sum by (namespace, job, instance) (
@@ -755,7 +755,7 @@ spec:
         description: Thanos Rule {{$labels.job}} in {{$labels.namespace}} has not
           been able to reload its configuration.
         message: Thanos Rule has not been able to reload configuration.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosruleconfigreloadfailure
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosruleconfigreloadfailure
       expr: |2-
           avg by (namespace, job, instance) (
             thanos_rule_config_last_reload_successful{job=~"thanos-ruler-rhobs.*"}
@@ -772,7 +772,7 @@ spec:
         description: Thanos Rule {{$labels.job}} in {{$labels.namespace}} has {{$value
           | humanize}}% of failing DNS queries for query endpoints.
         message: Thanos Rule is having high number of DNS failures.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulequeryhighdnsfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosrulequeryhighdnsfailures
       expr: |2-
             (
                 sum by (namespace, job, instance) (
@@ -797,7 +797,7 @@ spec:
         description: Thanos Rule {{$labels.instance}} in {{$labels.namespace}} has
           {{$value | humanize}}% of failing DNS queries for Alertmanager endpoints.
         message: Thanos Rule is having high number of DNS failures.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulealertmanagerhighdnsfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosrulealertmanagerhighdnsfailures
       expr: |2-
             (
                 sum by (namespace, job, instance) (
@@ -822,7 +822,7 @@ spec:
         description: Thanos Rule {{$labels.job}} in {{$labels.namespace}} has rule
           groups that did not evaluate for at least 10x of their expected interval.
         message: Thanos Rule has rule groups that did not evaluate for 10 intervals.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulenoevaluationfor10intervals
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosrulenoevaluationfor10intervals
       expr: |2-
           (
               time()
@@ -849,7 +849,7 @@ spec:
         description: Thanos Rule {{$labels.instance}} in {{$labels.namespace}} did
           not perform any rule evaluations in the past 10 minutes.
         message: Thanos Rule did not perform any rule evaluations.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosnoruleevaluations
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md#thanosnoruleevaluations
       expr: |2-
             sum by (namespace, job, instance) (
               rate(prometheus_rule_evaluations_total{job=~"thanos-ruler-rhobs.*"}[5m])

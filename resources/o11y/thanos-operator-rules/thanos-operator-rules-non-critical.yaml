@@ -23,7 +23,7 @@ spec:
           reconciliation is happening.
         message: Thanos resources are not being reconciled. Configuration changes
           will not be applied.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosoperatordown
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosoperatordown
       expr: up{job="thanos-operator-controller-manager-metrics-service"} == 0
       for: 5m
       labels:
@@ -38,7 +38,7 @@ spec:
           | humanizePercentage }} over the last 10 minutes.
         message: Resources managed by this controller may not be correctly configured
           or updated.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosoperatorhighreconcileerrorrate
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosoperatorhighreconcileerrorrate
       expr: |2-
             sum by (controller) (
               rate(
@@ -65,7 +65,7 @@ spec:
         description: Workqueue for {{ $labels.name }} has items but no reconciliations
           are happening. Controller appears stuck.
         message: Changes to Thanos resources are not being processed.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosoperatorreconcilestuck
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosoperatorreconcilestuck
       expr: |2-
             rate(
               controller_runtime_reconcile_total{job="thanos-operator-controller-manager-metrics-service"}[10m]
@@ -86,7 +86,7 @@ spec:
         description: Workqueue depth for {{ $labels.name }} is {{ $value }}, indicating
           the controller cannot keep up with events.
         message: Reconciliation is falling behind. Configuration updates may be delayed.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosoperatorworkqueuegrowth
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosoperatorworkqueuegrowth
       expr: last_over_time(workqueue_depth{job="thanos-operator-controller-manager-metrics-service"}[5m])
         > 100
       for: 15m
@@ -101,7 +101,7 @@ spec:
         description: P99 reconciliation time for {{ $labels.controller }} is {{ $value
           | humanizeDuration }}, which is slow
         message: Configuration changes are taking longer than expected to apply.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosoperatorslowreconciliation
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosoperatorslowreconciliation
       expr: |2-
           histogram_quantile(
             0.99,
@@ -127,7 +127,7 @@ spec:
           }} has no store endpoints configured.
         message: Query component cannot retrieve data from any stores. Queries will
           return no results.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosquerynoendpointsconfigured
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosquerynoendpointsconfigured
       expr: |2-
           thanos_operator_query_endpoints_configured{job="thanos-operator-controller-manager-metrics-service"}
         ==
@@ -144,7 +144,7 @@ spec:
           reconciling {{ $value | humanize }} times/sec due to service events.
         message: Excessive reconciliations may indicate service churn or configuration
           issues.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosqueryservicewatchreconcilestorm
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosqueryservicewatchreconcilestorm
       expr: |2-
           rate(
             thanos_operator_query_service_event_reconciliations_total{job="thanos-operator-controller-manager-metrics-service"}[5m]
@@ -166,7 +166,7 @@ spec:
           }} has no hashrings configured.
         message: Receive component cannot accept remote write data without hashring
           configuration.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivenohashringsconfigured
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosreceivenohashringsconfigured
       expr: |2-
           thanos_operator_receive_hashrings_configured{job="thanos-operator-controller-manager-metrics-service"}
         ==
@@ -183,7 +183,7 @@ spec:
           }}/{{ $labels.resource }} has no endpoints configured.
         message: Data cannot be distributed to this hashring. Remote write data may
           be lost or rejected.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivehashringnoendpoints
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosreceivehashringnoendpoints
       expr: |2-
           thanos_operator_receive_hashring_endpoints_configured{job="thanos-operator-controller-manager-metrics-service"}
         ==
@@ -199,7 +199,7 @@ spec:
         description: The hashring configuration for ThanosReceive {{ $labels.namespace
           }}/{{ $labels.resource }} has changed.
         message: Data distribution pattern has changed. This may cause temporary inconsistencies.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceivehashringconfigurationchange
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosreceivehashringconfigurationchange
       expr: |2-
           abs(
             delta(
@@ -220,7 +220,7 @@ spec:
           is reconciling {{ $value | humanize }} times/sec due to endpoint events.
         message: Excessive reconciliations may indicate endpoint churn or configuration
           issues.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosreceiveendpointreconcilestorm
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosreceiveendpointreconcilestorm
       expr: |2-
           rate(
             thanos_operator_receive_endpoint_event_reconciliations_total{job="thanos-operator-controller-manager-metrics-service"}[5m]
@@ -242,7 +242,7 @@ spec:
           }} has no query endpoints configured.
         message: Ruler cannot query data for rule evaluation. Recording and alerting
           rules will not work.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulernoqueryendpointsconfigured
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosrulernoqueryendpointsconfigured
       expr: |2-
           thanos_operator_ruler_query_endpoints_configured{job="thanos-operator-controller-manager-metrics-service"}
         ==
@@ -259,7 +259,7 @@ spec:
           }}/{{ $labels.resource }}.
         message: No rules from PrometheusRules are being evaluated. This may be expected
           if no rules have been defined yet.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulernorulesconfigured
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosrulernorulesconfigured
       expr: |2-
           thanos_operator_ruler_promrules_found{job="thanos-operator-controller-manager-metrics-service"} == 0
         or
@@ -278,7 +278,7 @@ spec:
           }}/{{ $labels.resource }}.
         message: No rules are being evaluated as no rule configmaps were found. This
           may be expected if no rules have been defined yet.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulernorulesconfigured
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosrulernorulesconfigured
       expr: |2-
             thanos_operator_ruler_rulefiles_configured{job="thanos-operator-controller-manager-metrics-service"}
           ==
@@ -299,7 +299,7 @@ spec:
           $labels.namespace }}/{{ $labels.resource }}.
         message: PrometheusRules cannot be loaded into the Ruler. Rules will not be
           evaluated.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulerconfigmapcreationfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosrulerconfigmapcreationfailures
       expr: |2-
           rate(
             thanos_operator_ruler_cfgmaps_creation_failures_total{job="thanos-operator-controller-manager-metrics-service"}[5m]
@@ -318,7 +318,7 @@ spec:
           creating ConfigMaps at {{ $value | humanize }}/sec.
         message: Excessive ConfigMap updates may indicate rule churn and cause unnecessary
           Ruler reloads.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulerhighconfigmapcreationrate
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosrulerhighconfigmapcreationrate
       expr: |2-
           rate(
             thanos_operator_ruler_cfgmaps_created_total{job="thanos-operator-controller-manager-metrics-service"}[5m]
@@ -337,7 +337,7 @@ spec:
           experiencing high reconciliation rate.
         message: Excessive reconciliations may indicate resource churn or configuration
           issues.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosrulerwatchreconcilestorm
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosrulerwatchreconcilestorm
       expr: |2-
               rate(
                 thanos_operator_ruler_service_event_reconciliations_total{job="thanos-operator-controller-manager-metrics-service"}[5m]
@@ -371,7 +371,7 @@ spec:
           }} has 0 shards configured.
         message: This may be expected for single-instance stores. For sharded deployments,
           data queries may fail.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosstorenoshardsconfigured
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosstorenoshardsconfigured
       expr: |2-
           thanos_operator_store_shards_configured{job="thanos-operator-controller-manager-metrics-service"}
         ==
@@ -388,7 +388,7 @@ spec:
           {{ $labels.namespace }}/{{ $labels.resource }}.
         message: Store shards cannot be created. Historical data queries may be incomplete
           or fail.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosstoreshardcreationfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosstoreshardcreationfailures
       expr: |2-
           rate(
             thanos_operator_store_shards_creation_update_failures_total{job="thanos-operator-controller-manager-metrics-service"}[2m]
@@ -410,7 +410,7 @@ spec:
           }} has 0 shards configured.
         message: This may be expected for single-instance compactors. For sharded
           deployments, compaction may not work.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanoscompactnoshardsconfigured
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanoscompactnoshardsconfigured
       expr: |2-
           thanos_operator_compact_shards_configured{job="thanos-operator-controller-manager-metrics-service"}
         ==
@@ -427,7 +427,7 @@ spec:
           {{ $labels.namespace }}/{{ $labels.resource }}.
         message: Compactor shards cannot be created. Data compaction will not occur,
           leading to increased storage costs and slower queries.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanoscompactshardcreationfailures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanoscompactshardcreationfailures
       expr: |2-
           rate(
             thanos_operator_compact_shards_creation_update_failures_total{job="thanos-operator-controller-manager-metrics-service"}[5m]
@@ -449,7 +449,7 @@ spec:
           $labels.resource }} has been in paused state for over 24 hours.'
         message: No reconciliation is happening for this resource. Configuration changes
           are not being applied.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosresourcepausedforlong
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosresourcepausedforlong
       expr: thanos_operator_paused{job="thanos-operator-controller-manager-metrics-service"}
         == 1
       for: 24h
@@ -467,7 +467,7 @@ spec:
         description: Workqueue {{ $labels.name }} has {{ $value | humanize }} retries/sec.
         message: Items are being retried frequently, indicating persistent errors
           or resource issues.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosoperatorhighworkqueueretries
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosoperatorhighworkqueueretries
       expr: rate(workqueue_retries_total{job="thanos-operator-controller-manager-metrics-service"}[10m])
         > 0.5
       for: 15m
@@ -483,7 +483,7 @@ spec:
           }}.
         message: Items are waiting too long in queue before processing. Reconciliation
           is delayed.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#thanosoperatorlongworkqueuelatency
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md#thanosoperatorlongworkqueuelatency
       expr: |2-
           histogram_quantile(
             0.99,
