@@ -1270,7 +1270,7 @@ objects:
                 ) > 0.5
               for: 15m
               labels:
-                severity: warning
+                severity: soaking
                 service: rhobs-synthetics
               annotations:
                 summary: RMO on {{ $labels.mc_name }} has high RHOBS API error rate
