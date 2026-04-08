@@ -27,11 +27,6 @@ const (
 	dashboardLokiWrites = "https://grafana.app-sre.devshift.net/d/rhobs-lokistack-writes/lokistack-writes?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}"
 )
 
-// Runbook URLs
-const (
-	runbookBaseURL = "https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md"
-)
-
 func (b Build) Rules() error {
 	b.ThanosRules()
 	b.ThanosOperatorRules()
