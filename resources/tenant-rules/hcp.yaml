@@ -371,6 +371,19 @@ objects:
               expr: vector(1)
             - record: sre:hcp:alerts_suppressed
               expr: hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled
+            - record: sre:hcp:probe_active
+              expr: |
+                (
+                  sum by (_id) (count_over_time(probe_success{probe_url=~".*api.*"}[10m])) > 0
+                  or
+                  sum by (_id) (count_over_time(probe_success{apiserver_url=~".*api.*"}[10m])) > 0
+                )
+                and
+                (
+                  max by (_id) (max_over_time(probe_success{probe_url=~".*api.*"}[1h])) > 0
+                  or
+                  max by (_id) (max_over_time(probe_success{apiserver_url=~".*api.*"}[1h])) > 0
+                )
   - apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
     metadata:
@@ -705,11 +718,7 @@ objects:
                         label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")),
                     "_id_or_ns", "", "_id_or_ns", ".*")
                 unless on (_id) sre:hcp:alerts_suppressed
-                and on (_id) (
-                  sum by (_id) (count_over_time(probe_success{probe_url=~".*api.*"}[10m])) > 0
-                  or
-                  sum by (_id) (count_over_time(probe_success{apiserver_url=~".*api.*"}[10m])) > 0
-                )
+                and on (_id) sre:hcp:probe_active
               for: 5m
               keep_firing_for: 15m
               labels:
@@ -739,11 +748,7 @@ objects:
                         label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")),
                     "_id_or_ns", "", "_id_or_ns", ".*")
                 unless on (_id) sre:hcp:alerts_suppressed
-                and on (_id) (
-                  sum by (_id) (count_over_time(probe_success{probe_url=~".*api.*"}[10m])) > 0
-                  or
-                  sum by (_id) (count_over_time(probe_success{apiserver_url=~".*api.*"}[10m])) > 0
-                )
+                and on (_id) sre:hcp:probe_active
               for: 5m
               keep_firing_for: 15m
               labels:
@@ -771,11 +776,7 @@ objects:
                     or
                     label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*"))
                 unless on (_id) sre:hcp:alerts_suppressed
-                and on (_id) (
-                  sum by (_id) (count_over_time(probe_success{probe_url=~".*api.*"}[10m])) > 0
-                  or
-                  sum by (_id) (count_over_time(probe_success{apiserver_url=~".*api.*"}[10m])) > 0
-                )
+                and on (_id) sre:hcp:probe_active
               for: 1h
               labels:
                 long_window: 1d
@@ -802,11 +803,7 @@ objects:
                     or
                     label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*"))
                 unless on (_id) sre:hcp:alerts_suppressed
-                and on (_id) (
-                  sum by (_id) (count_over_time(probe_success{probe_url=~".*api.*"}[10m])) > 0
-                  or
-                  sum by (_id) (count_over_time(probe_success{apiserver_url=~".*api.*"}[10m])) > 0
-                )
+                and on (_id) sre:hcp:probe_active
               for: 3h
               labels:
                 long_window: 3d
@@ -851,11 +848,7 @@ objects:
                         label_replace(hypershift_cluster_deleting_duration_seconds, "_id_or_ns", "$0", "_id", ".*")),
                     "_id_or_ns", "", "_id_or_ns", ".*")
                 unless on (_id) sre:hcp:alerts_suppressed
-                and on (_id) (
-                  sum by (_id) (count_over_time(probe_success{probe_url=~".*api.*"}[10m])) > 0
-                  or
-                  sum by (_id) (count_over_time(probe_success{apiserver_url=~".*api.*"}[10m])) > 0
-                )
+                and on (_id) sre:hcp:probe_active
               for: 3m
               keep_firing_for: 15m
               labels:
