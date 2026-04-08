@@ -10,6 +10,7 @@ import (
 	thanosoperatorrules "github.com/perses/community-mixins/pkg/rules/thanos-operator"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gitlab.cee.redhat.com/rhobs/configuration/internal/lokirules"
+	"gitlab.cee.redhat.com/rhobs/configuration/internal/syntheticsrules"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -38,6 +39,7 @@ func (b Build) Rules() error {
 	b.AlertmanagerRules()
 	b.LokiRules()
 	b.SLORules()
+	b.SyntheticsRules()
 	return nil
 }
 
@@ -291,4 +293,79 @@ func ReplaceStoreRhobsWithDefault(groups []v1.RuleGroup) []v1.RuleGroup {
 		}
 	}
 	return groups
+}
+
+func (b Build) SyntheticsRules() {
+	gen := b.o11yGenerator("synthetics-rules")
+	syntheticsRules(gen)
+}
+
+func syntheticsRules(gen *mimic.Generator) {
+	gen.Add("synthetics-api-rules.yaml", encoding.GhodssYAML("", SyntheticsAPIPrometheusRule(false)))
+	gen.Add("synthetics-api-rules-non-critical.yaml", encoding.GhodssYAML("", SyntheticsAPIPrometheusRule(true)))
+	gen.Add("synthetics-agent-rules.yaml", encoding.GhodssYAML("", SyntheticsAgentPrometheusRule(false)))
+	gen.Add("synthetics-agent-rules-non-critical.yaml", encoding.GhodssYAML("", SyntheticsAgentPrometheusRule(true)))
+	gen.Generate()
+}
+
+func SyntheticsAPIPrometheusRule(nonCriticalPostProcessing bool) *appInterfacePrometheusRule {
+	builder, err := syntheticsrules.NewSyntheticsAPIRulesBuilder(
+		"",
+		map[string]string{
+			"app.kubernetes.io/component": "synthetics-api",
+			"app.kubernetes.io/name":      "synthetics-api-rules",
+			"app.kubernetes.io/part-of":   rhobsNextServiceLabel,
+			"app.kubernetes.io/version":   "main",
+			"prometheus":                  "app-sre",
+			"role":                        "alert-rules",
+		},
+		map[string]string{},
+		syntheticsrules.WithServiceLabelValue(rhobsNextServiceLabel),
+	)
+	if err != nil {
+		return nil
+	}
+
+	if nonCriticalPostProcessing {
+		builder.PrometheusRule = RuleNonCriticalPostProcessing(builder.PrometheusRule)
+	} else {
+		builder.PrometheusRule = RuleCriticalPostProcessing(builder.PrometheusRule)
+	}
+	builder.Spec.Groups = ReplaceSummaryWithMessage(builder.Spec.Groups)
+
+	return &appInterfacePrometheusRule{
+		Schema:         schemaPath,
+		PrometheusRule: builder.PrometheusRule,
+	}
+}
+
+func SyntheticsAgentPrometheusRule(nonCriticalPostProcessing bool) *appInterfacePrometheusRule {
+	builder, err := syntheticsrules.NewSyntheticsAgentRulesBuilder(
+		"",
+		map[string]string{
+			"app.kubernetes.io/component": "synthetics-agent",
+			"app.kubernetes.io/name":      "synthetics-agent-rules",
+			"app.kubernetes.io/part-of":   rhobsNextServiceLabel,
+			"app.kubernetes.io/version":   "main",
+			"prometheus":                  "app-sre",
+			"role":                        "alert-rules",
+		},
+		map[string]string{},
+		syntheticsrules.WithServiceLabelValue(rhobsNextServiceLabel),
+	)
+	if err != nil {
+		return nil
+	}
+
+	if nonCriticalPostProcessing {
+		builder.PrometheusRule = RuleNonCriticalPostProcessing(builder.PrometheusRule)
+	} else {
+		builder.PrometheusRule = RuleCriticalPostProcessing(builder.PrometheusRule)
+	}
+	builder.Spec.Groups = ReplaceSummaryWithMessage(builder.Spec.Groups)
+
+	return &appInterfacePrometheusRule{
+		Schema:         schemaPath,
+		PrometheusRule: builder.PrometheusRule,
+	}
 }
