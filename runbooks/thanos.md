@@ -70,6 +70,7 @@ This operator runs across multiple private Kubernetes clusters. To troubleshoot 
 - **Access the cluster (for kubectl commands):**
    - Visit the cluster page: `https://visual-app-interface.devshift.net/clusters/<cluster-name>`
    - Follow the sshuttle access instructions provided on the cluster page
+   - For `kubectl` access, navigate to `https://oauth-openshift.apps.<cluster_name>.openshiftapps.com/oauth/token/request` (find the cluster name from the console URL on the cluster page in the visual app interface), copy the `oc login` command shown there, and run it — this grants `kubectl` access to the cluster
 - **View Configuration:**
    - Configuration repository: `https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/resources/clusters/production/<cluster>/metrics/bundle`
    - Contains ThanosOperator and all Thanos CRs (ThanosQuery, ThanosReceive, ThanosRuler, ThanosStore, ThanosCompact)
@@ -256,9 +257,9 @@ absent(up{job=~"thanos-receive-router.*"} == 1)
 
 - **Check if the operator-generated hashring ConfigMap exists** — the operator builds this automatically from ingester EndpointSlices and mounts it to the router. It is **not** user-managed:
    ```bash
-   kubectl get configmap -n rhobs-production <receive-name>-router-hashring -o yaml
+   kubectl get configmap -n rhobs-production thanos-receive-router-<receive-name> -o yaml
    ```
-   If it's missing, the operator hasn't reconciled yet. Check operator logs: `kubectl logs -n rhobs-production -l app.kubernetes.io/name=thanos-operator | grep -i "hashring\|ThanosReceive"`
+   If it's missing, the operator hasn't reconciled yet. Check operator logs: `kubectl logs -n rhobs-production -l control-plane=controller-manager | grep -i "hashring\|ThanosReceive"`
 
 - **Verify Service and ServiceMonitor:**
    ```bash
@@ -362,8 +363,8 @@ absent(up{job=~"thanos-ruler.*"} == 1)
 
 - **Check the ThanosRuler CR:**
    ```bash
-   kubectl get thanosruler -n rhobs-production
-   kubectl describe thanosruler <name> -n rhobs-production
+   kubectl get thanosruler.monitoring.thanos.io -n rhobs-production
+   kubectl describe thanosruler.monitoring.thanos.io <name> -n rhobs-production
    ```
 
 - **Inspect logs for startup errors** (common: invalid rule files, unreachable query endpoint):
@@ -1028,14 +1029,8 @@ Thanos Query uses DNS to discover store endpoints dynamically (especially when c
 
 - **Test DNS resolution manually** from within the query pod:
    ```bash
-   kubectl exec -n rhobs-production <query-pod> -- nslookup thanos-store.rhobs-production.svc.cluster.local
-   kubectl exec -n rhobs-production <query-pod> -- nslookup thanos-receive-ingester.rhobs-production.svc.cluster.local
-   ```
-
-- **Check CoreDNS health:**
-   ```bash
-   kubectl get pods -n kube-system -l k8s-app=kube-dns
-   kubectl logs -n kube-system -l k8s-app=kube-dns --tail=50
+   kubectl exec -n rhobs-production <query-pod> -- nslookup thanos-store-default-shard-0.rhobs-production.svc.cluster.local
+   kubectl exec -n rhobs-production <query-pod> -- nslookup thanos-receive-ingester-rhobs-default.rhobs-production.svc.cluster.local
    ```
 
 - **Verify the operator-labeled store/receive services exist** — the operator labels all ThanosStore and ThanosReceive services with `operator.thanos.io/store-api=true`. ThanosQuery uses these for endpoint discovery. If they don't exist, the query has nothing to connect to:
@@ -1051,7 +1046,6 @@ Thanos Query uses DNS to discover store endpoints dynamically (especially when c
 **Access Required:**
 - Cluster access via sshuttle (see [Environment & Access Information](#environment--access-information))
 - `kubectl exec` into query pods
-- `kubectl get/logs` on CoreDNS pods in `kube-system`
 - `kubectl describe` on `ThanosQuery` CRs
 - Grafana access
 
@@ -1486,15 +1480,15 @@ The router's hashring is stale. New ingesters added to the cluster will not rece
    kubectl logs -n rhobs-production <receive-router-pod> | grep -iE "hashring|refresh|file|error"
    ```
 
-- **Verify the operator-generated hashring ConfigMap exists and is mounted** — this ConfigMap (`<receive-name>-router-hashring`) is created and maintained by the operator from ingester EndpointSlices. It is **not** user-editable:
+- **Verify the operator-generated hashring ConfigMap exists and is mounted** — this ConfigMap (`thanos-receive-router-<receive-name>`) is created and maintained by the operator from ingester EndpointSlices. It is **not** user-editable:
    ```bash
-   kubectl get configmap -n rhobs-production <receive-name>-router-hashring -o yaml
+   kubectl get configmap -n rhobs-production thanos-receive-router-<receive-name> -o yaml
    kubectl describe pod -n rhobs-production <receive-router-pod> | grep -A5 "Volumes"
    ```
 
 - **Check operator logs** — if the hashring ConfigMap is malformed or not reconciled, the operator is the source to fix:
    ```bash
-   kubectl logs -n rhobs-production -l app.kubernetes.io/name=thanos-operator | grep -iE "hashring|ThanosReceive|error"
+   kubectl logs -n rhobs-production -l control-plane=controller-manager | grep -iE "hashring|ThanosReceive|error"
    ```
 
 - **Check the health of ingester EndpointSlices** — the operator builds the hashring from ready ingester endpoints. If EndpointSlices are empty, the operator generates an empty hashring:
@@ -1545,16 +1539,16 @@ avg by (namespace, job) (
    kubectl logs -n rhobs-production <receive-router-pod> | grep -iE "reload|config|error"
    ```
 
-- **Check the operator-generated hashring ConfigMap** — the operator builds `<receive-name>-router-hashring` from ingester EndpointSlices. If ingesters are unhealthy, the hashring may be empty or invalid:
+- **Check the operator-generated hashring ConfigMap** — the operator builds `thanos-receive-router-<receive-name>` from ingester EndpointSlices. If ingesters are unhealthy, the hashring may be empty or invalid:
    ```bash
-   kubectl get configmap -n rhobs-production <receive-name>-router-hashring -o jsonpath='{.data.hashring\.json}'
+   kubectl get configmap -n rhobs-production thanos-receive-router-<receive-name> -o jsonpath='{.data.hashrings\.json}'
    kubectl get endpointslices -n rhobs-production -l app.kubernetes.io/component=thanos-receive-ingester
    ```
    If ingester endpoints are empty, fix the ingesters first — the operator will regenerate the hashring automatically.
 
 - **Check operator logs** for reconciliation errors on the ThanosReceive CR:
    ```bash
-   kubectl logs -n rhobs-production -l app.kubernetes.io/name=thanos-operator | grep -iE "ThanosReceive|hashring|error"
+   kubectl logs -n rhobs-production -l control-plane=controller-manager | grep -iE "ThanosReceive|hashring|error"
    ```
 
 - **Restart the router pod** only after confirming the hashring ConfigMap is valid:
@@ -2200,7 +2194,7 @@ sum by (namespace, job, instance) (
 
 - **Verify the Alertmanager URL** configured in the ThanosRuler CR is correct:
    ```bash
-   kubectl describe thanosruler <name> -n rhobs-production | grep -A5 -i alertmanager
+   kubectl describe thanosruler.monitoring.thanos.io <name> -n rhobs-production | grep -A5 -i alertmanager
    ```
 
 - **Check network policies** allow traffic from ruler to Alertmanager on port 9093:
@@ -2525,12 +2519,12 @@ avg by (namespace, job, instance) (thanos_rule_config_last_reload_successful{job
 
 - **Check operator logs** for ConfigMap generation errors:
    ```bash
-   kubectl logs -n rhobs-production -l app.kubernetes.io/name=thanos-operator | grep -iE "ThanosRuler|configmap|rule|error"
+   kubectl logs -n rhobs-production -l control-plane=controller-manager | grep -iE "ThanosRuler|configmap|rule|error"
    ```
 
 - **Check the ThanosRuler CR** selectors to confirm they match your PrometheusRules/ConfigMaps:
    ```bash
-   kubectl get thanosruler <name> -n rhobs-production -o jsonpath='{.spec.ruleSelector} {.spec.ruleConfigSelector}'
+   kubectl get thanosruler.monitoring.thanos.io <name> -n rhobs-production -o jsonpath='{.spec.ruleSelector} {.spec.ruleConfigSelector}'
    ```
 
 - **After fixing the source rule**, the operator will regenerate ConfigMaps and the ruler will auto-reload. If still stuck, delete the ruler pod:
@@ -2594,7 +2588,7 @@ Thanos Rule cannot discover or connect to its Thanos Query backend. Rule evaluat
 
 - **Test DNS from the ruler pod:**
    ```bash
-   kubectl exec -n rhobs-production <ruler-pod> -- nslookup thanos-query.rhobs-production.svc.cluster.local
+   kubectl exec -n rhobs-production <ruler-pod> -- nslookup thanos-query-rhobs.rhobs-production.svc.cluster.local
    ```
 
 - **Verify the Thanos Query Service exists:**
@@ -2605,19 +2599,13 @@ Thanos Rule cannot discover or connect to its Thanos Query backend. Rule evaluat
 - **Check the ThanosRuler CR and how the operator discovers query endpoints** — the operator auto-discovers Thanos Query services labeled `operator.thanos.io/query-api=true` + `app.kubernetes.io/part-of=thanos`. If the ThanosQuery CR exists, the operator labels its service automatically:
    ```bash
    kubectl get svc -n rhobs-production -l operator.thanos.io/query-api=true,app.kubernetes.io/part-of=thanos
-   kubectl describe thanosruler <name> -n rhobs-production | grep -A5 -i "query"
-   ```
-
-- **Check CoreDNS health** if DNS failures are widespread across all pods:
-   ```bash
-   kubectl get pods -n kube-system -l k8s-app=kube-dns
+   kubectl describe thanosruler.monitoring.thanos.io <name> -n rhobs-production | grep -A5 -i "query"
    ```
 
 **Access Required:**
 - Cluster access via sshuttle (see [Environment & Access Information](#environment--access-information))
 - `kubectl exec/logs/describe` on ruler pods
 - `kubectl get` on services and `ThanosRuler` CRs
-- `kubectl get/logs` on CoreDNS pods in `kube-system`
 - Grafana access
 
 ---
@@ -2674,7 +2662,7 @@ Thanos Rule cannot resolve the Alertmanager service address. If the ruler cannot
 
 - **Check the Alertmanager URL** configured in the ThanosRuler CR:
    ```bash
-   kubectl describe thanosruler <name> -n rhobs-production | grep -A3 -i alertmanager
+   kubectl describe thanosruler.monitoring.thanos.io <name> -n rhobs-production | grep -A3 -i alertmanager
    ```
 
 - **Also check** whether alert queue drops are already occurring (more severe):

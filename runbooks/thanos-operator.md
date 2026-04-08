@@ -66,6 +66,7 @@ This operator runs across multiple private Kubernetes clusters. To troubleshoot 
 - **Access the cluster (for kubectl commands):**
    - Visit the cluster page: `https://visual-app-interface.devshift.net/clusters/<cluster-name>`
    - Follow the sshuttle access instructions provided on the cluster page
+   - For `kubectl` access, navigate to `https://oauth-openshift.apps.<cluster_name>.openshiftapps.com/oauth/token/request` (find the cluster name from the console URL on the cluster page in the visual app interface), copy the `oc login` command shown there, and run it — this grants `kubectl` access to the cluster
 - **View Configuration:**
    - Configuration repository: `https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/resources/clusters/production/<cluster>/metrics/bundle`
    - Contains ThanosOperator and all Thanos CRs (ThanosQuery, ThanosReceive, ThanosRuler, ThanosStore, ThanosCompact)
@@ -293,11 +294,11 @@ up{job="thanos-operator-controller-manager-metrics-service"} == 0
 **Steps:**
 - Check if the operator pod is running:
   ```bash
-  kubectl get pods -n rhobs-production -l app.kubernetes.io/name=thanos-operator
+  kubectl get pods -n rhobs-production -l control-plane=controller-manager
   ```
 - If the pod is missing, check the deployment:
   ```bash
-  kubectl get deployment -n rhobs-production thanos-operator
+  kubectl get deployment -n rhobs-production thanos-operator-controller-manager
   ```
 - Check pod events for crash/restart reasons:
   ```bash
@@ -311,10 +312,10 @@ up{job="thanos-operator-controller-manager-metrics-service"} == 0
 - Verify RBAC permissions for key operations:
   ```bash
   # Check if operator can manage Thanos resources
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create thanosquery
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create statefulset
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create configmap
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create service
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create thanosquery
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create statefulset
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create configmap
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create service
   ```
 - Verify CRDs are installed:
   ```bash
@@ -327,7 +328,7 @@ up{job="thanos-operator-controller-manager-metrics-service"} == 0
   ```
 - Restart the operator if necessary:
   ```bash
-  kubectl rollout restart deployment -n rhobs-production thanos-operator
+  kubectl rollout restart deployment -n rhobs-production thanos-operator-controller-manager
   ```
 
 **Access Required:**
@@ -364,7 +365,7 @@ sum by (controller) (
 - Identify which controller is affected from alert labels (thanosquery, thanosreceive, thanosruler, thanosstore, thanoscompact).
 - Check operator logs for reconciliation errors with resource details:
   ```bash
-  kubectl logs -n rhobs-production -l app.kubernetes.io/name=thanos-operator --tail=200 | grep -E "error|failed to create or update"
+  kubectl logs -n rhobs-production -l control-plane=controller-manager --tail=200 | grep -E "error|failed to create or update"
   ```
 - Identify the specific resource causing errors by checking status conditions:
   ```bash
@@ -422,7 +423,7 @@ and on (controller, job)
 **Steps:**
 - Check operator health and readiness:
   ```bash
-  kubectl get pods -n rhobs-production -l app.kubernetes.io/name=thanos-operator
+  kubectl get pods -n rhobs-production -l control-plane=controller-manager
   kubectl logs -n rhobs-production <operator-pod> --tail=50
   ```
 - Check workqueue depth and reconciliation metrics in Prometheus:
@@ -1032,7 +1033,7 @@ abs(
 - Identify what changed in the hashring by comparing current and previous configs:
   ```bash
   # Get current hashring config from router ConfigMap
-  kubectl get configmap -n rhobs-production <receive-name>-router-hashring -o jsonpath='{.data.hashring\.json}' | jq .
+  kubectl get configmap -n rhobs-production thanos-receive-router-<receive-name> -o jsonpath='{.data.hashrings\.json}' | jq .
   
   # Check resource generation and observe generation for changes
   kubectl get thanosreceive -n rhobs-production <receive-name> -o jsonpath='{.metadata.generation} {.status.observedGeneration}'
@@ -1346,8 +1347,8 @@ absent(thanos_operator_ruler_rulefiles_configured{job="thanos-operator-controlle
   ```
 - Check operator RBAC permissions for ConfigMap creation:
   ```bash
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create configmap -n rhobs-production
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator list configmap -n rhobs-production
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create configmap -n rhobs-production
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager list configmap -n rhobs-production
   ```
 - Review operator logs for ConfigMap creation:
   ```bash
@@ -1411,9 +1412,9 @@ rate(
   - **API server errors:** Transient failures or throttling
 - Verify RBAC permissions:
   ```bash
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create configmap -n rhobs-production
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator update configmap -n rhobs-production
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator patch configmap -n rhobs-production
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create configmap -n rhobs-production
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager update configmap -n rhobs-production
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager patch configmap -n rhobs-production
   ```
 - Check resource quotas for ConfigMap limits:
   ```bash
@@ -1748,9 +1749,9 @@ rate(
   ```
 - Verify RBAC permissions:
   ```bash
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create statefulset -n rhobs-production
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create service -n rhobs-production
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create serviceaccount -n rhobs-production
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create statefulset -n rhobs-production
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create service -n rhobs-production
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create serviceaccount -n rhobs-production
   ```
 - Check resource quotas for StatefulSet limits:
   ```bash
@@ -1916,9 +1917,9 @@ rate(
   ```
 - Verify RBAC permissions:
   ```bash
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create statefulset -n rhobs-production
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create service -n rhobs-production
-  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator create serviceaccount -n rhobs-production
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create statefulset -n rhobs-production
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create service -n rhobs-production
+  kubectl auth can-i --as=system:serviceaccount:rhobs-production:thanos-operator-controller-manager create serviceaccount -n rhobs-production
   ```
 - Check resource quotas:
   ```bash

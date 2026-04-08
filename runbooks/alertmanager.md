@@ -31,6 +31,7 @@ This operator runs across multiple private Kubernetes clusters. To troubleshoot 
 - **Access the cluster (for kubectl commands):**
   - Visit the cluster page: `https://visual-app-interface.devshift.net/clusters/<cluster-name>`
   - Follow the sshuttle access instructions provided on the cluster page
+  - For `kubectl` access, navigate to `https://oauth-openshift.apps.<cluster_name>.openshiftapps.com/oauth/token/request` (find the cluster name from the console URL on the cluster page in the visual app interface), copy the `oc login` command shown there, and run it — this grants `kubectl` access to the cluster
 - **View Configuration:**
   - Configuration repository: `https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/resources/clusters/production/<cluster>/metrics/bundle`
   - Contains ThanosOperator and all Thanos CRs (ThanosQuery, ThanosReceive, ThanosRuler, ThanosStore, ThanosCompact)

@@ -73,16 +73,16 @@ absent(<metric>{<label-selectors>}) == 1
 - **Check if the component is running:**
    ```bash
    # For metrics write/query (Thanos)
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=receive
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=query
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=thanos-receive
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=thanos-query
 
    # For logs (Loki)
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=gateway
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=loki
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=rhobs-gateway
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=lokistack
 
    # For alerting (Thanos Rule, Alertmanager)
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=rule
-   kubectl get pods -n rhobs-production -l app=alertmanager
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=thanos-ruler
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=alertmanager
    ```
 
 - **Check if the metrics endpoint is accessible:**
@@ -162,15 +162,15 @@ http_requests:burnrate1h{group="metricsv1",handler="receive",job="rhobs-gateway"
 
 - **Check Thanos Receive workload health:**
    ```bash
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=receive-router
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=receive-ingester
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=thanos-receive-router
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=thanos-receive-ingester
    ```
    Look for pods in `CrashLoopBackOff`, `Pending`, or `OOMKilled` state.
 
 - **Identify error patterns from logs:**
    ```bash
-   kubectl logs -n rhobs-production -l app.kubernetes.io/component=receive-router --tail=100 | grep -E "level=error|5[0-9]{2}"
-   kubectl logs -n rhobs-production -l app.kubernetes.io/component=receive-ingester --tail=100 | grep -E "level=error|storage|upload"
+   kubectl logs -n rhobs-production -l app.kubernetes.io/component=thanos-receive-router --tail=100 | grep -E "level=error|5[0-9]{2}"
+   kubectl logs -n rhobs-production -l app.kubernetes.io/component=thanos-receive-ingester --tail=100 | grep -E "level=error|storage|upload"
    ```
 
 - **If hashring or operator issues are suspected**, check the `ThanosReceive` CR status and any `ThanosReceive*` operator alerts — the operator may have failed to reconcile hashring endpoints
@@ -226,7 +226,7 @@ http_request_duration_seconds:burnrate1h{group="metricsv1",handler="receive",job
 
 - **Check Thanos Receive workload health:**
    ```bash
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=receive-ingester
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=thanos-receive-ingester
    ```
    Look for pods in degraded state or recent restarts (`kubectl describe pod` for events).
 
@@ -289,7 +289,7 @@ http_requests:burnrate1h{group="metricsv1",handler="query",job="rhobs-gateway",s
 
 - **Check Thanos Query workload health:**
    ```bash
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=query
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=thanos-query
    ```
    Look for pods in degraded state or recent restarts.
 
@@ -300,7 +300,7 @@ http_requests:burnrate1h{group="metricsv1",handler="query",job="rhobs-gateway",s
 
 - **Check Store Gateway health** if gRPC errors are to a store endpoint:
    ```bash
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=store
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=thanos-store
    ```
 
 - **Escalate** to the component runbooks above based on which related alert is firing — remediation should be driven by the root cause alert, not this SLO alert
@@ -353,7 +353,7 @@ http_requests:burnrate1h{group="metricsv1",handler="query_range",job="rhobs-gate
 
 - **Check Thanos Query workload health:**
    ```bash
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=query
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=thanos-query
    ```
 
 - **Check Query logs for range-query-specific errors:**
@@ -414,7 +414,7 @@ thanos_alert_sender_alerts_dropped:burnrate1h{container="thanos-ruler",slo="api-
 
 - **Check Thanos Rule workload health:**
    ```bash
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=rule
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=thanos-ruler
    ```
 
 - **Check Rule logs for send failures:**
@@ -426,7 +426,7 @@ thanos_alert_sender_alerts_dropped:burnrate1h{container="thanos-ruler",slo="api-
 
 - **Verify the ThanosRuler CR has correct Alertmanager URL configured:**
    ```bash
-   kubectl get thanosruler -n rhobs-production -o yaml | grep alertmanager
+   kubectl get thanosruler.monitoring.thanos.io -n rhobs-production -o yaml | grep alertmanager
    ```
 
 - **Escalate** to the component runbooks above based on which related alert is firing — remediation should be driven by the root cause alert, not this SLO alert
@@ -482,7 +482,7 @@ alertmanager_notifications_failed:burnrate1h{job="alertmanager",slo="api-alertin
 
 - **Check Alertmanager logs for the failing integration:**
    ```bash
-   kubectl logs -n rhobs-production -l app=alertmanager --tail=100 | grep -E "level=error|notification|integration"
+   kubectl logs -n rhobs-production -l app.kubernetes.io/name=alertmanager --tail=100 | grep -E "level=error|notification|integration"
    ```
 
 - **Common causes per integration:**
@@ -545,8 +545,8 @@ http_requests:burnrate1h{group="logsv1",handler="otlp",job="rhobs-gateway",slo="
 
 - **Check LokiStack component health:**
    ```bash
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=distributor
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=ingester
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=distributor
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=ingester
    ```
    Look for pods in `CrashLoopBackOff`, `Pending`, or `OOMKilled` state.
 
@@ -557,8 +557,8 @@ http_requests:burnrate1h{group="logsv1",handler="otlp",job="rhobs-gateway",slo="
 
 - **Check distributor/ingester logs for error patterns:**
    ```bash
-   kubectl logs -n rhobs-production -l app.kubernetes.io/component=distributor --tail=100 | grep -E "level=error|rate.*limit|5[0-9]{2}"
-   kubectl logs -n rhobs-production -l app.kubernetes.io/component=ingester --tail=100 | grep -E "level=error|storage|flush"
+   kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=distributor --tail=100 | grep -E "level=error|rate.*limit|5[0-9]{2}"
+   kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=ingester --tail=100 | grep -E "level=error|storage|flush"
    ```
 
 - **If ingester flush failures are suspected** — check `LokiIngesterFlushFailureRateCritical` and verify S3 bucket credentials and accessibility
@@ -613,8 +613,8 @@ http_requests:burnrate1h{group="logsv1",handler=~"query(_range)?",job="rhobs-gat
 
 - **Check LokiStack query component health:**
    ```bash
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=querier
-   kubectl get pods -n rhobs-production -l app.kubernetes.io/component=query-frontend
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=querier
+   kubectl get pods -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=query-frontend
    ```
    Look for pods in degraded state or recent restarts.
 
@@ -625,8 +625,8 @@ http_requests:burnrate1h{group="logsv1",handler=~"query(_range)?",job="rhobs-gat
 
 - **Check querier and query-frontend logs for error patterns:**
    ```bash
-   kubectl logs -n rhobs-production -l app.kubernetes.io/component=querier --tail=100 | grep -E "level=error|timeout|storage|panic"
-   kubectl logs -n rhobs-production -l app.kubernetes.io/component=query-frontend --tail=100 | grep -E "level=error|timeout"
+   kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=querier --tail=100 | grep -E "level=error|timeout|storage|panic"
+   kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=query-frontend --tail=100 | grep -E "level=error|timeout"
    ```
 
 - **If panics are present** — check `LokiRequestPanics` runbook; the query may be hitting a bug or corrupt chunk in object storage

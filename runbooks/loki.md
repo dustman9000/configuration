@@ -34,6 +34,7 @@ This operator runs across multiple private Kubernetes clusters. To troubleshoot 
 - **Access the cluster (for kubectl commands):**
    - Visit the cluster page: `https://visual-app-interface.devshift.net/clusters/<cluster-name>`
    - Follow the sshuttle access instructions provided on the cluster page
+   - For `kubectl` access, navigate to `https://oauth-openshift.apps.<cluster_name>.openshiftapps.com/oauth/token/request` (find the cluster name from the console URL on the cluster page in the visual app interface), copy the `oc login` command shown there, and run it — this grants `kubectl` access to the cluster
 - **View Configuration:**
    - Configuration repository: `https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/resources/clusters/production/<cluster>/logs/bundle`
    - Contains LokiOperator and the `LokiStack` CR (`observatorium-lokistack`)
@@ -126,12 +127,12 @@ sum by (job, namespace, route) (
 
 - **Verify all components can reach S3 storage** — storage connectivity failures propagate as 5xx errors:
   ```bash
-  kubectl logs -n rhobs-production -l app.kubernetes.io/component=ingester --tail=200 | grep -i "storage\|s3\|bucket\|connection"
+  kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=ingester --tail=200 | grep -i "storage\|s3\|bucket\|connection"
   ```
 
 - **Check pod resource pressure** — OOM kills or CPU throttling can cause 5xx spikes:
   ```bash
-  kubectl top pods -n rhobs-production -l app.kubernetes.io/part-of=lokistack
+  kubectl top pods -n rhobs-production -l app.kubernetes.io/name=lokistack
   kubectl get events -n rhobs-production --sort-by='.lastTimestamp' | grep -i "oom\|kill\|evict"
   ```
 
@@ -167,7 +168,7 @@ sum by (job, namespace) (increase(loki_panic_total[10m])) > 0
 
 - **Identify the panicking component** from the alert `job` label. Check for crash-loops:
   ```bash
-  kubectl get pods -n rhobs-production -l app.kubernetes.io/part-of=lokistack
+  kubectl get pods -n rhobs-production -l app.kubernetes.io/name=lokistack
   ```
 
 - **Collect the panic stack trace** — panics produce a full goroutine dump in stderr:
@@ -186,18 +187,18 @@ sum by (job, namespace) (increase(loki_panic_total[10m])) > 0
 
 - **Check for recent changes** — panics often follow version upgrades or configuration changes:
   ```bash
-  kubectl get deployment,statefulset -n rhobs-production -l app.kubernetes.io/part-of=lokistack -o jsonpath='{range .items[*]}{.metadata.name}: {.spec.template.spec.containers[0].image}{"\n"}{end}'
+  kubectl get deployment,statefulset -n rhobs-production -l app.kubernetes.io/name=lokistack -o jsonpath='{range .items[*]}{.metadata.name}: {.spec.template.spec.containers[0].image}{"\n"}{end}'
   ```
 
 - **Check if the issue is query-triggered** — some panics only occur for specific query patterns. Look at the query-frontend logs:
   ```bash
-  kubectl logs -n rhobs-production -l app.kubernetes.io/component=query-frontend --tail=200 | grep -i "panic\|error"
+  kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=query-frontend --tail=200 | grep -i "panic\|error"
   ```
 
 - **If crash-looping**, inspect the LokiStack CR and operator for reconciliation errors:
   ```bash
   kubectl describe lokistack observatorium-lokistack -n rhobs-production
-  kubectl logs -n rhobs-production -l app.kubernetes.io/name=loki-operator --tail=100
+  kubectl logs -n rhobs-production -l name=loki-operator-controller-manager --tail=100
   ```
 
 - **Check the configuration** in the repository for the affected cluster: `https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/resources/clusters/production/<cluster>/logs/bundle`
@@ -255,12 +256,12 @@ histogram_quantile(
 
 - **Check query-frontend for slow or expensive queries**:
   ```bash
-  kubectl logs -n rhobs-production -l app.kubernetes.io/component=query-frontend --tail=200 | grep -E "took|slow|timeout"
+  kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=query-frontend --tail=200 | grep -E "took|slow|timeout"
   ```
 
 - **Check querier resource pressure**:
   ```bash
-  kubectl top pods -n rhobs-production -l app.kubernetes.io/component=querier
+  kubectl top pods -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=querier
   ```
 
 - **Check S3 storage latency** — storage backend slowness propagates to query latency:
@@ -343,7 +344,7 @@ sum by (job, namespace, route) (
 
 - **Check the distributor logs** for rate limiting events (Loki 3.1.0+ provides stream-level detail):
   ```bash
-  kubectl logs -n rhobs-production -l app.kubernetes.io/component=distributor --tail=200 | grep -E "rate_limit|429|tenant"
+  kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=distributor --tail=200 | grep -E "rate_limit|429|tenant"
   ```
 
 - **Check the current ingestion rate** per tenant:
@@ -409,12 +410,12 @@ sum by (job, namespace) (loki_ingester_wal_replay_flushing) > 0
 
 - **Check ingester resource usage**:
   ```bash
-  kubectl top pods -n rhobs-production -l app.kubernetes.io/component=ingester
+  kubectl top pods -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=ingester
   ```
 
 - **Inspect ingester logs** for flush activity and errors:
   ```bash
-  kubectl logs -n rhobs-production -l app.kubernetes.io/component=ingester --tail=200 | grep -E "WAL|flush|error"
+  kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=ingester --tail=200 | grep -E "WAL|flush|error"
   ```
 
 - **Check S3 write throughput** — slow storage flushes cause WAL to accumulate:
@@ -428,7 +429,7 @@ sum by (job, namespace) (loki_ingester_wal_replay_flushing) > 0
 
 - **Verify S3 connectivity and throughput** from the ingester pods:
   ```bash
-  kubectl logs -n rhobs-production -l app.kubernetes.io/component=ingester --tail=200 | grep -i "s3\|storage\|upload"
+  kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=ingester --tail=200 | grep -i "s3\|storage\|upload"
   ```
 
 **Access Required:**
@@ -474,17 +475,17 @@ histogram_quantile(
 
 - **Check querier resource usage** — CPU saturation is the most common cause:
   ```bash
-  kubectl top pods -n rhobs-production -l app.kubernetes.io/component=querier
+  kubectl top pods -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=querier
   ```
 
 - **Inspect query-frontend logs** for slow query patterns and time ranges being queried:
   ```bash
-  kubectl logs -n rhobs-production -l app.kubernetes.io/component=query-frontend --tail=200 | grep -E "stats|took|latency|timeout"
+  kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=query-frontend --tail=200 | grep -E "stats|took|latency|timeout"
   ```
 
 - **Check querier logs** for errors processing queries:
   ```bash
-  kubectl logs -n rhobs-production -l app.kubernetes.io/component=querier --tail=200 | grep -i "error\|timeout\|cancel"
+  kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=querier --tail=200 | grep -i "error\|timeout\|cancel"
   ```
 
 - **Scale queriers** if CPU/memory saturation is confirmed — current replicas: 2. Update the `LokiStack` CR:
@@ -553,7 +554,7 @@ sum by (namespace, tenant, reason) (
 
 - **Inspect distributor logs** for stream-level detail (available since Loki 3.1.0):
   ```bash
-  kubectl logs -n rhobs-production -l app.kubernetes.io/component=distributor --tail=200 | grep -E "discard|validation|invalid"
+  kubectl logs -n rhobs-production -l app.kubernetes.io/name=lokistack,app.kubernetes.io/component=distributor --tail=200 | grep -E "discard|validation|invalid"
   ```
 
 - **Check current line size limit** (currently 2097152 bytes / 2 MB):
@@ -701,7 +702,7 @@ sum by (stack_name, namespace) (
 
 - **Check pod readiness for all LokiStack components**:
   ```bash
-  kubectl get pods -n rhobs-production -l app.kubernetes.io/part-of=lokistack
+  kubectl get pods -n rhobs-production -l app.kubernetes.io/name=lokistack
   ```
   Components to verify: `distributor`, `ingester`, `querier`, `query-frontend`, `index-gateway`, `compactor`, `gateway`
 
@@ -728,7 +729,7 @@ sum by (stack_name, namespace) (
 
 - **Check the Loki Operator controller logs** for reconciliation errors:
   ```bash
-  kubectl logs -n rhobs-production -l app.kubernetes.io/name=loki-operator --tail=100
+  kubectl logs -n rhobs-production -l name=loki-operator-controller-manager --tail=100
   ```
 
 - **Validate storage secret exists and is correct** — missing secret blocks operator reconciliation:
@@ -743,7 +744,7 @@ sum by (stack_name, namespace) (
 
 - **Verify PVCs are bound** — ingesters use persistent storage for WAL:
   ```bash
-  kubectl get pvc -n rhobs-production -l app.kubernetes.io/part-of=lokistack
+  kubectl get pvc -n rhobs-production -l app.kubernetes.io/name=lokistack
   ```
 
 - **Review the configuration** for the cluster: `https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/resources/clusters/production/<cluster>/logs/bundle`
