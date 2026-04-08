@@ -374,6 +374,126 @@ func (cfg *RulesConfig) lokiAlerts() []rulegroup.Option {
 				),
 			),
 		),
+		rulegroup.AddRule(
+			"LokiRulerBadConfiguration",
+			alerting.Expr(
+				promqlbuilder.Eql(
+					promqlbuilder.MaxOverTime(
+						matrix.New(
+							vector.New(
+								vector.WithMetricName("loki_ruler_config_last_reload_successful"),
+							),
+							matrix.WithRange(5*time.Minute),
+						),
+					),
+					promqlbuilder.NewNumber(0),
+				),
+			),
+			alerting.For("10m"),
+			alerting.Labels(cfg.alertLabels("warning")),
+			alerting.Annotations(
+				common.BuildAnnotations(
+					"",
+					cfg.runbookURL,
+					"#loki-ruler-bad-configuratoin",
+					`LokiRuler {{ $labels.pod }} in namespace {{ $labels.namespace }} has failed to reload its configuration.`,
+					"Failed LokiRuler configuration reload",
+				),
+			),
+		),
+		rulegroup.AddRule(
+			"LokiRulerRuleFailures",
+			alerting.Expr(
+				promqlbuilder.Gtr(
+					promqlbuilder.Increase(
+						matrix.New(
+							vector.New(
+								vector.WithMetricName("loki_prometheus_rule_evaluation_failures_total"),
+							),
+							matrix.WithRange(5*time.Minute),
+						),
+					),
+					promqlbuilder.NewNumber(0),
+				),
+			),
+			alerting.For("15m"),
+			alerting.Labels(cfg.alertLabels("warning")),
+			alerting.Annotations(
+				common.BuildAnnotations(
+					"",
+					cfg.runbookURL,
+					"#loki-ruler-rule-failures",
+					`LokiRuler {{ $labels.pod }} in namespace {{ $labels.namespace }} has failed to evaluate {{ printf "%.0f" $value }} rules in the last 5m.`,
+					"LokiRuler is failing rule evaluations",
+				),
+			),
+		),
+		rulegroup.AddRule(
+			"LokiRulerNotConnectedToAlertmanagers",
+			alerting.Expr(
+				promqlbuilder.Eql(
+					promqlbuilder.MaxOverTime(
+						matrix.New(
+							vector.New(
+								vector.WithMetricName("loki_prometheus_notifications_alertmanagers_discovered"),
+							),
+							matrix.WithRange(5*time.Minute),
+						),
+					),
+					promqlbuilder.NewNumber(0),
+				),
+			),
+			alerting.For("15m"),
+			alerting.Labels(cfg.alertLabels("warning")),
+			alerting.Annotations(
+				common.BuildAnnotations(
+					"",
+					cfg.runbookURL,
+					"#loki-ruler-not-connected-to-alertmanager",
+					`LokiRuler {{ $labels.pod }} in namespace {{ $labels.namespace }} is not connected to any Alertmanagers.`,
+					"LokiRuler is is not connected to any Alertmanagers.",
+				),
+			),
+		),
+		rulegroup.AddRule(
+			"LokiRulerNotificationQueueRunningFull",
+			alerting.Expr(
+				promqlbuilder.Gtr(
+					promqlbuilder.PredictLinear(
+						matrix.New(
+							vector.New(
+								vector.WithMetricName("loki_prometheus_notifications_queue_length"),
+							),
+							matrix.WithRange(5*time.Minute),
+						),
+						30*60,
+					),
+					promqlbuilder.MinOverTime(
+						matrix.New(
+							vector.New(
+								vector.WithMetricName("loki_prometheus_notifications_queue_capacity"),
+							),
+							matrix.WithRange(5*time.Minute),
+						),
+					),
+				),
+			),
+			alerting.For("15m"),
+			alerting.Labels(cfg.alertLabels("warning")),
+			alerting.Annotations(
+				common.BuildAnnotations(
+					"",
+					cfg.runbookURL,
+					"#loki-ruler-notification-queue-running-full",
+					`Alert notification queue for LokiRuler {{ $labels.pod }} in namespace {{ $labels.namespace }} is predicted to run full in less than 30m.`,
+					"LokiRuler alert notification queue getting full",
+				),
+			),
+		),
+		// NotificationQueueRunningFull
+		//
+		// TODO(simonpasquier): add alerting rule to detect the absence of
+		// LokiRuler once it is deployed to all environments.
 	}
 }
 
