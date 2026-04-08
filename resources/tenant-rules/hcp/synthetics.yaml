@@ -80,11 +80,6 @@ objects:
                 summary: "RMO metrics are absent from all MCs"
                 description: "No route-monitor-operator metrics have been received from any MC for 30 minutes, but metrics were present within the last hour. The RMO may have stopped running or MC metric collection may be broken."
                 runbook_url: "https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/RMOMetricsAbsent.md"
-<<<<<<< HEAD
-
-  
-=======
-           
   # Synthetics-Agent health alerts
   # synthetics-agent runs on RHOBS cells, metrics scraped locally
   - apiVersion: monitoring.coreos.com/v1
@@ -124,4 +119,3 @@ objects:
                 summary: "Synthetics probe targets exceed 3x unique HCP count"
                 description: "The total number of probe_success series ({{ $value }}) exceeds 3x the number of unique HCPs being probed. This indicates orphaned Probe CRs are accumulating, which will cause the synthetics Prometheus to OOMKill due to excessive memory consumption."
                 runbook_url: "https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsProbeOrphanAccumulation.md"
->>>>>>> 6dba53ef (Add back probe alerts)
