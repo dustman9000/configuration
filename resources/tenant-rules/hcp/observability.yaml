@@ -50,6 +50,24 @@ objects:
             #   - hypershift_cluster_waiting_initial_avaibility_duration_seconds: cluster is installing
             - record: sre:hcp:alerts_suppressed
               expr: hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled
+            # Recording rule that checks if a cluster has active, working probes.
+            # Use `and on (_id) sre:hcp:probe_active` in probe-based alert expressions
+            # to prevent firing for:
+            #   - Deprovisioned clusters (no recent probe data, but stale data in burn rate windows)
+            #   - New clusters where the kube-apiserver isn't reachable yet (never had a successful probe)
+            - record: sre:hcp:probe_active
+              expr: |
+                (
+                  sum by (_id) (count_over_time(probe_success{probe_url=~".*api.*"}[10m])) > 0
+                  or
+                  sum by (_id) (count_over_time(probe_success{apiserver_url=~".*api.*"}[10m])) > 0
+                )
+                and
+                (
+                  max by (_id) (max_over_time(probe_success{probe_url=~".*api.*"}[1h])) > 0
+                  or
+                  max by (_id) (max_over_time(probe_success{apiserver_url=~".*api.*"}[1h])) > 0
+                )
   # Prometheus target health alerts - ServiceMonitors and PodMonitors
   - apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
