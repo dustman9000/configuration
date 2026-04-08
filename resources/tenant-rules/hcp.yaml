@@ -1464,7 +1464,7 @@ objects:
               expr: absent(up{job="synthetics-agent"})
               for: 10m
               labels:
-                severity: critical
+                severity: soaking
                 service: rhobs-synthetics
               annotations:
                 summary: Synthetics Agent metrics are absent
