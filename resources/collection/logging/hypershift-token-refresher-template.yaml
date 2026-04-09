@@ -62,6 +62,14 @@ objects:
           client-id: ${CLIENT_ID}
           client-secret: ${CLIENT_SECRET}
 
+      - apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: rhobs-logs-destination
+          namespace: openshift-logging
+          annotations:
+            rhobs.openshift.io/forwarding-destination: ${LOGS_WRITE_URL}
+
       - apiVersion: apps/v1
         kind: Deployment
         metadata:
