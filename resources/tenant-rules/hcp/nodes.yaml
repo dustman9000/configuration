@@ -181,6 +181,7 @@ objects:
                     max by (request_node, _mc_id, label_api_openshift_com_id, label_api_openshift_com_name)
                       (label_replace(sre:node_request_serving:info, "request_node", "$1", "node", "(.*)"))
                 )
+                unless on (label_api_openshift_com_id) label_replace(sre:hcp:alerts_suppressed, "label_api_openshift_com_id", "$1", "_id", "(.*)")
               for: 1h
               labels:
                 severity: critical
