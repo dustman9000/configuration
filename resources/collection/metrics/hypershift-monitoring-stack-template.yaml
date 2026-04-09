@@ -72,6 +72,14 @@ objects:
           client-id: "${CLIENT_ID}"
           client-secret: "${CLIENT_SECRET}"
 
+      - apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: rhobs-metrics-destination
+          namespace: ${NAMESPACE}
+          annotations:
+            rhobs.openshift.io/forwarding-destination: ${HCP_RHOBS_ROOT_URL}
+
         # Deploys the HyperShift monitoring stack
       - apiVersion: monitoring.rhobs/v1alpha1
         kind: MonitoringStack
