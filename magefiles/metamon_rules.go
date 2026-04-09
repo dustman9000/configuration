@@ -27,11 +27,6 @@ const (
 	dashboardLokiWrites = "https://grafana.app-sre.devshift.net/d/rhobs-lokistack-writes/lokistack-writes?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}"
 )
 
-// Runbook URLs
-const (
-	runbookBaseURL = "https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md"
-)
-
 func (b Build) Rules() error {
 	b.ThanosRules()
 	b.ThanosOperatorRules()
@@ -98,7 +93,7 @@ func ThanosPrometheusRule(nonCriticalPostProcessing bool) *appInterfacePrometheu
 			"role":                        "alert-rules",
 		},
 		map[string]string{},
-		thanosrules.WithRunbookURL(runbookBaseURL),
+		thanosrules.WithRunbookURL("https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos.md"),
 		thanosrules.WithServiceLabelValue("thanos"),
 		thanosrules.WithCompactDashboardURL(dashboardThanosCompact),
 		thanosrules.WithQueryDashboardURL(dashboardThanosQuery),
@@ -139,7 +134,7 @@ func ThanosOperatorPrometheusRule(nonCriticalPostProcessing bool) *appInterfaceP
 			"role":                        "alert-rules",
 		},
 		map[string]string{},
-		thanosoperatorrules.WithRunbookURL(runbookBaseURL),
+		thanosoperatorrules.WithRunbookURL("https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/thanos-operator.md"),
 		thanosoperatorrules.WithServiceLabelValue(rhobsNextServiceLabel),
 		thanosoperatorrules.WithDashboardURL(dashboardThanosOperator),
 	)
@@ -173,7 +168,7 @@ func AlertmanagerPrometheusRule(nonCriticalPostProcessing bool) *appInterfacePro
 			"role":                        "alert-rules",
 		},
 		map[string]string{},
-		alertmanagerrules.WithRunbookURL(runbookBaseURL),
+		alertmanagerrules.WithRunbookURL("https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/alertmanager.md"),
 		alertmanagerrules.WithServiceLabelValue(rhobsNextServiceLabel),
 		alertmanagerrules.WithCriticalIntegrationSelectorRegexp("slack|pagerduty|email|webhook"),
 		alertmanagerrules.WithNonCriticalIntegrationSelectorRegexp("slack|pagerduty|email|webhook"),
@@ -209,7 +204,7 @@ func LokiPrometheusRule(nonCriticalPostProcessing bool) *appInterfacePrometheusR
 			"role":                        "alert-rules",
 		},
 		map[string]string{},
-		lokirules.WithRunbookURL("https://loki-operator.dev/docs/sop.md/"),
+		lokirules.WithRunbookURL("https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md"),
 		lokirules.WithServiceLabelValue(rhobsNextServiceLabel),
 	)
 	if err != nil {

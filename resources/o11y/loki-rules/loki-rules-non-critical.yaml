@@ -24,7 +24,7 @@ spec:
         description: '{{ $labels.job }} {{ $labels.route }} is experiencing {{ printf
           "%.2f" $value }}% errors.'
         message: At least 10% of requests are responded by 5xx server errors.
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-request-errors
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-request-errors
       expr: |2-
               sum by (job, namespace, route) (
                 job_namespace_route_statuscode:loki_request_duration_seconds_count:irate1m{status_code=~"5.."}
@@ -46,7 +46,7 @@ spec:
         description: '{{ $labels.job }} is experiencing an increase of {{ $value }}
           panics.'
         message: A panic was triggered.
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-request-panics
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-request-panics
       expr: sum by (job, namespace) (increase(loki_panic_total[10m])) > 0
       labels:
         service: rhobs.regional
@@ -56,7 +56,7 @@ spec:
         description: '{{ $labels.job }} {{ $labels.route }} is experiencing {{ printf
           "%.2f" $value }}s 99th percentile latency.'
         message: The 99th percentile is experiencing high latency (higher than 5 seconds).
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-request-latency
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-request-latency
       expr: |2-
           histogram_quantile(
             0.99,
@@ -75,7 +75,7 @@ spec:
         description: '{{ $labels.job }} {{ $labels.route }} is experiencing 429 errors.'
         message: At least 10% of requests are responded with the rate limit error
           code.
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-tenant-rate-limit
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-tenant-rate-limit
       expr: |2-
               sum by (job, namespace, route) (
                 job_namespace_route_statuscode:loki_request_duration_seconds_count:irate1m{status_code="429"}
@@ -97,7 +97,7 @@ spec:
         description: The write path is experiencing high load.
         message: The write path is experiencing high load, causing backpressure storage
           flushing.
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-write-path-high-load
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-write-path-high-load
       expr: sum by (job, namespace) (loki_ingester_wal_replay_flushing) > 0
       for: 15m
       labels:
@@ -108,7 +108,7 @@ spec:
         description: The read path is experiencing high load.
         message: The read path has high volume of queries, causing longer response
           times.
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-read-path-high-load
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-read-path-high-load
       expr: |2-
           histogram_quantile(
             0.99,
@@ -127,7 +127,7 @@ spec:
           because of "{{ $labels.reason }}" at a rate of {{ .Value | humanize }} samples
           per second.
         message: Loki is discarding samples during ingestion because they fail validation.
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-discarded-samples-warning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-discarded-samples-warning
       expr: |2-
           sum by (namespace, tenant, reason) (
             irate(
@@ -149,7 +149,7 @@ spec:
           valid and if the storage is still reachable. Current failure rate: {{ $value
           | humanizePercentage }} Threshold: 20%'
         message: Loki ingester has critical flush failure rate.
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-ingester-flush-failure-rate-critical
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-ingester-flush-failure-rate-critical
       expr: |2-
           sum by (namespace, pod) (
               rate(loki_ingester_chunks_flush_failures_total[5m])
@@ -167,7 +167,7 @@ spec:
         description: The LokiStack "{{ $labels.stack_name }}" in namespace "{{ $labels.namespace
           }}" has components that are not ready.
         message: One or more LokiStack components are not ready.
-        runbook: https://loki-operator.dev/docs/sop.md/#lokistack-components-not-ready-warning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#lokistack-components-not-ready-warning
       expr: |2-
           sum by (stack_name, namespace) (
             label_replace(
@@ -189,7 +189,7 @@ spec:
         description: LokiRuler {{ $labels.pod }} in namespace {{ $labels.namespace
           }} has failed to reload its configuration.
         message: Failed LokiRuler configuration reload
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-ruler-bad-configuratoin
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-ruler-bad-configuratoin
       expr: max_over_time(loki_ruler_config_last_reload_successful[5m]) = 0
       for: 10m
       labels:
@@ -200,7 +200,7 @@ spec:
         description: LokiRuler {{ $labels.pod }} in namespace {{ $labels.namespace
           }} has failed to evaluate {{ printf "%.0f" $value }} rules in the last 5m.
         message: LokiRuler is failing rule evaluations
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-ruler-rule-failures
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-ruler-rule-failures
       expr: increase(loki_prometheus_rule_evaluation_failures_total[5m]) > 0
       for: 15m
       labels:
@@ -211,7 +211,7 @@ spec:
         description: LokiRuler {{ $labels.pod }} in namespace {{ $labels.namespace
           }} is not connected to any Alertmanagers.
         message: LokiRuler is is not connected to any Alertmanagers.
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-ruler-not-connected-to-alertmanager
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-ruler-not-connected-to-alertmanager
       expr: max_over_time(loki_prometheus_notifications_alertmanagers_discovered[5m])
         = 0
       for: 15m
@@ -223,7 +223,7 @@ spec:
         description: Alert notification queue for LokiRuler {{ $labels.pod }} in namespace
           {{ $labels.namespace }} is predicted to run full in less than 30m.
         message: LokiRuler alert notification queue getting full
-        runbook: https://loki-operator.dev/docs/sop.md/#loki-ruler-notification-queue-running-full
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-ruler-notification-queue-running-full
       expr: |2-
           predict_linear(loki_prometheus_notifications_queue_length[5m], 1800)
         >

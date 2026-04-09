@@ -27,7 +27,7 @@ spec:
           availability SLOs.
         message: API /receive handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsWriteAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsWriteAvailabilityErrorBudgetBurning
       expr: absent(http_requests_total{group="metricsv1",handler="receive",job="rhobs-gateway"})
         == 1
       for: 2m
@@ -111,7 +111,7 @@ spec:
           availability SLOs.
         message: API /receive handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsWriteAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsWriteAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate5m{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-availability-slo"}
         > (14 * (1-0.9990000000000001)) and http_requests:burnrate1h{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-availability-slo"}
         > (14 * (1-0.9990000000000001))
@@ -133,7 +133,7 @@ spec:
           availability SLOs.
         message: API /receive handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsWriteAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsWriteAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate30m{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-availability-slo"}
         > (7 * (1-0.9990000000000001)) and http_requests:burnrate6h{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-availability-slo"}
         > (7 * (1-0.9990000000000001))
@@ -155,7 +155,7 @@ spec:
           availability SLOs.
         message: API /receive handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsWriteAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsWriteAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate2h{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-availability-slo"}
         > (2 * (1-0.9990000000000001)) and http_requests:burnrate1d{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-availability-slo"}
         > (2 * (1-0.9990000000000001))
@@ -177,7 +177,7 @@ spec:
           availability SLOs.
         message: API /receive handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsWriteAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsWriteAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate6h{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-availability-slo"}
         > (1 * (1-0.9990000000000001)) and http_requests:burnrate4d{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-availability-slo"}
         > (1 * (1-0.9990000000000001))
@@ -240,7 +240,7 @@ spec:
           availability SLOs.
         message: API /query handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsQueryAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsQueryAvailabilityErrorBudgetBurning
       expr: absent(http_requests_total{group="metricsv1",handler="query",job="rhobs-gateway"})
         == 1
       for: 2m
@@ -324,7 +324,7 @@ spec:
           availability SLOs.
         message: API /query handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsQueryAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsQueryAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate5m{group="metricsv1",handler="query",job="rhobs-gateway",slo="api-metrics-query-availability-slo"}
         > (14 * (1-0.9990000000000001)) and http_requests:burnrate1h{group="metricsv1",handler="query",job="rhobs-gateway",slo="api-metrics-query-availability-slo"}
         > (14 * (1-0.9990000000000001))
@@ -346,7 +346,7 @@ spec:
           availability SLOs.
         message: API /query handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsQueryAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsQueryAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate30m{group="metricsv1",handler="query",job="rhobs-gateway",slo="api-metrics-query-availability-slo"}
         > (7 * (1-0.9990000000000001)) and http_requests:burnrate6h{group="metricsv1",handler="query",job="rhobs-gateway",slo="api-metrics-query-availability-slo"}
         > (7 * (1-0.9990000000000001))
@@ -368,7 +368,7 @@ spec:
           availability SLOs.
         message: API /query handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsQueryAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsQueryAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate2h{group="metricsv1",handler="query",job="rhobs-gateway",slo="api-metrics-query-availability-slo"}
         > (2 * (1-0.9990000000000001)) and http_requests:burnrate1d{group="metricsv1",handler="query",job="rhobs-gateway",slo="api-metrics-query-availability-slo"}
         > (2 * (1-0.9990000000000001))
@@ -390,7 +390,7 @@ spec:
           availability SLOs.
         message: API /query handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsQueryAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsQueryAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate6h{group="metricsv1",handler="query",job="rhobs-gateway",slo="api-metrics-query-availability-slo"}
         > (1 * (1-0.9990000000000001)) and http_requests:burnrate4d{group="metricsv1",handler="query",job="rhobs-gateway",slo="api-metrics-query-availability-slo"}
         > (1 * (1-0.9990000000000001))
@@ -453,7 +453,7 @@ spec:
           guarantee availability SLOs.
         message: API /query_range handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsQueryRangeAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsQueryRangeAvailabilityErrorBudgetBurning
       expr: absent(http_requests_total{group="metricsv1",handler="query_range",job="rhobs-gateway"})
         == 1
       for: 2m
@@ -537,7 +537,7 @@ spec:
           guarantee availability SLOs.
         message: API /query_range handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsQueryRangeAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsQueryRangeAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate5m{group="metricsv1",handler="query_range",job="rhobs-gateway",slo="api-metrics-query-range-availability-slo"}
         > (14 * (1-0.9990000000000001)) and http_requests:burnrate1h{group="metricsv1",handler="query_range",job="rhobs-gateway",slo="api-metrics-query-range-availability-slo"}
         > (14 * (1-0.9990000000000001))
@@ -559,7 +559,7 @@ spec:
           guarantee availability SLOs.
         message: API /query_range handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsQueryRangeAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsQueryRangeAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate30m{group="metricsv1",handler="query_range",job="rhobs-gateway",slo="api-metrics-query-range-availability-slo"}
         > (7 * (1-0.9990000000000001)) and http_requests:burnrate6h{group="metricsv1",handler="query_range",job="rhobs-gateway",slo="api-metrics-query-range-availability-slo"}
         > (7 * (1-0.9990000000000001))
@@ -581,7 +581,7 @@ spec:
           guarantee availability SLOs.
         message: API /query_range handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsQueryRangeAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsQueryRangeAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate2h{group="metricsv1",handler="query_range",job="rhobs-gateway",slo="api-metrics-query-range-availability-slo"}
         > (2 * (1-0.9990000000000001)) and http_requests:burnrate1d{group="metricsv1",handler="query_range",job="rhobs-gateway",slo="api-metrics-query-range-availability-slo"}
         > (2 * (1-0.9990000000000001))
@@ -603,7 +603,7 @@ spec:
           guarantee availability SLOs.
         message: API /query_range handler is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsQueryRangeAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsQueryRangeAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate6h{group="metricsv1",handler="query_range",job="rhobs-gateway",slo="api-metrics-query-range-availability-slo"}
         > (1 * (1-0.9990000000000001)) and http_requests:burnrate4d{group="metricsv1",handler="query_range",job="rhobs-gateway",slo="api-metrics-query-range-availability-slo"}
         > (1 * (1-0.9990000000000001))
@@ -664,7 +664,7 @@ spec:
           burning too much error budget to guarantee availability SLOs.
         message: API Thanos Rule is burning too much error budget to guarantee availability
           SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIAlertmanagerAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIAlertmanagerAvailabilityErrorBudgetBurning
       expr: absent(thanos_alert_sender_alerts_dropped_total{container="thanos-ruler"})
         == 1
       for: 2m
@@ -731,7 +731,7 @@ spec:
           burning too much error budget to guarantee availability SLOs.
         message: API Thanos Rule is burning too much error budget to guarantee availability
           SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIAlertmanagerAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIAlertmanagerAvailabilityErrorBudgetBurning
       expr: thanos_alert_sender_alerts_dropped:burnrate5m{container="thanos-ruler",slo="api-alerting-availability-slo"}
         > (14 * (1-0.9990000000000001)) and thanos_alert_sender_alerts_dropped:burnrate1h{container="thanos-ruler",slo="api-alerting-availability-slo"}
         > (14 * (1-0.9990000000000001))
@@ -750,7 +750,7 @@ spec:
           burning too much error budget to guarantee availability SLOs.
         message: API Thanos Rule is burning too much error budget to guarantee availability
           SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIAlertmanagerAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIAlertmanagerAvailabilityErrorBudgetBurning
       expr: thanos_alert_sender_alerts_dropped:burnrate30m{container="thanos-ruler",slo="api-alerting-availability-slo"}
         > (7 * (1-0.9990000000000001)) and thanos_alert_sender_alerts_dropped:burnrate6h{container="thanos-ruler",slo="api-alerting-availability-slo"}
         > (7 * (1-0.9990000000000001))
@@ -769,7 +769,7 @@ spec:
           burning too much error budget to guarantee availability SLOs.
         message: API Thanos Rule is burning too much error budget to guarantee availability
           SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIAlertmanagerAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIAlertmanagerAvailabilityErrorBudgetBurning
       expr: thanos_alert_sender_alerts_dropped:burnrate2h{container="thanos-ruler",slo="api-alerting-availability-slo"}
         > (2 * (1-0.9990000000000001)) and thanos_alert_sender_alerts_dropped:burnrate1d{container="thanos-ruler",slo="api-alerting-availability-slo"}
         > (2 * (1-0.9990000000000001))
@@ -788,7 +788,7 @@ spec:
           burning too much error budget to guarantee availability SLOs.
         message: API Thanos Rule is burning too much error budget to guarantee availability
           SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIAlertmanagerAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIAlertmanagerAvailabilityErrorBudgetBurning
       expr: thanos_alert_sender_alerts_dropped:burnrate6h{container="thanos-ruler",slo="api-alerting-availability-slo"}
         > (1 * (1-0.9990000000000001)) and thanos_alert_sender_alerts_dropped:burnrate4d{container="thanos-ruler",slo="api-alerting-availability-slo"}
         > (1 * (1-0.9990000000000001))
@@ -846,7 +846,7 @@ spec:
           and is burning too much error budget to guarantee availability SLOs.
         message: API Alertmanager is burning too much error budget to guarantee availability
           SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
       expr: absent(alertmanager_notifications_failed_total{job="alertmanager"}) ==
         1
       for: 2m
@@ -914,7 +914,7 @@ spec:
           and is burning too much error budget to guarantee availability SLOs.
         message: API Alertmanager is burning too much error budget to guarantee availability
           SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
       expr: alertmanager_notifications_failed:burnrate5m{job="alertmanager",slo="api-alerting-notif-availability-slo"}
         > (14 * (1-0.9990000000000001)) and alertmanager_notifications_failed:burnrate1h{job="alertmanager",slo="api-alerting-notif-availability-slo"}
         > (14 * (1-0.9990000000000001))
@@ -934,7 +934,7 @@ spec:
           and is burning too much error budget to guarantee availability SLOs.
         message: API Alertmanager is burning too much error budget to guarantee availability
           SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
       expr: alertmanager_notifications_failed:burnrate30m{job="alertmanager",slo="api-alerting-notif-availability-slo"}
         > (7 * (1-0.9990000000000001)) and alertmanager_notifications_failed:burnrate6h{job="alertmanager",slo="api-alerting-notif-availability-slo"}
         > (7 * (1-0.9990000000000001))
@@ -954,7 +954,7 @@ spec:
           and is burning too much error budget to guarantee availability SLOs.
         message: API Alertmanager is burning too much error budget to guarantee availability
           SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
       expr: alertmanager_notifications_failed:burnrate2h{job="alertmanager",slo="api-alerting-notif-availability-slo"}
         > (2 * (1-0.9990000000000001)) and alertmanager_notifications_failed:burnrate1d{job="alertmanager",slo="api-alerting-notif-availability-slo"}
         > (2 * (1-0.9990000000000001))
@@ -974,7 +974,7 @@ spec:
           and is burning too much error budget to guarantee availability SLOs.
         message: API Alertmanager is burning too much error budget to guarantee availability
           SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIAlertmanagerNotificationsAvailabilityErrorBudgetBurning
       expr: alertmanager_notifications_failed:burnrate6h{job="alertmanager",slo="api-alerting-notif-availability-slo"}
         > (1 * (1-0.9990000000000001)) and alertmanager_notifications_failed:burnrate4d{job="alertmanager",slo="api-alerting-notif-availability-slo"}
         > (1 * (1-0.9990000000000001))
@@ -1043,7 +1043,7 @@ spec:
         description: API /receive handler is burning too much error budget to guarantee
           latency SLOs.
         message: API /receive handler is burning too much latency error budget.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsWriteLatencyErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsWriteLatencyErrorBudgetBurning
       expr: absent(http_request_duration_seconds_count{code=~"^2..$",group="metricsv1",handler="receive",job="rhobs-gateway"})
         == 1
       for: 2m
@@ -1060,7 +1060,7 @@ spec:
         description: API /receive handler is burning too much error budget to guarantee
           latency SLOs.
         message: API /receive handler is burning too much latency error budget.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsWriteLatencyErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsWriteLatencyErrorBudgetBurning
       expr: absent(http_request_duration_seconds_bucket{code=~"^2..$",group="metricsv1",handler="receive",job="rhobs-gateway",le="5"})
         == 1
       for: 2m
@@ -1150,7 +1150,7 @@ spec:
         description: API /receive handler is burning too much error budget to guarantee
           latency SLOs.
         message: API /receive handler is burning too much latency error budget.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsWriteLatencyErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsWriteLatencyErrorBudgetBurning
       expr: http_request_duration_seconds:burnrate5m{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-latency-slo"}
         > (14 * (1-0.9)) and http_request_duration_seconds:burnrate1h{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-latency-slo"}
         > (14 * (1-0.9))
@@ -1171,7 +1171,7 @@ spec:
         description: API /receive handler is burning too much error budget to guarantee
           latency SLOs.
         message: API /receive handler is burning too much latency error budget.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsWriteLatencyErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsWriteLatencyErrorBudgetBurning
       expr: http_request_duration_seconds:burnrate30m{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-latency-slo"}
         > (7 * (1-0.9)) and http_request_duration_seconds:burnrate6h{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-latency-slo"}
         > (7 * (1-0.9))
@@ -1192,7 +1192,7 @@ spec:
         description: API /receive handler is burning too much error budget to guarantee
           latency SLOs.
         message: API /receive handler is burning too much latency error budget.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsWriteLatencyErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsWriteLatencyErrorBudgetBurning
       expr: http_request_duration_seconds:burnrate2h{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-latency-slo"}
         > (2 * (1-0.9)) and http_request_duration_seconds:burnrate1d{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-latency-slo"}
         > (2 * (1-0.9))
@@ -1213,7 +1213,7 @@ spec:
         description: API /receive handler is burning too much error budget to guarantee
           latency SLOs.
         message: API /receive handler is burning too much latency error budget.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APIMetricsWriteLatencyErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APIMetricsWriteLatencyErrorBudgetBurning
       expr: http_request_duration_seconds:burnrate6h{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-latency-slo"}
         > (1 * (1-0.9)) and http_request_duration_seconds:burnrate4d{group="metricsv1",handler="receive",job="rhobs-gateway",slo="api-metrics-write-latency-slo"}
         > (1 * (1-0.9))
@@ -1276,7 +1276,7 @@ spec:
           availability SLOs.
         message: Loki OTLP ingestion API is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsWriteAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APILogsWriteAvailabilityErrorBudgetBurning
       expr: absent(http_requests_total{group="logsv1",handler="otlp",job="rhobs-gateway"})
         == 1
       for: 2m
@@ -1360,7 +1360,7 @@ spec:
           availability SLOs.
         message: Loki OTLP ingestion API is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsWriteAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APILogsWriteAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate5m{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
         > (14 * (1-0.9990000000000001)) and http_requests:burnrate1h{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
         > (14 * (1-0.9990000000000001))
@@ -1382,7 +1382,7 @@ spec:
           availability SLOs.
         message: Loki OTLP ingestion API is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsWriteAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APILogsWriteAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate30m{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
         > (7 * (1-0.9990000000000001)) and http_requests:burnrate6h{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
         > (7 * (1-0.9990000000000001))
@@ -1404,7 +1404,7 @@ spec:
           availability SLOs.
         message: Loki OTLP ingestion API is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsWriteAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APILogsWriteAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate2h{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
         > (2 * (1-0.9990000000000001)) and http_requests:burnrate1d{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
         > (2 * (1-0.9990000000000001))
@@ -1426,7 +1426,7 @@ spec:
           availability SLOs.
         message: Loki OTLP ingestion API is burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsWriteAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APILogsWriteAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate6h{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
         > (1 * (1-0.9990000000000001)) and http_requests:burnrate4d{group="logsv1",handler="otlp",job="rhobs-gateway",slo="api-logs-write-availability-slo"}
         > (1 * (1-0.9990000000000001))
@@ -1488,7 +1488,7 @@ spec:
           availability SLOs.
         message: Loki query handlers are burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsQueryAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APILogsQueryAvailabilityErrorBudgetBurning
       expr: absent(http_requests_total{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway"})
         == 1
       for: 2m
@@ -1564,7 +1564,7 @@ spec:
           availability SLOs.
         message: Loki query handlers are burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsQueryAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APILogsQueryAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate5m{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
         > (14 * (1-0.9990000000000001)) and http_requests:burnrate1h{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
         > (14 * (1-0.9990000000000001))
@@ -1585,7 +1585,7 @@ spec:
           availability SLOs.
         message: Loki query handlers are burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsQueryAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APILogsQueryAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate30m{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
         > (7 * (1-0.9990000000000001)) and http_requests:burnrate6h{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
         > (7 * (1-0.9990000000000001))
@@ -1606,7 +1606,7 @@ spec:
           availability SLOs.
         message: Loki query handlers are burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsQueryAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APILogsQueryAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate2h{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
         > (2 * (1-0.9990000000000001)) and http_requests:burnrate1d{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
         > (2 * (1-0.9990000000000001))
@@ -1627,7 +1627,7 @@ spec:
           availability SLOs.
         message: Loki query handlers are burning too much error budget to guarantee
           availability SLOs.
-        runbook: https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#APILogsQueryAvailabilityErrorBudgetBurning
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#APILogsQueryAvailabilityErrorBudgetBurning
       expr: http_requests:burnrate6h{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
         > (1 * (1-0.9990000000000001)) and http_requests:burnrate4d{group="logsv1",handler=~"query(_range)?",job="rhobs-gateway",slo="api-logs-query-availability-slo"}
         > (1 * (1-0.9990000000000001))

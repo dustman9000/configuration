@@ -128,7 +128,7 @@ func (slos rhobSLOList) GetObjectives() []pyrrav1alpha1.ServiceLevelObjective {
 // getRunbookLink returns the rhobs/config runbook link for a particular alert.
 func getRunbookLink(alert string) string {
 	return fmt.Sprintf(
-		"https://github.com/rhobs/configuration/blob/main/docs/sop/observatorium.md#%s",
+		"https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/slo.md#%s",
 		alert,
 	)
 }
