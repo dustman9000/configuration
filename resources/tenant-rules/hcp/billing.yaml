@@ -35,4 +35,4 @@ objects:
                 unless on (_id) sre:hcp:alerts_suppressed
               for: 30m
               labels:
-                severity: critical
+                severity: warning
