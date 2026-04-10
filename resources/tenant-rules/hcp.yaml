@@ -393,15 +393,20 @@ objects:
             - record: sre:hcp:probe_active
               expr: |
                 (
-                  sum by (_id) (count_over_time(probe_success{probe_url=~".*api.*"}[10m])) > 0
-                  or
                   sum by (_id) (count_over_time(probe_success{apiserver_url=~".*api.*"}[10m])) > 0
                 )
                 and
                 (
-                  max by (_id) (max_over_time(probe_success{probe_url=~".*api.*"}[1h])) > 0
-                  or
                   max by (_id) (max_over_time(probe_success{apiserver_url=~".*api.*"}[1h])) > 0
+                )
+            - record: sre:hcp:blackbox_probe_active
+              expr: |
+                (
+                  sum by (_id) (count_over_time(probe_success{probe_url=~".*api.*"}[10m])) > 0
+                )
+                and
+                (
+                  max by (_id) (max_over_time(probe_success{probe_url=~".*api.*"}[1h])) > 0
                 )
   - apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
@@ -726,9 +731,9 @@ objects:
                         label_replace(
                             label_replace((
 
-                    1-(sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((sum_over_time(probe_success{probe_url=~".*api.*"}[5m]) or sum_over_time(probe_success{apiserver_url=~".*api.*"}[5m])))/ sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[5m]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[5m]))))> (14.40*(1-0.990)) and sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[5m]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[5m]))) > 5
+                    1-(sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(sum_over_time(probe_success{apiserver_url=~".*api.*"}[5m]))/ sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[5m])))> (14.40*(1-0.990)) and sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[5m])) > 5
                     and
-                    1-(sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((sum_over_time(probe_success{probe_url=~".*api.*"}[1h]) or sum_over_time(probe_success{apiserver_url=~".*api.*"}[1h])))/ sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[1h]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[1h]))))> (14.40*(1-0.990)) and sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[1h]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[1h]))) > 60
+                    1-(sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(sum_over_time(probe_success{apiserver_url=~".*api.*"}[1h]))/ sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[1h])))> (14.40*(1-0.990)) and sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[1h])) > 60
                             ), "_id_or_ns", "ocm-$1-$2", "namespace", "ocm-([^-]*)-([^-]*).*"),
                         "_id_or_ns", "$0", "_id", ".+")
                     unless on (_id_or_ns) (
@@ -756,9 +761,9 @@ objects:
                         label_replace(
                             label_replace((
 
-                    1-(sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((sum_over_time(probe_success{probe_url=~".*api.*"}[30m]) or sum_over_time(probe_success{apiserver_url=~".*api.*"}[30m])))/ sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[30m]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[30m]))))> (6*(1-0.990)) and sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[30m]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[30m]))) > 30
+                    1-(sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(sum_over_time(probe_success{apiserver_url=~".*api.*"}[30m]))/ sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[30m])))> (6*(1-0.990)) and sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[30m])) > 30
                     and
-                    1-(sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((sum_over_time(probe_success{probe_url=~".*api.*"}[6h]) or sum_over_time(probe_success{apiserver_url=~".*api.*"}[6h])))/ sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[6h]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[6h]))))> (6*(1-0.990)) and sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[6h]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[6h]))) > 360
+                    1-(sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(sum_over_time(probe_success{apiserver_url=~".*api.*"}[6h]))/ sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[6h])))> (6*(1-0.990)) and sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[6h])) > 360
                             ), "_id_or_ns", "ocm-$1-$2", "namespace", "ocm-([^-]*)-([^-]*).*"),
                         "_id_or_ns", "$0", "_id", ".+")
                     unless on (_id_or_ns) (
@@ -785,9 +790,9 @@ objects:
                 label_replace(
                     label_replace((
 
-                1-(sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((sum_over_time(probe_success{probe_url=~".*api.*"}[2h]) or sum_over_time(probe_success{apiserver_url=~".*api.*"}[2h])))/ sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[2h]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[2h]))))> (3*(1-0.990)) and sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[2h]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[2h]))) > 120
+                1-(sum by (apiserver_url, region, sector, _mc_id, _id)(sum_over_time(probe_success{apiserver_url=~".*api.*"}[2h]))/ sum by (apiserver_url, region, sector, _mc_id, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[2h])))> (3*(1-0.990)) and sum by (apiserver_url, region, sector, _mc_id, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[2h])) > 120
                 and
-                1-(sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((sum_over_time(probe_success{probe_url=~".*api.*"}[1d]) or sum_over_time(probe_success{apiserver_url=~".*api.*"}[1d])))/ sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[1d]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[1d]))))> (3*(1-0.990)) and sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[1d]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[1d]))) > 1440
+                1-(sum by (apiserver_url, region, sector, _mc_id, _id)(sum_over_time(probe_success{apiserver_url=~".*api.*"}[1d]))/ sum by (apiserver_url, region, sector, _mc_id, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[1d])))> (3*(1-0.990)) and sum by (apiserver_url, region, sector, _mc_id, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[1d])) > 1440
                         ), "_id_or_ns", "ocm-$1-$2", "namespace", "ocm-([^-]*)-([^-]*).*"),
                     "_id_or_ns", "$0", "_id", ".+")
                 unless on (_id_or_ns) (
@@ -812,9 +817,9 @@ objects:
                 label_replace(
                     label_replace((
 
-                1-(sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((sum_over_time(probe_success{probe_url=~".*api.*"}[6h]) or sum_over_time(probe_success{apiserver_url=~".*api.*"}[6h])))/ sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[6h]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[6h]))))> (1*(1-0.990)) and sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[6h]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[6h]))) > 360
+                1-(sum by (apiserver_url, region, sector, _mc_id, _id)(sum_over_time(probe_success{apiserver_url=~".*api.*"}[6h]))/ sum by (apiserver_url, region, sector, _mc_id, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[6h])))> (1*(1-0.990)) and sum by (apiserver_url, region, sector, _mc_id, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[6h])) > 360
                 and
-                1-(sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((sum_over_time(probe_success{probe_url=~".*api.*"}[3d]) or sum_over_time(probe_success{apiserver_url=~".*api.*"}[3d])))/ sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[3d]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[3d]))))> (1*(1-0.990)) and sum by (probe_url, apiserver_url, region, sector, _mc_id, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[3d]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[3d]))) > 4320
+                1-(sum by (apiserver_url, region, sector, _mc_id, _id)(sum_over_time(probe_success{apiserver_url=~".*api.*"}[3d]))/ sum by (apiserver_url, region, sector, _mc_id, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[3d])))> (1*(1-0.990)) and sum by (apiserver_url, region, sector, _mc_id, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[3d])) > 4320
                         ), "_id_or_ns", "ocm-$1-$2", "namespace", "ocm-([^-]*)-([^-]*).*"),
                     "_id_or_ns", "$0", "_id", ".+")
                 unless on (_id_or_ns) (
@@ -852,7 +857,7 @@ objects:
                 label_replace(
                         label_replace(
                             label_replace((
-                1-(sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((sum_over_time(probe_success{probe_url=~".*api.*"}[3m]) or sum_over_time(probe_success{apiserver_url=~".*api.*"}[3m])))/ sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[3m]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[3m]))))> 0.90 and sum by (probe_url, apiserver_url, mc_name, _mc_id, sector, region, _id)((count_over_time(probe_success{probe_url=~".*api.*"}[3m]) or count_over_time(probe_success{apiserver_url=~".*api.*"}[3m]))) > 3
+                1-(sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(sum_over_time(probe_success{apiserver_url=~".*api.*"}[3m]))/ sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[3m])))> 0.90 and sum by (apiserver_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{apiserver_url=~".*api.*"}[3m])) > 3
                             ), "_id_or_ns", "ocm-$1-$2", "namespace", "ocm-([^-]*)-([^-]*).*"),
                         "_id_or_ns", "$0", "_id", ".+")
                     unless on (_id_or_ns) (
@@ -868,6 +873,166 @@ objects:
                     "_id_or_ns", "", "_id_or_ns", ".*")
                 unless on (_id) sre:hcp:alerts_suppressed
                 and on (_id) sre:hcp:probe_active
+              for: 3m
+              keep_firing_for: 15m
+              labels:
+                namespace: openshift-route-monitor-operator
+                severity: critical
+                short_window: 3m
+                alert_group: api-slo
+                otel_collect: "true"
+  - apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      name: api-blackbox
+      namespace: ${NAMESPACE}
+      labels:
+        operator.thanos.io/prometheus-rule: "true"
+        operator.thanos.io/tenant: ${TENANT}
+    spec:
+      groups:
+        - name: api-blackbox-SLOs-probe
+          interval: 30s
+          rules:
+            - alert: api-BlackboxErrorBudgetBurn
+              annotations:
+                message: High error budget burn for internal kube-apiserver probe
+                runbook_url: https://github.com/openshift/ops-sop/blob/master/v4/alerts/hypershift/api-ErrorBudgetBurn.md
+              expr: |-
+                label_replace(
+                        label_replace(
+                            label_replace((
+
+                    1-(sum by (probe_url, mc_name, _mc_id, sector, region, _id)(sum_over_time(probe_success{probe_url=~".*api.*"}[5m]))/ sum by (probe_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[5m])))> (14.40*(1-0.990)) and sum by (probe_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[5m])) > 5
+                    and
+                    1-(sum by (probe_url, mc_name, _mc_id, sector, region, _id)(sum_over_time(probe_success{probe_url=~".*api.*"}[1h]))/ sum by (probe_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[1h])))> (14.40*(1-0.990)) and sum by (probe_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[1h])) > 60
+                            ), "_id_or_ns", "ocm-$1-$2", "namespace", "ocm-([^-]*)-([^-]*).*"),
+                        "_id_or_ns", "$0", "_id", ".+")
+                    unless on (_id_or_ns) (
+                        label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "_id", ".*")
+                        or
+                        label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")),
+                    "_id_or_ns", "", "_id_or_ns", ".*")
+                unless on (_id) sre:hcp:alerts_suppressed
+                and on (_id) sre:hcp:blackbox_probe_active
+              for: 5m
+              keep_firing_for: 15m
+              labels:
+                long_window: 1h
+                namespace: openshift-route-monitor-operator
+                severity: critical
+                short_window: 5m
+                alert_group: api-slo
+                otel_collect: "true"
+            - alert: api-BlackboxErrorBudgetBurn
+              annotations:
+                message: High error budget burn for internal kube-apiserver probe
+                runbook_url: https://github.com/openshift/ops-sop/blob/master/v4/alerts/hypershift/api-ErrorBudgetBurn.md
+              expr: |-
+                label_replace(
+                        label_replace(
+                            label_replace((
+
+                    1-(sum by (probe_url, mc_name, _mc_id, sector, region, _id)(sum_over_time(probe_success{probe_url=~".*api.*"}[30m]))/ sum by (probe_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[30m])))> (6*(1-0.990)) and sum by (probe_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[30m])) > 30
+                    and
+                    1-(sum by (probe_url, mc_name, _mc_id, sector, region, _id)(sum_over_time(probe_success{probe_url=~".*api.*"}[6h]))/ sum by (probe_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[6h])))> (6*(1-0.990)) and sum by (probe_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[6h])) > 360
+                            ), "_id_or_ns", "ocm-$1-$2", "namespace", "ocm-([^-]*)-([^-]*).*"),
+                        "_id_or_ns", "$0", "_id", ".+")
+                    unless on (_id_or_ns) (
+                        label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "_id", ".*")
+                        or
+                        label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")),
+                    "_id_or_ns", "", "_id_or_ns", ".*")
+                unless on (_id) sre:hcp:alerts_suppressed
+                and on (_id) sre:hcp:blackbox_probe_active
+              for: 5m
+              keep_firing_for: 15m
+              labels:
+                long_window: 6h
+                namespace: openshift-route-monitor-operator
+                severity: critical
+                short_window: 30m
+                alert_group: api-slo
+                otel_collect: "true"
+            - alert: api-BlackboxErrorBudgetBurn
+              annotations:
+                message: High error budget burn for internal kube-apiserver probe
+                runbook_url: https://github.com/openshift/ops-sop/blob/master/v4/alerts/hypershift/api-ErrorBudgetBurn.md
+              expr: |-
+                label_replace(
+                    label_replace((
+
+                1-(sum by (probe_url, region, sector, _mc_id, _id)(sum_over_time(probe_success{probe_url=~".*api.*"}[2h]))/ sum by (probe_url, region, sector, _mc_id, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[2h])))> (3*(1-0.990)) and sum by (probe_url, region, sector, _mc_id, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[2h])) > 120
+                and
+                1-(sum by (probe_url, region, sector, _mc_id, _id)(sum_over_time(probe_success{probe_url=~".*api.*"}[1d]))/ sum by (probe_url, region, sector, _mc_id, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[1d])))> (3*(1-0.990)) and sum by (probe_url, region, sector, _mc_id, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[1d])) > 1440
+                        ), "_id_or_ns", "ocm-$1-$2", "namespace", "ocm-([^-]*)-([^-]*).*"),
+                    "_id_or_ns", "$0", "_id", ".+")
+                unless on (_id_or_ns) (
+                    label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "_id", ".*")
+                    or
+                    label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*"))
+                unless on (_id) sre:hcp:alerts_suppressed
+                and on (_id) sre:hcp:blackbox_probe_active
+              for: 1h
+              labels:
+                long_window: 1d
+                namespace: openshift-route-monitor-operator
+                severity: warning
+                short_window: 2h
+                alert_group: api-slo
+                otel_collect: "true"
+            - alert: api-BlackboxErrorBudgetBurn
+              annotations:
+                message: High error budget burn for internal kube-apiserver probe
+                runbook_url: https://github.com/openshift/ops-sop/blob/master/v4/alerts/hypershift/api-ErrorBudgetBurn.md
+              expr: |-
+                label_replace(
+                    label_replace((
+
+                1-(sum by (probe_url, region, sector, _mc_id, _id)(sum_over_time(probe_success{probe_url=~".*api.*"}[6h]))/ sum by (probe_url, region, sector, _mc_id, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[6h])))> (1*(1-0.990)) and sum by (probe_url, region, sector, _mc_id, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[6h])) > 360
+                and
+                1-(sum by (probe_url, region, sector, _mc_id, _id)(sum_over_time(probe_success{probe_url=~".*api.*"}[3d]))/ sum by (probe_url, region, sector, _mc_id, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[3d])))> (1*(1-0.990)) and sum by (probe_url, region, sector, _mc_id, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[3d])) > 4320
+                        ), "_id_or_ns", "ocm-$1-$2", "namespace", "ocm-([^-]*)-([^-]*).*"),
+                    "_id_or_ns", "$0", "_id", ".+")
+                unless on (_id_or_ns) (
+                    label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "_id", ".*")
+                    or
+                    label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*"))
+                unless on (_id) sre:hcp:alerts_suppressed
+                and on (_id) sre:hcp:blackbox_probe_active
+              for: 3h
+              labels:
+                long_window: 3d
+                namespace: openshift-route-monitor-operator
+                severity: warning
+                short_window: 6h
+                alert_group: api-slo
+                otel_collect: "true"
+        - name: api-blackbox-rapid-burn
+          interval: 30s
+          rules:
+            - alert: api-BlackboxRapidErrorBudgetBurn
+              annotations:
+                message: Rapid error budget burn detected for internal kube-apiserver probe (>90% failure rate)
+                runbook_url: https://github.com/openshift/ops-sop/blob/master/v4/alerts/hypershift/api-ErrorBudgetBurn.md
+              expr: |-
+                label_replace(
+                        label_replace(
+                            label_replace((
+                1-(sum by (probe_url, mc_name, _mc_id, sector, region, _id)(sum_over_time(probe_success{probe_url=~".*api.*"}[3m]))/ sum by (probe_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[3m])))> 0.90 and sum by (probe_url, mc_name, _mc_id, sector, region, _id)(count_over_time(probe_success{probe_url=~".*api.*"}[3m])) > 3
+                            ), "_id_or_ns", "ocm-$1-$2", "namespace", "ocm-([^-]*)-([^-]*).*"),
+                        "_id_or_ns", "$0", "_id", ".+")
+                    unless on (_id_or_ns) (
+                        label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "_id", ".*")
+                        or
+                        label_replace(hypershift_cluster_alerts_disabled, "_id_or_ns", "$0", "exported_namespace", ".*")
+                        or
+                        label_replace(hypershift_cluster_waiting_initial_avaibility_duration_seconds, "_id_or_ns", "$0", "_id", ".*")
+                        or
+                        label_replace(hypershift_cluster_deleting_duration_seconds, "_id_or_ns", "$0", "_id", ".*")),
+                    "_id_or_ns", "", "_id_or_ns", ".*")
+                unless on (_id) sre:hcp:alerts_suppressed
+                and on (_id) sre:hcp:blackbox_probe_active
               for: 3m
               keep_firing_for: 15m
               labels:

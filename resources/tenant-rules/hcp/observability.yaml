@@ -50,23 +50,29 @@ objects:
             #   - hypershift_cluster_waiting_initial_avaibility_duration_seconds: cluster is installing
             - record: sre:hcp:alerts_suppressed
               expr: hypershift_cluster_waiting_initial_avaibility_duration_seconds or hypershift_cluster_alerts_disabled
-            # Recording rule that checks if a cluster has active, working probes.
-            # Use `and on (_id) sre:hcp:probe_active` in probe-based alert expressions
-            # to prevent firing for:
-            #   - Deprovisioned clusters (no recent probe data, but stale data in burn rate windows)
-            #   - New clusters where the kube-apiserver isn't reachable yet (never had a successful probe)
+            # Recording rule for synthetics-agent probes (external API path, customer experience).
+            # Uses apiserver_url label (synthetics-agent external probes use this label).
+            # Use `and on (_id) sre:hcp:probe_active` in synthetics-based alert expressions.
             - record: sre:hcp:probe_active
               expr: |
                 (
-                  sum by (_id) (count_over_time(probe_success{probe_url=~".*api.*"}[10m])) > 0
-                  or
                   sum by (_id) (count_over_time(probe_success{apiserver_url=~".*api.*"}[10m])) > 0
                 )
                 and
                 (
-                  max by (_id) (max_over_time(probe_success{probe_url=~".*api.*"}[1h])) > 0
-                  or
                   max by (_id) (max_over_time(probe_success{apiserver_url=~".*api.*"}[1h])) > 0
+                )
+            # Recording rule for RMO blackbox probes (internal kube-apiserver service path).
+            # Uses probe_url label (RMO blackbox exporter uses this label).
+            # Use `and on (_id) sre:hcp:blackbox_probe_active` in blackbox-based alert expressions.
+            - record: sre:hcp:blackbox_probe_active
+              expr: |
+                (
+                  sum by (_id) (count_over_time(probe_success{probe_url=~".*api.*"}[10m])) > 0
+                )
+                and
+                (
+                  max by (_id) (max_over_time(probe_success{probe_url=~".*api.*"}[1h])) > 0
                 )
   # Prometheus target health alerts - ServiceMonitors and PodMonitors
   - apiVersion: monitoring.coreos.com/v1
