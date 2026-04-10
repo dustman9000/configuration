@@ -298,12 +298,12 @@ objects:
           rules:
             - alert: RequestServingNodesNeedUpscale
               annotations:
-                description: Request serving node pair {{ $labels.request_node }} on MC {{ $labels._mc_id }} for HCP {{ $labels.label_api_openshift_com_name }} ({{ $labels.label_api_openshift_com_id }}) has been undersized for 1 hour and needs to be assigned to a bigger request serving node pair.
+                description: Request serving node pair {{ $labels.request_node }} on MC {{ $labels._mc_id }} for HCP {{ $labels.label_api_openshift_com_name }} ({{ $labels.label_api_openshift_com_id }}) has had high memory usage for 1 hour and needs to be assigned to a bigger request serving node pair.
                 runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/RequestServingNodesNeedUpscale.md
                 summary: HCP Request Serving Nodes Need Upsizing
               expr: |
                 (
-                  (sre:node_request_serving:excessive_consumption_cpu or sre:node_request_serving:excessive_consumption_memory)
+                  sre:node_request_serving:excessive_consumption_memory
                   * on (request_node, _mc_id) group_left(label_api_openshift_com_id, label_api_openshift_com_name)
                     max by (request_node, _mc_id, label_api_openshift_com_id, label_api_openshift_com_name)
                       (label_replace(sre:node_request_serving:info, "request_node", "$1", "node", "(.*)"))
@@ -312,6 +312,23 @@ objects:
               for: 1h
               labels:
                 severity: critical
+                otel_collect: "true"
+            - alert: RequestServingNodeHighCPUUsage
+              annotations:
+                description: Request serving node pair {{ $labels.request_node }} on MC {{ $labels._mc_id }} for HCP {{ $labels.label_api_openshift_com_name }} ({{ $labels.label_api_openshift_com_id }}) has had high CPU usage for 1 hour.
+                runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/RequestServingNodesNeedUpscale.md
+                summary: HCP Request Serving Node has high CPU usage
+              expr: |
+                (
+                  sre:node_request_serving:excessive_consumption_cpu
+                  * on (request_node, _mc_id) group_left(label_api_openshift_com_id, label_api_openshift_com_name)
+                    max by (request_node, _mc_id, label_api_openshift_com_id, label_api_openshift_com_name)
+                      (label_replace(sre:node_request_serving:info, "request_node", "$1", "node", "(.*)"))
+                )
+                unless on (label_api_openshift_com_id) label_replace(sre:hcp:alerts_suppressed, "label_api_openshift_com_id", "$1", "_id", "(.*)")
+              for: 1h
+              labels:
+                severity: warning
                 otel_collect: "true"
   - apiVersion: monitoring.coreos.com/v1
     kind: PrometheusRule
