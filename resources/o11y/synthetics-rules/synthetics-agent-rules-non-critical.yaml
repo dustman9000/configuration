@@ -1,0 +1,123 @@
+---
+$schema: /openshift/prometheus-rule-1.yml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/component: synthetics-agent
+    app.kubernetes.io/name: synthetics-agent-rules
+    app.kubernetes.io/part-of: rhobs.regional
+    app.kubernetes.io/version: main
+    prometheus: app-sre
+    role: alert-rules
+  name: rhobs-synthetics-agent
+spec:
+  groups:
+  - interval: 1m
+    name: rhobs-synthetics-agent
+    rules:
+    - alert: SyntheticsAgentDown
+      annotations:
+        description: The synthetics-agent has been unreachable for 5 minutes. Probe
+          reconciliation is not running.
+        message: Synthetics Agent is down
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAgentDown.md
+      expr: up{job="synthetics-agent"} == 0
+      for: 5m
+      labels:
+        service: rhobs.regional
+        severity: high
+    - alert: SyntheticsAgentReconcileFailures
+      annotations:
+        description: The synthetics-agent has >50% reconciliation failure rate for
+          15 minutes. Probe CRs may not be getting created or updated.
+        message: Synthetics Agent has high reconciliation failure rate
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAgentReconcileFailures.md
+      expr: |2-
+          (
+              rate(rhobs_synthetics_agent_reconciliation_total{status="error"}[10m])
+            /
+              rate(rhobs_synthetics_agent_reconciliation_total[10m])
+          )
+        >
+          0.5
+      for: 15m
+      labels:
+        service: rhobs.regional
+        severity: medium
+    - alert: SyntheticsAgentFetchFailures
+      annotations:
+        description: The synthetics-agent has had no successful API fetches for 10
+          minutes. New probes will not be created and existing probes will not be
+          reconciled.
+        message: Synthetics Agent cannot fetch probe list from API
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAgentFetchFailures.md
+      expr: |2-
+          rate(rhobs_synthetics_agent_probe_list_fetch_total{status="error"}[10m]) > 0
+        unless
+          rate(rhobs_synthetics_agent_probe_list_fetch_total{status="success"}[10m]) > 0
+      for: 10m
+      labels:
+        service: rhobs.regional
+        severity: high
+    - alert: SyntheticsAgentNoProbesManaged
+      annotations:
+        description: The synthetics-agent has been managing zero probe CRs for 30
+          minutes. This may indicate a configuration issue or API connectivity problem.
+        message: Synthetics Agent is managing zero probes
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAgentNoProbesManaged.md
+      expr: rhobs_synthetics_agent_probe_resources_managed == 0
+      for: 30m
+      labels:
+        service: rhobs.regional
+        severity: medium
+    - alert: SyntheticsAgentReconcileStale
+      annotations:
+        description: The synthetics-agent has not completed a reconciliation cycle
+          in over 5 minutes (it normally runs every 30 seconds). The agent may be
+          hung or crashed without the process exiting.
+        message: Synthetics Agent reconciliation is stale
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAgentReconcileStale.md
+      expr: time() - rhobs_synthetics_agent_last_reconciliation_timestamp_seconds
+        > 600
+      for: 10m
+      labels:
+        service: rhobs.regional
+        severity: medium
+    - alert: SyntheticsAgentMetricsAbsent
+      annotations:
+        description: No metrics are being received from the synthetics-agent. The
+          service may be completely down or its metrics endpoint may be unreachable.
+        message: Synthetics Agent metrics are absent
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAgentMetricsAbsent.md
+      expr: absent(up{job="synthetics-agent"})
+      for: 10m
+      labels:
+        service: rhobs.regional
+        severity: high
+    - alert: SyntheticsProbeMetricsAbsent
+      annotations:
+        description: No probe_success metrics have been received for 15 minutes, but
+          they were present within the last hour. The synthetics-agent Prometheus
+          may be crashlooping (OOMKilled) or unable to remote-write.
+        message: Synthetics probe metrics are absent
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsProbeMetricsAbsent.md
+      expr: (absent(probe_success) == 1) unless (absent_over_time(probe_success[1h])
+        == 1)
+      for: 15m
+      labels:
+        service: rhobs.regional
+        severity: high
+    - alert: SyntheticsProbeOrphanAccumulation
+      annotations:
+        description: The total number of probe_success series ({{ $value }}) exceeds
+          3x the number of unique HCPs being probed. This indicates orphaned Probe
+          CRs are accumulating, which will cause the synthetics Prometheus to OOMKill
+          due to excessive memory consumption.
+        message: Synthetics probe targets exceed 3x unique HCP count
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsProbeOrphanAccumulation.md
+      expr: count(probe_success) > 3 * count(group by (_id) (probe_success))
+      for: 1h
+      labels:
+        service: rhobs.regional
+        severity: medium

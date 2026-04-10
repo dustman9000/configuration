@@ -1,0 +1,69 @@
+---
+$schema: /openshift/prometheus-rule-1.yml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/component: synthetics-api
+    app.kubernetes.io/name: synthetics-api-rules
+    app.kubernetes.io/part-of: rhobs.regional
+    app.kubernetes.io/version: main
+    prometheus: app-sre
+    role: alert-rules
+  name: rhobs-synthetics-api
+spec:
+  groups:
+  - interval: 1m
+    name: rhobs-synthetics-api
+    rules:
+    - alert: SyntheticsAPIDown
+      annotations:
+        description: The synthetics-api service has been unreachable for 5 minutes.
+          Probe lifecycle management is unavailable.
+        message: Synthetics API is down
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAPIDown.md
+      expr: up{job="synthetics-api"} == 0
+      for: 5m
+      labels:
+        service: rhobs.regional
+        severity: warning
+    - alert: SyntheticsAPIHighErrorRate
+      annotations:
+        description: The synthetics-api has >10% probestore error rate for 10 minutes.
+        message: Synthetics API has high probestore error rate
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAPIHighErrorRate.md
+      expr: |2-
+          (
+              rate(rhobs_synthetics_api_probestore_errors_total[5m])
+            /
+              rate(rhobs_synthetics_api_http_requests_total[5m])
+          )
+        >
+          0.1
+      for: 10m
+      labels:
+        service: rhobs.regional
+        severity: warning
+    - alert: SyntheticsAPIHighLatency
+      annotations:
+        description: The synthetics-api p99 request latency has been above 5 seconds
+          for 10 minutes.
+        message: Synthetics API has high request latency
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAPIHighLatency.md
+      expr: histogram_quantile(0.99, rate(rhobs_synthetics_api_http_request_duration_seconds_bucket[5m]))
+        > 5
+      for: 10m
+      labels:
+        service: rhobs.regional
+        severity: warning
+    - alert: SyntheticsAPIMetricsAbsent
+      annotations:
+        description: No metrics are being received from the synthetics-api. The service
+          may be completely down or its metrics endpoint may be unreachable.
+        message: Synthetics API metrics are absent
+        runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsAPIMetricsAbsent.md
+      expr: absent(up{job="synthetics-api"})
+      for: 10m
+      labels:
+        service: rhobs.regional
+        severity: warning
