@@ -1,0 +1,56 @@
+---
+$schema: /openshift/prometheus-rule-1.yml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app.kubernetes.io/component: synthetics-blackbox-exporter
+    app.kubernetes.io/name: synthetics-blackbox-exporter-rules
+    app.kubernetes.io/part-of: rhobs.regional
+    app.kubernetes.io/version: main
+    prometheus: app-sre
+    role: alert-rules
+  name: rhobs-synthetics-blackbox-exporter
+spec:
+  groups:
+  - interval: 1m
+    name: rhobs-synthetics-blackbox-exporter
+    rules:
+    - alert: SyntheticsBlackboxExporterConfigReloadFailed
+      annotations:
+        description: The synthetics blackbox-exporter failed to reload its configuration.
+          Probe module changes will not take effect until this is resolved.
+        message: Synthetics blackbox-exporter config reload failed
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/synthetics-blackbox-exporter.md#syntheticsblackboxexporterconfigreloadfailed
+      expr: blackbox_exporter_config_last_reload_successful == 0
+      for: 5m
+      labels:
+        service: rhobs.regional
+        severity: warning
+    - alert: SyntheticsBlackboxExporterUnknownModule
+      annotations:
+        description: The synthetics blackbox-exporter is receiving probe requests
+          for a module not defined in its configuration. Affected probes will silently
+          fail.
+        message: Synthetics blackbox-exporter receiving requests for unknown module
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/synthetics-blackbox-exporter.md#syntheticsblackboxexporterunknownmodule
+      expr: rate(blackbox_module_unknown_total[5m]) > 0
+      for: 5m
+      labels:
+        service: rhobs.regional
+        severity: warning
+    - alert: SyntheticsBlackboxExporterDown
+      annotations:
+        description: The synthetics blackbox-exporter has been unreachable for 5 minutes.
+          The pod may not exist or the scrape is failing. Probe results will not be
+          collected.
+        message: Synthetics blackbox-exporter is down
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/synthetics-blackbox-exporter.md#syntheticsblackboxexporterdown
+      expr: |2-
+          absent(up{job="synthetics-blackbox-prober-default-service"})
+        or
+          up{job="synthetics-blackbox-prober-default-service"} == 0
+      for: 5m
+      labels:
+        service: rhobs.regional
+        severity: warning

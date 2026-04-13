@@ -871,16 +871,20 @@ spec:
           this group will never fire.
         message: Thanos Rule group has sustained evaluation failures.
         runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/blob/main/runbooks/thanos.md#thanosrulehighruleevaluationfailures
-      expr: |-
-        (
-          sum by (namespace, job, instance, rule_group) (
-            rate(prometheus_rule_evaluation_failures_total{job=~"thanos-ruler-rhobs.*"}[5m])
-          )
-          /
-          sum by (namespace, job, instance, rule_group) (
-            rate(prometheus_rule_evaluations_total{job=~"thanos-ruler-rhobs.*"}[5m])
-          )
-        ) * 100 > 5
+      expr: |2-
+            (
+                sum by (namespace, job, instance, rule_group) (
+                  rate(prometheus_rule_evaluation_failures_total{job=~"thanos-ruler-rhobs.*"}[5m])
+                )
+              /
+                sum by (namespace, job, instance, rule_group) (
+                  rate(prometheus_rule_evaluations_total{job=~"thanos-ruler-rhobs.*"}[5m])
+                )
+            )
+          *
+            100
+        >
+          5
       for: 30m
       labels:
         rule_group: '{{ $labels.rule_group }}'
