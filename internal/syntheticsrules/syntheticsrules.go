@@ -46,7 +46,7 @@ func (cfg *RulesConfig) runbook(alert string) map[string]string {
 		url = runbookBase + "/" + alert + ".md"
 	}
 	return map[string]string{
-		"runbook_url": url,
+		"runbook": url,
 	}
 }
 
@@ -205,6 +205,100 @@ func (cfg *RulesConfig) syntheticsAPIAlerts() []rulegroup.Option {
 	}
 }
 
+// NewSyntheticsBlackboxExporterRulesBuilder returns a PrometheusRule builder for synthetics blackbox-exporter health alerts.
+// The blackbox-exporter runs on RHOBS cells; metrics are scraped via the synthetics-bb-exporter ServiceMonitor.
+func NewSyntheticsBlackboxExporterRulesBuilder(
+	namespace string,
+	labels map[string]string,
+	metaAnnotations map[string]string,
+	options ...ConfigOption,
+) (promtheusrule.Builder, error) {
+	cfg := &RulesConfig{
+		serviceLabelValue: "rhobs-synthetics",
+	}
+	for _, option := range options {
+		option(cfg)
+	}
+
+	return promtheusrule.New(
+		"rhobs-synthetics-blackbox-exporter",
+		namespace,
+		promtheusrule.Labels(labels),
+		promtheusrule.Annotations(metaAnnotations),
+		promtheusrule.AddRuleGroup("rhobs-synthetics-blackbox-exporter", cfg.syntheticsBlackboxExporterAlerts()...),
+	)
+}
+
+func (cfg *RulesConfig) syntheticsBlackboxExporterAlerts() []rulegroup.Option {
+	return []rulegroup.Option{
+		rulegroup.Interval("1m"),
+		rulegroup.AddRule(
+			"SyntheticsBlackboxExporterConfigReloadFailed",
+			alerting.Expr(
+				promqlbuilder.Eqlc(
+					vector.New(vector.WithMetricName("blackbox_exporter_config_last_reload_successful")),
+					promqlbuilder.NewNumber(0),
+				),
+			),
+			alerting.For("5m"),
+			alerting.Labels(cfg.alertLabels("warning")),
+			alerting.Annotations(annotations(
+				"Synthetics blackbox-exporter config reload failed",
+				"The synthetics blackbox-exporter failed to reload its configuration. Probe module changes will not take effect until this is resolved.",
+				map[string]string{"runbook": "https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/synthetics-blackbox-exporter.md#syntheticsblackboxexporterconfigreloadfailed"},
+			)),
+		),
+		rulegroup.AddRule(
+			"SyntheticsBlackboxExporterUnknownModule",
+			alerting.Expr(
+				promqlbuilder.Gtr(
+					promqlbuilder.Rate(
+						matrix.New(
+							vector.New(vector.WithMetricName("blackbox_module_unknown_total")),
+							matrix.WithRange(5*time.Minute),
+						),
+					),
+					promqlbuilder.NewNumber(0),
+				),
+			),
+			alerting.For("5m"),
+			alerting.Labels(cfg.alertLabels("warning")),
+			alerting.Annotations(annotations(
+				"Synthetics blackbox-exporter receiving requests for unknown module",
+				"The synthetics blackbox-exporter is receiving probe requests for a module not defined in its configuration. Affected probes will silently fail.",
+				map[string]string{"runbook": "https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/synthetics-blackbox-exporter.md#syntheticsblackboxexporterunknownmodule"},
+			)),
+		),
+		rulegroup.AddRule(
+			"SyntheticsBlackboxExporterDown",
+			alerting.Expr(
+				promqlbuilder.Or(
+					promqlbuilder.Absent(
+						vector.New(
+							vector.WithMetricName("up"),
+							vector.WithLabelMatchers(label.New("job").Equal("synthetics-blackbox-prober-default-service")),
+						),
+					),
+					promqlbuilder.Eqlc(
+						vector.New(
+							vector.WithMetricName("up"),
+							vector.WithLabelMatchers(label.New("job").Equal("synthetics-blackbox-prober-default-service")),
+						),
+						promqlbuilder.NewNumber(0),
+					),
+				),
+			),
+			alerting.For("5m"),
+			alerting.Labels(cfg.alertLabels("warning")),
+			alerting.Annotations(annotations(
+				"Synthetics blackbox-exporter is down",
+				"The synthetics blackbox-exporter has been unreachable for 5 minutes. The pod may not exist or the scrape is failing. Probe results will not be collected.",
+				map[string]string{"runbook": "https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/synthetics-blackbox-exporter.md#syntheticsblackboxexporterdown"},
+			)),
+		),
+	}
+}
+
 func (cfg *RulesConfig) syntheticsAgentAlerts() []rulegroup.Option {
 	return []rulegroup.Option{
 		rulegroup.Interval("1m"),
@@ -348,56 +442,6 @@ func (cfg *RulesConfig) syntheticsAgentAlerts() []rulegroup.Option {
 				"Synthetics Agent metrics are absent",
 				"No metrics are being received from the synthetics-agent. The service may be completely down or its metrics endpoint may be unreachable.",
 				cfg.runbook("SyntheticsAgentMetricsAbsent"),
-			)),
-		),
-		rulegroup.AddRule(
-			"SyntheticsProbeMetricsAbsent",
-			alerting.Expr(
-				promqlbuilder.Unless(
-					promqlbuilder.Parenthesis(promqlbuilder.Eqlc(
-						promqlbuilder.Absent(vector.New(vector.WithMetricName("probe_success"))),
-						promqlbuilder.NewNumber(1),
-					)),
-					promqlbuilder.Parenthesis(promqlbuilder.Eqlc(
-						promqlbuilder.AbsentOverTime(
-							matrix.New(
-								vector.New(vector.WithMetricName("probe_success")),
-								matrix.WithRange(1*time.Hour),
-							),
-						),
-						promqlbuilder.NewNumber(1),
-					)),
-				),
-			),
-			alerting.For("15m"),
-			alerting.Labels(cfg.alertLabels("critical")),
-			alerting.Annotations(annotations(
-				"Synthetics probe metrics are absent",
-				"No probe_success metrics have been received for 15 minutes, but they were present within the last hour. The synthetics-agent Prometheus may be crashlooping (OOMKilled) or unable to remote-write.",
-				cfg.runbook("SyntheticsProbeMetricsAbsent"),
-			)),
-		),
-		rulegroup.AddRule(
-			"SyntheticsProbeOrphanAccumulation",
-			alerting.Expr(
-				promqlbuilder.Gtr(
-					promqlbuilder.Count(vector.New(vector.WithMetricName("probe_success"))),
-					promqlbuilder.Mul(
-						promqlbuilder.NewNumber(3),
-						promqlbuilder.Count(
-							promqlbuilder.Group(
-								vector.New(vector.WithMetricName("probe_success")),
-							).By("_id"),
-						),
-					),
-				),
-			),
-			alerting.For("1h"),
-			alerting.Labels(cfg.alertLabels("warning")),
-			alerting.Annotations(annotations(
-				"Synthetics probe targets exceed 3x unique HCP count",
-				`The total number of probe_success series ({{ $value }}) exceeds 3x the number of unique HCPs being probed. This indicates orphaned Probe CRs are accumulating, which will cause the synthetics Prometheus to OOMKill due to excessive memory consumption.`,
-				cfg.runbook("SyntheticsProbeOrphanAccumulation"),
 			)),
 		),
 	}

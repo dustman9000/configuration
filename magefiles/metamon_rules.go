@@ -11,6 +11,7 @@ import (
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gitlab.cee.redhat.com/rhobs/configuration/internal/lokirules"
 	"gitlab.cee.redhat.com/rhobs/configuration/internal/syntheticsrules"
+	customthanosrules "gitlab.cee.redhat.com/rhobs/configuration/internal/thanosrules"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -122,33 +123,15 @@ func ThanosPrometheusRule(nonCriticalPostProcessing bool) *appInterfacePrometheu
 	// The mixin's ThanosRuleHighRuleEvaluationFailures uses a 5% ratio threshold
 	// which is too high to catch a single failing rule out of 64. This alert fires
 	// per rule_group when sustained failures are detected.
-	forDuration := v1.Duration("30m")
 	for i, g := range builder.Spec.Groups {
 		if g.Name == "thanos-rule" {
-			builder.Spec.Groups[i].Rules = append(builder.Spec.Groups[i].Rules, v1.Rule{
-				Alert: "ThanosRuleGroupEvaluationFailures",
-				Annotations: map[string]string{
-					"dashboard":   dashboardThanosRule,
-					"description": "Thanos Rule group {{ $labels.rule_group }} on {{ $labels.instance }} in {{ $labels.namespace }} has sustained evaluation failures. A rule in this group is consistently failing to evaluate, which means alerts from this group will never fire.",
-					"message":     "Thanos Rule group has sustained evaluation failures.",
-					"runbook":     "https://gitlab.cee.redhat.com/rhobs/configuration/-/blob/main/runbooks/thanos.md#thanosrulehighruleevaluationfailures",
-				},
-				Expr: intstr.FromString(`(
-  sum by (namespace, job, instance, rule_group) (
-    rate(prometheus_rule_evaluation_failures_total{job=~"thanos-ruler-rhobs.*"}[5m])
-  )
-  /
-  sum by (namespace, job, instance, rule_group) (
-    rate(prometheus_rule_evaluations_total{job=~"thanos-ruler-rhobs.*"}[5m])
-  )
-) * 100 > 5`),
-				For: &forDuration,
-				Labels: map[string]string{
-					"service":    rhobsNextServiceLabel,
-					"severity":   "high",
-					"rule_group": "{{ $labels.rule_group }}",
-				},
-			})
+			builder.Spec.Groups[i].Rules = append(builder.Spec.Groups[i].Rules,
+				customthanosrules.ThanosRuleGroupEvaluationFailuresRule(
+					rhobsNextServiceLabel,
+					dashboardThanosRule,
+					"https://gitlab.cee.redhat.com/rhobs/configuration/-/blob/main/runbooks/thanos.md#thanosrulehighruleevaluationfailures",
+				),
+			)
 			break
 		}
 	}
@@ -335,6 +318,8 @@ func syntheticsRules(gen *mimic.Generator) {
 	gen.Add("synthetics-api-rules-non-critical.yaml", encoding.GhodssYAML("", SyntheticsAPIPrometheusRule(true)))
 	gen.Add("synthetics-agent-rules.yaml", encoding.GhodssYAML("", SyntheticsAgentPrometheusRule(false)))
 	gen.Add("synthetics-agent-rules-non-critical.yaml", encoding.GhodssYAML("", SyntheticsAgentPrometheusRule(true)))
+	gen.Add("synthetics-blackbox-exporter-rules.yaml", encoding.GhodssYAML("", SyntheticsBlackboxExporterPrometheusRule(false)))
+	gen.Add("synthetics-blackbox-exporter-rules-non-critical.yaml", encoding.GhodssYAML("", SyntheticsBlackboxExporterPrometheusRule(true)))
 	gen.Generate()
 }
 
@@ -344,6 +329,37 @@ func SyntheticsAPIPrometheusRule(nonCriticalPostProcessing bool) *appInterfacePr
 		map[string]string{
 			"app.kubernetes.io/component": "synthetics-api",
 			"app.kubernetes.io/name":      "synthetics-api-rules",
+			"app.kubernetes.io/part-of":   rhobsNextServiceLabel,
+			"app.kubernetes.io/version":   "main",
+			"prometheus":                  "app-sre",
+			"role":                        "alert-rules",
+		},
+		map[string]string{},
+		syntheticsrules.WithServiceLabelValue(rhobsNextServiceLabel),
+	)
+	if err != nil {
+		return nil
+	}
+
+	if nonCriticalPostProcessing {
+		builder.PrometheusRule = RuleNonCriticalPostProcessing(builder.PrometheusRule)
+	} else {
+		builder.PrometheusRule = RuleCriticalPostProcessing(builder.PrometheusRule)
+	}
+	builder.Spec.Groups = ReplaceSummaryWithMessage(builder.Spec.Groups)
+
+	return &appInterfacePrometheusRule{
+		Schema:         schemaPath,
+		PrometheusRule: builder.PrometheusRule,
+	}
+}
+
+func SyntheticsBlackboxExporterPrometheusRule(nonCriticalPostProcessing bool) *appInterfacePrometheusRule {
+	builder, err := syntheticsrules.NewSyntheticsBlackboxExporterRulesBuilder(
+		"",
+		map[string]string{
+			"app.kubernetes.io/component": "synthetics-blackbox-exporter",
+			"app.kubernetes.io/name":      "synthetics-blackbox-exporter-rules",
 			"app.kubernetes.io/part-of":   rhobsNextServiceLabel,
 			"app.kubernetes.io/version":   "main",
 			"prometheus":                  "app-sre",
