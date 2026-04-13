@@ -862,3 +862,27 @@ spec:
       labels:
         service: rhobs.regional
         severity: warning
+    - alert: ThanosRuleGroupEvaluationFailures
+      annotations:
+        dashboard: https://grafana.app-sre.devshift.net/d/thanos-ruler-overview/thanos-ruler-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-job=thanos-ruler-rhobs&var-namespace={{$labels.namespace}}
+        description: Thanos Rule group {{ $labels.rule_group }} on {{ $labels.instance
+          }} in {{ $labels.namespace }} has sustained evaluation failures. A rule
+          in this group is consistently failing to evaluate, which means alerts from
+          this group will never fire.
+        message: Thanos Rule group has sustained evaluation failures.
+        runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/blob/main/runbooks/thanos.md#thanosrulehighruleevaluationfailures
+      expr: |-
+        (
+          sum by (namespace, job, instance, rule_group) (
+            rate(prometheus_rule_evaluation_failures_total{job=~"thanos-ruler-rhobs.*"}[5m])
+          )
+          /
+          sum by (namespace, job, instance, rule_group) (
+            rate(prometheus_rule_evaluations_total{job=~"thanos-ruler-rhobs.*"}[5m])
+          )
+        ) * 100 > 5
+      for: 30m
+      labels:
+        rule_group: '{{ $labels.rule_group }}'
+        service: rhobs.regional
+        severity: high

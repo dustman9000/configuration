@@ -118,6 +118,41 @@ func ThanosPrometheusRule(nonCriticalPostProcessing bool) *appInterfacePrometheu
 	builder.Spec.Groups = ReplaceSummaryWithMessage(builder.Spec.Groups)
 	builder.Spec.Groups = ReplaceStoreRhobsWithDefault(builder.Spec.Groups)
 
+	// Append custom per-rule-group evaluation failure alert.
+	// The mixin's ThanosRuleHighRuleEvaluationFailures uses a 5% ratio threshold
+	// which is too high to catch a single failing rule out of 64. This alert fires
+	// per rule_group when sustained failures are detected.
+	forDuration := v1.Duration("30m")
+	for i, g := range builder.Spec.Groups {
+		if g.Name == "thanos-rule" {
+			builder.Spec.Groups[i].Rules = append(builder.Spec.Groups[i].Rules, v1.Rule{
+				Alert: "ThanosRuleGroupEvaluationFailures",
+				Annotations: map[string]string{
+					"dashboard":   dashboardThanosRule,
+					"description": "Thanos Rule group {{ $labels.rule_group }} on {{ $labels.instance }} in {{ $labels.namespace }} has sustained evaluation failures. A rule in this group is consistently failing to evaluate, which means alerts from this group will never fire.",
+					"message":     "Thanos Rule group has sustained evaluation failures.",
+					"runbook":     "https://gitlab.cee.redhat.com/rhobs/configuration/-/blob/main/runbooks/thanos.md#thanosrulehighruleevaluationfailures",
+				},
+				Expr: intstr.FromString(`(
+  sum by (namespace, job, instance, rule_group) (
+    rate(prometheus_rule_evaluation_failures_total{job=~"thanos-ruler-rhobs.*"}[5m])
+  )
+  /
+  sum by (namespace, job, instance, rule_group) (
+    rate(prometheus_rule_evaluations_total{job=~"thanos-ruler-rhobs.*"}[5m])
+  )
+) * 100 > 5`),
+				For: &forDuration,
+				Labels: map[string]string{
+					"service":    rhobsNextServiceLabel,
+					"severity":   "high",
+					"rule_group": "{{ $labels.rule_group }}",
+				},
+			})
+			break
+		}
+	}
+
 	return &appInterfacePrometheusRule{
 		Schema:         schemaPath,
 		PrometheusRule: builder.PrometheusRule,
