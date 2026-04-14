@@ -377,7 +377,7 @@ func (cfg *RulesConfig) lokiAlerts() []rulegroup.Option {
 		rulegroup.AddRule(
 			"LokiRulerBadConfiguration",
 			alerting.Expr(
-				promqlbuilder.Eql(
+				promqlbuilder.Eqlc(
 					promqlbuilder.MaxOverTime(
 						matrix.New(
 							vector.New(
@@ -431,7 +431,7 @@ func (cfg *RulesConfig) lokiAlerts() []rulegroup.Option {
 		rulegroup.AddRule(
 			"LokiRulerNotConnectedToAlertmanagers",
 			alerting.Expr(
-				promqlbuilder.Eql(
+				promqlbuilder.Eqlc(
 					promqlbuilder.MaxOverTime(
 						matrix.New(
 							vector.New(
