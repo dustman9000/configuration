@@ -190,7 +190,7 @@ spec:
           }} has failed to reload its configuration.
         message: Failed LokiRuler configuration reload
         runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-ruler-bad-configuratoin
-      expr: max_over_time(loki_ruler_config_last_reload_successful[5m]) = 0
+      expr: max_over_time(loki_ruler_config_last_reload_successful[5m]) == 0
       for: 10m
       labels:
         service: rhobs.regional
@@ -213,7 +213,7 @@ spec:
         message: LokiRuler is is not connected to any Alertmanagers.
         runbook: https://gitlab.cee.redhat.com/rhobs/configuration/-/tree/main/runbooks/loki.md#loki-ruler-not-connected-to-alertmanager
       expr: max_over_time(loki_prometheus_notifications_alertmanagers_discovered[5m])
-        = 0
+        == 0
       for: 15m
       labels:
         service: rhobs.regional
