@@ -1,0 +1,61 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: rhobs-hcp-loki-provisioning-recording-rules
+  annotations:
+    description: "Loki recording rules for ROSA HCP provisioning event throughput from CS structured logs"
+parameters:
+  - name: NAMESPACE
+    description: Namespace to deploy the recording rules to
+    required: true
+  - name: TENANT
+    description: Loki tenant ID for recording rules evaluation
+    required: true
+objects:
+  - apiVersion: loki.grafana.com/v1
+    kind: RecordingRule
+    metadata:
+      name: cluster-provisioning-events
+      namespace: ${NAMESPACE}
+      labels:
+        loki.grafana.com/loki-rule: "true"
+    spec:
+      tenantID: ${TENANT}
+      groups:
+        - name: rosa_hcp_provisioning_events
+          interval: 5m
+          rules:
+            # Count of IT1 events -- cluster creation requests received
+            - record: sre:rosa_hcp:provisioning_it1_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT1" [5m]))
+            # Count of IT2 events -- ManifestWork creation (main cluster MW only)
+            - record: sre:rosa_hcp:provisioning_it2_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT2" |= "Kind: 'ManifestWork'" |= "Operation: 'Create'" [5m]))
+            # Count of IT3 events -- ManifestWork applied on MC
+            - record: sre:rosa_hcp:provisioning_it3_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT3" [5m]))
+            # Count of IT4 events -- certificate ready
+            - record: sre:rosa_hcp:provisioning_it4_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT4" [5m]))
+            # Count of IT5 events -- HostedCluster available
+            - record: sre:rosa_hcp:provisioning_it5_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT5" [5m]))
+            # Count of IT6 events -- ACM hub registration
+            - record: sre:rosa_hcp:provisioning_it6_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT6" [5m]))
+            # Count of IT7 events -- cluster marked ready
+            - record: sre:rosa_hcp:provisioning_it7_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT7" [5m]))
+            # Ratio of completed (IT7) to started (IT1) -- provisioning completion rate
+            - record: sre:rosa_hcp:provisioning_completion_rate:ratio5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT7" [5m]))
+                /
+                (sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT1" [5m])) > 0)
