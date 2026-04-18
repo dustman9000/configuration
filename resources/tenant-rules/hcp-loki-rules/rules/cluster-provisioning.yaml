@@ -1,9 +1,9 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: rhobs-hcp-loki-provisioning-recording-rules
+  name: rhobs-hcp-loki-lifecycle-recording-rules
   annotations:
-    description: "Loki recording rules for ROSA HCP provisioning event throughput from CS structured logs"
+    description: "Loki recording rules for ROSA HCP lifecycle event throughput from CS structured logs (IT, UCT, UNT, NT, UT events)"
 parameters:
   - name: NAMESPACE
     description: Namespace to deploy the recording rules to
@@ -15,47 +15,113 @@ objects:
   - apiVersion: loki.grafana.com/v1
     kind: RecordingRule
     metadata:
-      name: cluster-provisioning-events
+      name: cluster-lifecycle-events
       namespace: ${NAMESPACE}
       labels:
         loki.grafana.com/loki-rule: "true"
     spec:
       tenantID: ${TENANT}
       groups:
-        - name: rosa_hcp_provisioning_events
+        # Installation tracking (IT1-IT7)
+        - name: rosa_hcp_installation_events
           interval: 5m
           rules:
-            # Count of IT1 events -- cluster creation requests received
-            - record: sre:rosa_hcp:provisioning_it1_events:count5m
+            - record: sre:rosa_hcp:install_it1_events:count5m
               expr: |
                 sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT1" [5m]))
-            # Count of IT2 events -- ManifestWork creation (main cluster MW only)
-            - record: sre:rosa_hcp:provisioning_it2_events:count5m
+            - record: sre:rosa_hcp:install_it2_events:count5m
               expr: |
                 sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT2" |= "Kind: 'ManifestWork'" |= "Operation: 'Create'" [5m]))
-            # Count of IT3 events -- ManifestWork applied on MC
-            - record: sre:rosa_hcp:provisioning_it3_events:count5m
+            - record: sre:rosa_hcp:install_it3_events:count5m
               expr: |
                 sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT3" [5m]))
-            # Count of IT4 events -- certificate ready
-            - record: sre:rosa_hcp:provisioning_it4_events:count5m
+            - record: sre:rosa_hcp:install_it4_events:count5m
               expr: |
                 sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT4" [5m]))
-            # Count of IT5 events -- HostedCluster available
-            - record: sre:rosa_hcp:provisioning_it5_events:count5m
+            - record: sre:rosa_hcp:install_it5_events:count5m
               expr: |
                 sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT5" [5m]))
-            # Count of IT6 events -- ACM hub registration
-            - record: sre:rosa_hcp:provisioning_it6_events:count5m
+            - record: sre:rosa_hcp:install_it6_events:count5m
               expr: |
                 sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT6" [5m]))
-            # Count of IT7 events -- cluster marked ready
-            - record: sre:rosa_hcp:provisioning_it7_events:count5m
+            - record: sre:rosa_hcp:install_it7_events:count5m
               expr: |
                 sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT7" [5m]))
-            # Ratio of completed (IT7) to started (IT1) -- provisioning completion rate
-            - record: sre:rosa_hcp:provisioning_completion_rate:ratio5m
+            - record: sre:rosa_hcp:install_completion_rate:ratio5m
               expr: |
                 sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT7" [5m]))
                 /
                 (sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - IT1" [5m])) > 0)
+        # Control plane upgrade tracking (UCT1-UCT6)
+        - name: rosa_hcp_control_plane_upgrade_events
+          interval: 5m
+          rules:
+            - record: sre:rosa_hcp:cp_upgrade_uct1_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UCT1" [5m]))
+            - record: sre:rosa_hcp:cp_upgrade_uct2_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UCT2" [5m]))
+            - record: sre:rosa_hcp:cp_upgrade_uct3_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UCT3" [5m]))
+            - record: sre:rosa_hcp:cp_upgrade_uct4_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UCT4" [5m]))
+            - record: sre:rosa_hcp:cp_upgrade_uct5_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UCT5" [5m]))
+            - record: sre:rosa_hcp:cp_upgrade_uct6_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UCT6" [5m]))
+            - record: sre:rosa_hcp:cp_upgrade_completion_rate:ratio5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UCT6" [5m]))
+                /
+                (sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UCT1" [5m])) > 0)
+        # Node pool upgrade tracking (UNT1-UNT9)
+        - name: rosa_hcp_nodepool_upgrade_events
+          interval: 5m
+          rules:
+            - record: sre:rosa_hcp:np_upgrade_unt1_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UNT1" [5m]))
+            - record: sre:rosa_hcp:np_upgrade_unt2_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UNT2" [5m]))
+            - record: sre:rosa_hcp:np_upgrade_unt3_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UNT3" [5m]))
+            - record: sre:rosa_hcp:np_upgrade_unt9_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UNT9" [5m]))
+            - record: sre:rosa_hcp:np_upgrade_completion_rate:ratio5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UNT9" [5m]))
+                /
+                (sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UNT1" [5m])) > 0)
+        # Node pool change tracking (NT1-NT6)
+        - name: rosa_hcp_nodepool_change_events
+          interval: 5m
+          rules:
+            - record: sre:rosa_hcp:np_change_nt1_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - NT1" [5m]))
+            - record: sre:rosa_hcp:np_change_nt6_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - NT6" [5m]))
+        # Uninstallation tracking (UT1, UT17)
+        - name: rosa_hcp_uninstall_events
+          interval: 5m
+          rules:
+            - record: sre:rosa_hcp:uninstall_ut1_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UT1" [5m]))
+            - record: sre:rosa_hcp:uninstall_ut17_events:count5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UT17" [5m]))
+            - record: sre:rosa_hcp:uninstall_completion_rate:ratio5m
+              expr: |
+                sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UT17" [5m]))
+                /
+                (sum(count_over_time({kubernetes_namespace_name=~"uhc-production|uhc-stage|uhc-integration"} |= "ROSA HCP - UT1" [5m])) > 0)
