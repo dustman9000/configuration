@@ -9,7 +9,7 @@ ifeq ($(OS),darwin)
 endif
 
 .PHONY: all
-all: hcp-rules sc-rules hcp-loki-rules
+all: hcp-rules sc-rules hcp-loki-rules hcp-loki-recording-rules
 
 .PHONY: hcp-rules
 hcp-rules: generate-hcp-rules lint-hcp-rules
@@ -49,6 +49,19 @@ generate-hcp-loki-rules: $(YQ)
 lint-hcp-loki-alerting-rules: $(LOGCLI) $(YQ)
 	@echo ">>>>> Linting HCP Loki AlertingRule template"
 	./scripts/lint-loki-rules.sh ./resources/tenant-rules/hcp-loki-alerting-rules.yaml $(LOGCLI) $(YQ)
+
+.PHONY: hcp-loki-recording-rules
+hcp-loki-recording-rules: generate-hcp-loki-recording-rules lint-hcp-loki-recording-rules
+
+.PHONY: generate-hcp-loki-recording-rules
+generate-hcp-loki-recording-rules: $(YQ)
+	@echo ">>>>> Generating HCP Loki RecordingRule template"
+	YQ=$(YQ) ./scripts/generate-hcp-loki-recording-rules.sh
+
+.PHONY: lint-hcp-loki-recording-rules
+lint-hcp-loki-recording-rules: $(LOGCLI) $(YQ)
+	@echo ">>>>> Linting HCP Loki RecordingRule template"
+	./scripts/lint-loki-rules.sh ./resources/tenant-rules/hcp-loki-recording-rules.yaml $(LOGCLI) $(YQ)
 
 .PHONY: yaml-lint
 yaml-lint: $(YQ)
