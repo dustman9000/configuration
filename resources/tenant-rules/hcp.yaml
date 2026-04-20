@@ -422,7 +422,7 @@ objects:
           interval: 1m
           rules:
             - alert: HCPPrometheusPodMonitorDown
-              expr: ((sre:hcp_podmonitor_up:sum{name!~"karpenter"} == 0) and on (_id) hypershift_cluster_vcpus) unless on (_id) sre:hcp:alerts_suppressed
+              expr: ((sre:hcp_podmonitor_up:sum{name!~".*karpenter"} == 0) and on (_id) hypershift_cluster_vcpus) unless on (_id) sre:hcp:alerts_suppressed
               for: 30m
               labels:
                 severity: critical
