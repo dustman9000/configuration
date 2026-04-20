@@ -27,6 +27,7 @@ const (
 	dashboardAlertmanager = "https://grafana.app-sre.devshift.net/d/50b36e28785705570854022296f14821/alertmanager?orgId=1&refresh=10s&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=All&var-pod=All&var-interval=5m"
 
 	dashboardLokiWrites = "https://grafana.app-sre.devshift.net/d/rhobs-lokistack-writes/lokistack-writes?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}"
+	dashboardLokiReads  = "https://grafana.app-sre.devshift.net/d/rhobs-lokistack-reads/lokistack-reads?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}"
 )
 
 func (b Build) Rules() error {
