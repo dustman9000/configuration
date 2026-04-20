@@ -444,7 +444,7 @@ func DefaultBaseTemplate() TemplateMaps {
 		ResourceRequirements: ParamMap[corev1.ResourceRequirements]{
 			StoreDefault: {
 				Limits: corev1.ResourceList{
-					corev1.ResourceMemory: resource.MustParse("20Gi"),
+					corev1.ResourceMemory: resource.MustParse("30Gi"),
 				},
 				Requests: corev1.ResourceList{
 					corev1.ResourceCPU:    resource.MustParse("100m"),
@@ -489,7 +489,7 @@ func DefaultBaseTemplate() TemplateMaps {
 			},
 			Query: {
 				Limits: corev1.ResourceList{
-					corev1.ResourceMemory: resource.MustParse("20Gi"),
+					corev1.ResourceMemory: resource.MustParse("30Gi"),
 				},
 				Requests: corev1.ResourceList{
 					corev1.ResourceCPU:    resource.MustParse("100m"),
@@ -498,7 +498,7 @@ func DefaultBaseTemplate() TemplateMaps {
 			},
 			QueryFrontend: {
 				Limits: corev1.ResourceList{
-					corev1.ResourceMemory: resource.MustParse("20Gi"),
+					corev1.ResourceMemory: resource.MustParse("30Gi"),
 				},
 				Requests: corev1.ResourceList{
 					corev1.ResourceCPU:    resource.MustParse("100m"),
