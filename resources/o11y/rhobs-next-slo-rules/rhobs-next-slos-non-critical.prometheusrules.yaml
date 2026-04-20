@@ -1483,7 +1483,7 @@ spec:
       record: http_requests:increase4w
     - alert: SLOMetricAbsent
       annotations:
-        dashboard: https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs
+        dashboard: https://grafana.app-sre.devshift.net/d/rhobs-lokistack-reads/lokistack-reads?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}
         description: Loki query handlers are burning too much error budget to guarantee
           availability SLOs.
         message: Loki query handlers are burning too much error budget to guarantee
@@ -1559,7 +1559,7 @@ spec:
       record: http_requests:burnrate4d
     - alert: APILogsQueryAvailabilityErrorBudgetBurning
       annotations:
-        dashboard: https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs
+        dashboard: https://grafana.app-sre.devshift.net/d/rhobs-lokistack-reads/lokistack-reads?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}
         description: Loki query handlers are burning too much error budget to guarantee
           availability SLOs.
         message: Loki query handlers are burning too much error budget to guarantee
@@ -1580,7 +1580,7 @@ spec:
         slo: api-logs-query-availability-slo
     - alert: APILogsQueryAvailabilityErrorBudgetBurning
       annotations:
-        dashboard: https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs
+        dashboard: https://grafana.app-sre.devshift.net/d/rhobs-lokistack-reads/lokistack-reads?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}
         description: Loki query handlers are burning too much error budget to guarantee
           availability SLOs.
         message: Loki query handlers are burning too much error budget to guarantee
@@ -1601,7 +1601,7 @@ spec:
         slo: api-logs-query-availability-slo
     - alert: APILogsQueryAvailabilityErrorBudgetBurning
       annotations:
-        dashboard: https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs
+        dashboard: https://grafana.app-sre.devshift.net/d/rhobs-lokistack-reads/lokistack-reads?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}
         description: Loki query handlers are burning too much error budget to guarantee
           availability SLOs.
         message: Loki query handlers are burning too much error budget to guarantee
@@ -1622,7 +1622,7 @@ spec:
         slo: api-logs-query-availability-slo
     - alert: APILogsQueryAvailabilityErrorBudgetBurning
       annotations:
-        dashboard: https://grafana.app-sre.devshift.net/d/thanos-query-overview/thanos-query-overview?orgId=1&from=now-1h&to=now&timezone=UTC&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}&var-job=thanos-query-rhobs
+        dashboard: https://grafana.app-sre.devshift.net/d/rhobs-lokistack-reads/lokistack-reads?orgId=1&var-datasource={{$externalLabels.cluster}}-prometheus&var-namespace={{$labels.namespace}}
         description: Loki query handlers are burning too much error budget to guarantee
           availability SLOs.
         message: Loki query handlers are burning too much error budget to guarantee

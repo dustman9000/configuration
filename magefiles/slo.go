@@ -303,7 +303,7 @@ func signalSLOs(signal Resource) []pyrrav1alpha1.ServiceLevelObjective {
 				totalExpr:           `http_requests_total{job="rhobs-gateway", group="logsv1", handler=~"query(_range)?"}`,
 				alertName:           "APILogsQueryAvailabilityErrorBudgetBurning",
 				sloType:             sloTypeAvailability,
-				dashboardURL:        dashboardThanosQuery,
+				dashboardURL:        dashboardLokiReads,
 			},
 		}
 	default:
