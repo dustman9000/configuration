@@ -1,0 +1,99 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: rhobs-hcp-cluster-provisioning-rules
+  annotations:
+    description: "Recording rules for ROSA HCP cluster provisioning phase durations"
+parameters:
+  - name: NAMESPACE
+    description: Namespace to deploy the rules to
+    required: true
+  - name: TENANT
+    description: Tenant to deploy the rules to
+    required: true
+objects:
+  - apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      name: cluster-provisioning-phases
+      namespace: ${NAMESPACE}
+      labels:
+        operator.thanos.io/prometheus-rule: "true"
+        operator.thanos.io/tenant: ${TENANT}
+    spec:
+      groups:
+        - name: cluster_provisioning_phase_durations
+          interval: 5m
+          rules:
+            # Total provisioning time: validating -> ready (seconds)
+            # Maps to Dynatrace IT1 -> IT7
+            - record: sre:rosa_hcp:provisioning_total_duration_seconds
+              labels:
+                otel_collect: "true"
+              expr: |
+                (cluster_ready_state_timestamp_seconds{hypershift="true"}
+                - on(cluster_id) group_left(management_cluster, region, zero_egress, offering)
+                cluster_validating_state_timestamp_seconds{hypershift="true"})
+                > 0
+            # Validation phase: validating -> pending (seconds)
+            - record: sre:rosa_hcp:provisioning_validating_duration_seconds
+              labels:
+                otel_collect: "true"
+              expr: |
+                (cluster_pending_state_timestamp_seconds{hypershift="true"}
+                - on(cluster_id) group_left(management_cluster, region, zero_egress, offering)
+                cluster_validating_state_timestamp_seconds{hypershift="true"})
+                > 0
+            # Pending phase: pending -> installing (seconds)
+            # Includes OCM pre-flights, ManifestWork creation (IT1 -> IT2 partial)
+            - record: sre:rosa_hcp:provisioning_pending_duration_seconds
+              labels:
+                otel_collect: "true"
+              expr: |
+                (cluster_install_state_timestamp_seconds{hypershift="true", slow="false"}
+                - on(cluster_id) group_left(management_cluster, region, zero_egress, offering)
+                cluster_pending_state_timestamp_seconds{hypershift="true"})
+                > 0
+            # Installing phase: installing -> ready (seconds)
+            # Covers ACM propagation, cert-manager, control plane install, hub registration (IT2 -> IT7)
+            - record: sre:rosa_hcp:provisioning_installing_duration_seconds
+              labels:
+                otel_collect: "true"
+              expr: |
+                (cluster_ready_state_timestamp_seconds{hypershift="true"}
+                - on(cluster_id) group_left(management_cluster, region, zero_egress, offering)
+                cluster_install_state_timestamp_seconds{hypershift="true", slow="false"})
+                > 0
+        - name: cluster_provisioning_fleet_aggregates
+          interval: 5m
+          rules:
+            # Fleet-wide avg total provisioning time
+            - record: sre:rosa_hcp:provisioning_total_duration_seconds:avg
+              labels:
+                otel_collect: "true"
+              expr: |
+                avg(sre:rosa_hcp:provisioning_total_duration_seconds)
+            # Fleet-wide p90 total provisioning time
+            - record: sre:rosa_hcp:provisioning_total_duration_seconds:p90
+              labels:
+                otel_collect: "true"
+              expr: |
+                quantile(0.90, sre:rosa_hcp:provisioning_total_duration_seconds)
+            # Fleet-wide p95 total provisioning time
+            - record: sre:rosa_hcp:provisioning_total_duration_seconds:p95
+              labels:
+                otel_collect: "true"
+              expr: |
+                quantile(0.95, sre:rosa_hcp:provisioning_total_duration_seconds)
+            # Fleet-wide avg installing phase duration
+            - record: sre:rosa_hcp:provisioning_installing_duration_seconds:avg
+              labels:
+                otel_collect: "true"
+              expr: |
+                avg(sre:rosa_hcp:provisioning_installing_duration_seconds)
+            # Fleet-wide p90 installing phase duration
+            - record: sre:rosa_hcp:provisioning_installing_duration_seconds:p90
+              labels:
+                otel_collect: "true"
+              expr: |
+                quantile(0.90, sre:rosa_hcp:provisioning_installing_duration_seconds)

@@ -20,6 +20,7 @@
 #   - hcp/observability.yaml   (watchdog, prometheus targets)
 #   - hcp/splunk.yaml          (SAE deployment)
 #   - hcp/synthetics.yaml      (synthetic monitoring component health)
+#   - hcp/cluster-provisioning.yaml (provisioning phase duration recording rules)
 # ============================================================================
 apiVersion: template.openshift.io/v1
 kind: Template
@@ -1550,3 +1551,76 @@ objects:
                 summary: Synthetics probe targets exceed 3x unique HCP count
                 description: The total number of probe_success series ({{ $value }}) exceeds 3x the number of unique HCPs being probed. This indicates orphaned Probe CRs are accumulating, which will cause the synthetics Prometheus to OOMKill due to excessive memory consumption.
                 runbook_url: https://github.com/openshift/ops-sop/blob/master/hypershift/alerts/rhobs-synthetics/SyntheticsProbeOrphanAccumulation.md
+  - apiVersion: monitoring.coreos.com/v1
+    kind: PrometheusRule
+    metadata:
+      name: cluster-provisioning-phases
+      namespace: ${NAMESPACE}
+      labels:
+        operator.thanos.io/prometheus-rule: "true"
+        operator.thanos.io/tenant: ${TENANT}
+    spec:
+      groups:
+        - name: cluster_provisioning_phase_durations
+          interval: 5m
+          rules:
+            - record: sre:rosa_hcp:provisioning_total_duration_seconds
+              labels:
+                otel_collect: "true"
+              expr: |
+                (cluster_ready_state_timestamp_seconds{hypershift="true"}
+                - on(cluster_id) group_left(management_cluster, region, zero_egress, offering)
+                cluster_validating_state_timestamp_seconds{hypershift="true"})
+                > 0
+            - record: sre:rosa_hcp:provisioning_validating_duration_seconds
+              labels:
+                otel_collect: "true"
+              expr: |
+                (cluster_pending_state_timestamp_seconds{hypershift="true"}
+                - on(cluster_id) group_left(management_cluster, region, zero_egress, offering)
+                cluster_validating_state_timestamp_seconds{hypershift="true"})
+                > 0
+            - record: sre:rosa_hcp:provisioning_pending_duration_seconds
+              labels:
+                otel_collect: "true"
+              expr: |
+                (cluster_install_state_timestamp_seconds{hypershift="true", slow="false"}
+                - on(cluster_id) group_left(management_cluster, region, zero_egress, offering)
+                cluster_pending_state_timestamp_seconds{hypershift="true"})
+                > 0
+            - record: sre:rosa_hcp:provisioning_installing_duration_seconds
+              labels:
+                otel_collect: "true"
+              expr: |
+                (cluster_ready_state_timestamp_seconds{hypershift="true"}
+                - on(cluster_id) group_left(management_cluster, region, zero_egress, offering)
+                cluster_install_state_timestamp_seconds{hypershift="true", slow="false"})
+                > 0
+        - name: cluster_provisioning_fleet_aggregates
+          interval: 5m
+          rules:
+            - record: sre:rosa_hcp:provisioning_total_duration_seconds:avg
+              labels:
+                otel_collect: "true"
+              expr: |
+                avg(sre:rosa_hcp:provisioning_total_duration_seconds)
+            - record: sre:rosa_hcp:provisioning_total_duration_seconds:p90
+              labels:
+                otel_collect: "true"
+              expr: |
+                quantile(0.90, sre:rosa_hcp:provisioning_total_duration_seconds)
+            - record: sre:rosa_hcp:provisioning_total_duration_seconds:p95
+              labels:
+                otel_collect: "true"
+              expr: |
+                quantile(0.95, sre:rosa_hcp:provisioning_total_duration_seconds)
+            - record: sre:rosa_hcp:provisioning_installing_duration_seconds:avg
+              labels:
+                otel_collect: "true"
+              expr: |
+                avg(sre:rosa_hcp:provisioning_installing_duration_seconds)
+            - record: sre:rosa_hcp:provisioning_installing_duration_seconds:p90
+              labels:
+                otel_collect: "true"
+              expr: |
+                quantile(0.90, sre:rosa_hcp:provisioning_installing_duration_seconds)
