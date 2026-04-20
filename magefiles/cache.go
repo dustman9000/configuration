@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"maps"
 
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
@@ -297,7 +298,7 @@ func createCacheHeadlessService(config *memcachedConfig) *corev1.Service {
 }
 
 func createCacheServiceMonitor(config *memcachedConfig) *monitoringv1.ServiceMonitor {
-	labels := deepCopyMap(config.Labels)
+	labels := maps.Clone(config.Labels)
 	// Remove version label as it goes stale
 	delete(labels, "app.kubernetes.io/version")
 
