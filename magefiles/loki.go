@@ -92,6 +92,9 @@ func NewBundleLokiStack(namespace string, overrides clusters.TemplateMaps, rules
 							},
 						},
 					},
+					Retention: &lokiv1.RetentionLimitSpec{
+						Days: 90,
+					},
 				},
 			},
 			ManagementState: lokiv1.ManagementStateManaged,

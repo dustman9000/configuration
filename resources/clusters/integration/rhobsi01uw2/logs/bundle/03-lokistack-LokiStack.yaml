@@ -21,6 +21,8 @@ spec:
           - name: openshift.log.type
       queries:
         queryTimeout: 5m
+      retention:
+        days: 90
   managementState: Managed
   rules:
     enabled: true
