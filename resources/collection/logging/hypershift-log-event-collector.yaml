@@ -48,6 +48,10 @@ objects:
             values:
               - management-cluster
               - service-cluster
+          - key: ext-hypershift.openshift.io/cluster-region
+            operator: In
+            values:
+              - ${MC_REGION}
           - key: ext-hypershift.openshift.io/cluster-sector
             operator: In
             values:
