@@ -46,48 +46,48 @@ objects:
       - apiVersion: v1
         kind: ServiceAccount
         metadata:
-          name: rhobs-logs
+          name: rhobs-logs${SUFFIX}
           namespace: openshift-logging
       - apiVersion: rbac.authorization.k8s.io/v1
         kind: ClusterRoleBinding
         metadata:
-          name: rhobs-logs-collect-application-logs
+          name: rhobs-logs-collect-application-logs${SUFFIX}
         roleRef:
           apiGroup: rbac.authorization.k8s.io
           kind: ClusterRole
           name: collect-application-logs
         subjects:
         - kind: ServiceAccount
-          name: rhobs-logs
+          name: rhobs-logs${SUFFIX}
           namespace: openshift-logging
       - apiVersion: rbac.authorization.k8s.io/v1
         kind: ClusterRoleBinding
         metadata:
-          name: rhobs-logs-collect-infrastructure-logs
+          name: rhobs-logs-collect-infrastructure-logs${SUFFIX}
         roleRef:
           apiGroup: rbac.authorization.k8s.io
           kind: ClusterRole
           name: collect-infrastructure-logs
         subjects:
         - kind: ServiceAccount
-          name: rhobs-logs
+          name: rhobs-logs${SUFFIX}
           namespace: openshift-logging
       - apiVersion: rbac.authorization.k8s.io/v1
         kind: ClusterRoleBinding
         metadata:
-          name: rhobs-logs-collect-audit-logs
+          name: rhobs-logs-collect-audit-logs${SUFFIX}
         roleRef:
           apiGroup: rbac.authorization.k8s.io
           kind: ClusterRole
           name: collect-audit-logs
         subjects:
         - kind: ServiceAccount
-          name: rhobs-logs
+          name: rhobs-logs${SUFFIX}
           namespace: openshift-logging
       - apiVersion: observability.openshift.io/v1
         kind: ClusterLogForwarder
         metadata:
-          name: rhobs
+          name: rhobs${SUFFIX}
           namespace: openshift-logging
           annotations:
             observability.openshift.io/tech-preview-otlp-output: "enabled"
@@ -108,7 +108,7 @@ objects:
                   - container: webhook
               type: application
           serviceAccount:
-            name: rhobs-logs
+            name: rhobs-logs${SUFFIX}
           filters:
             - name: cluster-id-filter
               openshiftLabels:
