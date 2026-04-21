@@ -63,12 +63,12 @@ objects:
         - kind: ServiceAccount
           apiVersion: v1
           metadata:
-            name: eventrouter
+            name: eventrouter${SUFFIX}
             namespace: ${NAMESPACE}
         - kind: ClusterRole
           apiVersion: rbac.authorization.k8s.io/v1
           metadata:
-            name: event-reader
+            name: event-reader${SUFFIX}
           rules:
             - apiGroups: [""]
               resources: ["events"]
@@ -77,19 +77,19 @@ objects:
         - kind: ClusterRoleBinding
           apiVersion: rbac.authorization.k8s.io/v1
           metadata:
-            name: event-reader-binding
+            name: event-reader-binding${SUFFIX}
           subjects:
             - kind: ServiceAccount
-              name: eventrouter
+              name: eventrouter${SUFFIX}
               namespace: ${NAMESPACE}
           roleRef:
             kind: ClusterRole
-            name: event-reader
+            name: event-reader${SUFFIX}
 
         - kind: ConfigMap
           apiVersion: v1
           metadata:
-            name: eventrouter
+            name: eventrouter${SUFFIX}
             namespace: ${NAMESPACE}
           data:
             config.json: |-
@@ -100,7 +100,7 @@ objects:
         - kind: Deployment
           apiVersion: apps/v1
           metadata:
-            name: rhobs-eventrouter
+            name: rhobs-eventrouter${SUFFIX}
             namespace: ${NAMESPACE}
             labels:
               component: "rhobs-eventrouter"
@@ -121,7 +121,7 @@ objects:
                   provider: "openshift"
                 name: rhobs-eventrouter
               spec:
-                serviceAccount: eventrouter
+                serviceAccount: eventrouter${SUFFIX}
                 containers:
                   - name: kube-eventrouter
                     image: ${IMAGE}
@@ -144,5 +144,5 @@ objects:
                 volumes:
                   - name: config-volume
                     configMap:
-                      name: eventrouter
+                      name: eventrouter${SUFFIX}
 
