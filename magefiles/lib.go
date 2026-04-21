@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"maps"
 	"net/http"
 	"strings"
 
@@ -233,18 +234,6 @@ func createServiceAccount(name, namespace string, labels map[string]string) *cor
 	}
 }
 
-func deepCopyMap(m map[string]string) map[string]string {
-	if m == nil {
-		return nil
-	}
-
-	result := make(map[string]string, len(m))
-	for k, v := range m {
-		result[k] = v
-	}
-	return result
-}
-
 func getCustomResourceDefinition(url string) (*v1.CustomResourceDefinition, error) {
 	resp, err := http.Get(url)
 	if err != nil {
@@ -355,7 +344,7 @@ func getKubernetesResourceName(obj runtime.Object) string {
 
 // createServiceSelectorLabels creates labels for service selectors, removing version labels that go stale
 func createServiceSelectorLabels(labels map[string]string) map[string]string {
-	selectorLabels := deepCopyMap(labels)
+	selectorLabels := maps.Clone(labels)
 	// Remove version label as it goes stale
 	delete(selectorLabels, "app.kubernetes.io/version")
 	return selectorLabels

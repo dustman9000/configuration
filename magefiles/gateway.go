@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 
 	"github.com/bwplotka/mimic"
@@ -143,7 +144,7 @@ func gatewayLabels(m clusters.TemplateMaps) (labels map[string]string, selectorL
 		"app.kubernetes.io/part-of":   "rhobs",
 	}
 
-	metaLabels := deepCopyMap(selectorLabels)
+	metaLabels := maps.Clone(selectorLabels)
 	metaLabels["app.kubernetes.io/version"] = m.Versions[observatoriumAPI]
 	return metaLabels, selectorLabels
 }
