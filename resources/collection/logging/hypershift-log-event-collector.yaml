@@ -5,8 +5,8 @@ metadata:
   annotations:
     description: "Template for deploying log event collection from HCP Management and Service Clusters"
 parameters:
-  - name: REGION
-    description: region of SC/MC clusters
+  - name: MC_REGION
+    description: region of the management/service cluster
   - name: SECTORS
     description: String array of Sectors targeted for SC/MC clusters e.g. '["sector-1", "sector-2"]'
     value: '["main"]'
@@ -48,6 +48,10 @@ objects:
             values:
               - management-cluster
               - service-cluster
+          - key: ext-hypershift.openshift.io/cluster-region
+            operator: In
+            values:
+              - ${MC_REGION}
           - key: ext-hypershift.openshift.io/cluster-sector
             operator: In
             values:
