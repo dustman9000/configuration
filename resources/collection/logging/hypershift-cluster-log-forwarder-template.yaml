@@ -113,6 +113,12 @@ objects:
               type: application
           serviceAccount:
             name: rhobs-logs${SUFFIX}
+          collector:
+            tolerations:
+            - effect: NoSchedule
+              operator: Exists
+            - effect: NoExecute
+              operator: Exists
           filters:
             - name: cluster-id-filter
               openshiftLabels:
