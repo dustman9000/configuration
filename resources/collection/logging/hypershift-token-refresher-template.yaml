@@ -5,8 +5,8 @@ metadata:
   annotations:
     description: "Template for deploying token refresher for HCP to support log forwarding"
 parameters:
-  - name: REGION
-    description: region of SC/MC clusters
+  - name: MC_REGION
+    description: List of management/service cluster regions e.g. '["us-east-1", "eu-west-2"]'
   - name: SECTORS
     description: String array of Sectors targeted for SC/MC clusters e.g. '["sector-1", "sector-2"]'
     value: '["main"]'
@@ -46,6 +46,10 @@ objects:
           values:
             - management-cluster
             - service-cluster
+        - key: ext-hypershift.openshift.io/cluster-region
+          operator: In
+          values:
+            ${{MC_REGION}}
         - key: ext-hypershift.openshift.io/cluster-sector
           operator: In
           values:
