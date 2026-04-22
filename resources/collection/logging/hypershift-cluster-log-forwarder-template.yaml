@@ -6,7 +6,7 @@ metadata:
     description: "Template for deploying CLF for HCP to support log forwarding to RHOBS"
 parameters:
   - name: MC_REGION
-    description: region of the management/service cluster
+    description: List of management/service cluster regions e.g. '["us-east-1", "eu-west-2"]'
   - name: SECTORS
     description: String array of Sectors targeted for SC/MC clusters e.g. '["sector-1", "sector-2"]'
     value: '["main"]'
@@ -40,7 +40,7 @@ objects:
         - key: ext-hypershift.openshift.io/cluster-region
           operator: In
           values:
-            - ${MC_REGION}
+            ${{MC_REGION}}
         - key: ext-hypershift.openshift.io/cluster-sector
           operator: In
           values:
