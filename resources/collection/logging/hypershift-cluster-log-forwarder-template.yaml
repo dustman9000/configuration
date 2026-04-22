@@ -119,6 +119,13 @@ objects:
               operator: Exists
             - effect: NoExecute
               operator: Exists
+            resources:
+              limits:
+                cpu: 750m
+                memory: 2Gi
+              requests:
+                cpu: 200m
+                memory: 1Gi
           filters:
             - name: cluster-id-filter
               openshiftLabels:
