@@ -8,10 +8,10 @@ spec:
     global:
       ingestion:
         ingestionBurstSize: 256
-        ingestionRate: 20
+        ingestionRate: 40
         maxLineSize: 2097152
-        perStreamRateLimit: 15
-        perStreamRateLimitBurst: 30
+        perStreamRateLimit: 30
+        perStreamRateLimitBurst: 60
       otlp:
         streamLabels:
           resourceAttributes:
@@ -39,7 +39,7 @@ spec:
     distributor:
       replicas: 3
     ingester:
-      replicas: 3
+      replicas: 6
     querier:
       replicas: 2
     queryFrontend:
