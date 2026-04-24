@@ -8,10 +8,10 @@ spec:
     global:
       ingestion:
         ingestionBurstSize: 256
-        ingestionRate: 160
+        ingestionRate: 320
         maxLineSize: 2097152
-        perStreamRateLimit: 120
-        perStreamRateLimitBurst: 240
+        perStreamRateLimit: 240
+        perStreamRateLimitBurst: 480
       otlp:
         streamLabels:
           resourceAttributes:
@@ -37,9 +37,9 @@ spec:
   storageClassName: gp3-csi
   template:
     distributor:
-      replicas: 6
+      replicas: 9
     ingester:
-      replicas: 12
+      replicas: 18
     querier:
       replicas: 2
     queryFrontend:
