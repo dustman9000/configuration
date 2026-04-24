@@ -454,7 +454,7 @@ objects:
           interval: 1m
           rules:
             - alert: NoMetricReceived
-              expr: absent({env=~"${ENVIRONMENT}",region=~"${REGION}",_mc_id!="",mc_name!="",is_global!="true"})
+              expr: absent(etcd_mvcc_db_total_size_in_bytes{env=~"${ENVIRONMENT}",region=~"${REGION}",source="MC"})
               for: 30m
               labels:
                 severity: warning
