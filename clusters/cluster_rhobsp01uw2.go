@@ -73,13 +73,13 @@ func rhobsp01uw2TemplateMaps() TemplateMaps {
 	lokiOverrides := LokiOverridesMap{
 		LokiConfig: LokiOverrides{
 			LokiLimitOverrides: LokiLimitOverrides{
-				IngestionRateLimitMB: 80,
-				PerStreamRateLimitMB: 60,
-				PerStreamBurstSizeMB: 120,
+				IngestionRateLimitMB: 160,
+				PerStreamRateLimitMB: 120,
+				PerStreamBurstSizeMB: 240,
 				QueryTimeout:         "5m",
 			},
 			Ingest: LokiComponentSpec{
-				Replicas: 9,
+				Replicas: 12,
 			},
 			Router: LokiComponentSpec{
 				Replicas: 6,
