@@ -343,14 +343,14 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 
 	hashrings := []v1alpha1.IngesterHashringSpec{
 		{
-			Name: "active-default",
+			Name: "default",
 			CommonFields: v1alpha1.CommonFields{
 				Image:                ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Images)),
 				Version:              ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Versions)),
 				ImagePullPolicy:      ptr.To(corev1.PullIfNotPresent),
 				LogLevel:             ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.LogLevels)),
 				LogFormat:            ptr.To("logfmt"),
-				ResourceRequirements: ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorActiveDefault, templates.ResourceRequirements)),
+				ResourceRequirements: ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.ResourceRequirements)),
 				SecurityContext: &corev1.PodSecurityContext{
 					SeccompProfile: &corev1.SeccompProfile{
 						Type: corev1.SeccompProfileTypeRuntimeDefault,
@@ -366,7 +366,7 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 									LabelSelector: &metav1.LabelSelector{
 										MatchLabels: map[string]string{
 											"app.kubernetes.io/component": "thanos-receive-ingester",
-											"app.kubernetes.io/instance":  "thanos-receive-ingester-rhobs-active-default",
+											"app.kubernetes.io/instance":  "thanos-receive-ingester-rhobs-default",
 										},
 									},
 								},
