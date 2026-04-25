@@ -400,64 +400,6 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 			},
 			HashingAlgorithm: ptr.To("ketama"),
 		},
-		{
-			Name: "default",
-			CommonFields: v1alpha1.CommonFields{
-				Image:                ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Images)),
-				Version:              ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Versions)),
-				ImagePullPolicy:      ptr.To(corev1.PullIfNotPresent),
-				LogLevel:             ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.LogLevels)),
-				LogFormat:            ptr.To("logfmt"),
-				ResourceRequirements: ptr.To(clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.ResourceRequirements)),
-				SecurityContext: &corev1.PodSecurityContext{
-					SeccompProfile: &corev1.SeccompProfile{
-						Type: corev1.SeccompProfileTypeRuntimeDefault,
-					},
-				},
-				Affinity: &corev1.Affinity{
-					PodAntiAffinity: &corev1.PodAntiAffinity{
-						PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
-							{
-								Weight: 100,
-								PodAffinityTerm: corev1.PodAffinityTerm{
-									TopologyKey: "kubernetes.io/hostname",
-									LabelSelector: &metav1.LabelSelector{
-										MatchLabels: map[string]string{
-											"app.kubernetes.io/component": "thanos-receive-ingester",
-											"app.kubernetes.io/instance":  "thanos-receive-ingester-rhobs-default",
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			ExternalLabels: map[string]string{
-				"replica": "$(POD_NAME)",
-			},
-			Replicas: clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.Replicas),
-			TSDBConfig: v1alpha1.TSDBConfig{
-				Retention: v1alpha1.Duration("2h"),
-			},
-			AsyncForwardWorkerCount:  ptr.To(uint64(50)),
-			TooFarInFutureTimeWindow: ptr.To(v1alpha1.Duration("5m")),
-			StoreLimitsOptions: &v1alpha1.StoreLimitsOptions{
-				StoreLimitsRequestSamples: 0,
-				StoreLimitsRequestSeries:  0,
-			},
-			TenancyConfig: &v1alpha1.TenancyConfig{
-				TenantMatcherType: "exact",
-				DefaultTenantID:   "FB870BF3-9F3A-44FF-9BF7-D7A047A52F43",
-				TenantHeader:      "THANOS-TENANT",
-				TenantLabelName:   "tenant_id",
-			},
-			ObjectStorageConfig: ptr.To(clusters.TemplateFn(clusters.DefaultBucket, templates.ObjectStorageBucket)),
-			StorageConfiguration: v1alpha1.StorageConfiguration{
-				Size: clusters.TemplateFn(clusters.ReceiveIngestorDefault, templates.StorageSize),
-			},
-			HashingAlgorithm: ptr.To("hashmod"),
-		},
 	}
 
 	return &v1alpha1.ThanosReceive{
