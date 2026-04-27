@@ -371,6 +371,17 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 									},
 								},
 							},
+							{
+								Weight: 100,
+								PodAffinityTerm: corev1.PodAffinityTerm{
+									TopologyKey: "kubernetes.io/hostname",
+									LabelSelector: &metav1.LabelSelector{
+										MatchLabels: map[string]string{
+											"app.kubernetes.io/created-by": "lokistack-controller",
+										},
+									},
+								},
+							},
 						},
 					},
 				},
