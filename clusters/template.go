@@ -42,6 +42,8 @@ type LokiLimitOverrides struct {
 	PerStreamRateLimitMB int32
 	PerStreamBurstSizeMB int32
 
+	MaxGlobalStreamsPerTenant int32
+
 	QueryTimeout string
 }
 
@@ -246,6 +248,9 @@ func mergeLokiLimitOverrides(existing, override LokiLimitOverrides) LokiLimitOve
 	}
 	if override.PerStreamBurstSizeMB != 0 {
 		result.PerStreamBurstSizeMB = override.PerStreamBurstSizeMB
+	}
+	if override.MaxGlobalStreamsPerTenant != 0 {
+		result.MaxGlobalStreamsPerTenant = override.MaxGlobalStreamsPerTenant
 	}
 	if override.QueryTimeout != "" {
 		result.QueryTimeout = override.QueryTimeout

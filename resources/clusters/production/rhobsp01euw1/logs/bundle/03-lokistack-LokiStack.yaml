@@ -8,7 +8,8 @@ spec:
     global:
       ingestion:
         ingestionBurstSize: 256
-        ingestionRate: 320
+        ingestionRate: 200
+        maxGlobalStreamsPerTenant: 30000
         maxLineSize: 2097152
         perStreamRateLimit: 240
         perStreamRateLimitBurst: 480
