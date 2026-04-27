@@ -13,13 +13,13 @@ spec:
     - affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-            - podAffinityTerm:
-                labelSelector:
-                  matchLabels:
-                    app.kubernetes.io/component: thanos-receive-ingester
-                    app.kubernetes.io/instance: thanos-receive-ingester-rhobs-active-default
-                topologyKey: kubernetes.io/hostname
-              weight: 100
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: thanos-receive-ingester
+                  app.kubernetes.io/instance: thanos-receive-ingester-rhobs-default
+              topologyKey: kubernetes.io/hostname
+            weight: 100
       asyncForwardWorkerCount: 50
       baseImage: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos
       externalLabels:
@@ -28,7 +28,7 @@ spec:
       imagePullPolicy: IfNotPresent
       logFormat: logfmt
       logLevel: info
-      name: active-default
+      name: default
       objectStorageConfig:
         key: thanos.yaml
         name: default-thanos-bucket
