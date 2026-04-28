@@ -45,7 +45,7 @@ spec:
               app.kubernetes.io/component: distributor
               app.kubernetes.io/created-by: observatorium-lokistack
           topologyKey: kubernetes.io/hostname
-      replicas: 6
+      replicas: 9
     ingester:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:

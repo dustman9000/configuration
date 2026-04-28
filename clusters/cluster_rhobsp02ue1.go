@@ -82,7 +82,7 @@ func rhobsp02ue1TemplateMaps() TemplateMaps {
 				Replicas: 9,
 			},
 			Router: LokiComponentSpec{
-				Replicas: 6,
+				Replicas: 9,
 			},
 		},
 	}
