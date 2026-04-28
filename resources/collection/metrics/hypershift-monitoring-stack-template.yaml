@@ -343,6 +343,14 @@ objects:
                       cluster_autoscaler_errors_total;.*|\
                       cluster_autoscaler_failed_scale_ups_total;.*|\
                       cluster_autoscaler:pod_status_ready;.*|\
+                      karpenter_build_info;.*|\
+                      karpenter_nodepools_usage;.*|\
+                      karpenter_scheduler_scheduling_duration_seconds;.*|\
+                      karpenter_voluntary_disruption_decision_evaluation_duration_seconds;.*|\
+                      karpenter_voluntary_disruption_consolidation_timeouts_total;.*|\
+                      karpenter_interruption_message_queue_duration_seconds;.*|\
+                      operator_nodeclaim_status_condition_current_status_seconds;.*|\
+                      operator_ec2nodeclass_status_condition_current_status_seconds;.*|\
                       acm_managed_cluster_status_condition;.*|\
                       acm_manifestwork_status_condition;.*|\
                       acm_manifestwork_count;.*|\
