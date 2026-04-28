@@ -358,27 +358,22 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 				},
 				Affinity: &corev1.Affinity{
 					PodAntiAffinity: &corev1.PodAntiAffinity{
-						PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
+						RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
 							{
-								Weight: 100,
-								PodAffinityTerm: corev1.PodAffinityTerm{
-									TopologyKey: "kubernetes.io/hostname",
-									LabelSelector: &metav1.LabelSelector{
-										MatchLabels: map[string]string{
-											"app.kubernetes.io/component": "thanos-receive-ingester",
-											"app.kubernetes.io/instance":  "thanos-receive-ingester-rhobs-default",
-										},
+								TopologyKey: "kubernetes.io/hostname",
+								LabelSelector: &metav1.LabelSelector{
+									MatchLabels: map[string]string{
+										"app.kubernetes.io/component": "thanos-receive-ingester",
+										"app.kubernetes.io/instance":  "thanos-receive-ingester-rhobs-default",
 									},
 								},
 							},
 							{
-								Weight: 100,
-								PodAffinityTerm: corev1.PodAffinityTerm{
-									TopologyKey: "kubernetes.io/hostname",
-									LabelSelector: &metav1.LabelSelector{
-										MatchLabels: map[string]string{
-											"app.kubernetes.io/created-by": "lokistack-controller",
-										},
+
+								TopologyKey: "kubernetes.io/hostname",
+								LabelSelector: &metav1.LabelSelector{
+									MatchLabels: map[string]string{
+										"app.kubernetes.io/created-by": "lokistack-controller",
 									},
 								},
 							},
