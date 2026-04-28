@@ -10,7 +10,7 @@ metadata:
   name: rhobs-gateway
   namespace: rhobs-stage
 spec:
-  replicas: 2
+  replicas: 6
   selector:
     matchLabels:
       app.kubernetes.io/component: api

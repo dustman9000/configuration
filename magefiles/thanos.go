@@ -435,7 +435,8 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 						Enable: ptr.To(true),
 					},
 					Affinity: &corev1.Affinity{
-						PodAntiAffinity: &corev1.PodAntiAffinity{
+						// Tries with best-effort to schedule router with ingest!
+						PodAffinity: &corev1.PodAffinity{
 							PreferredDuringSchedulingIgnoredDuringExecution: []corev1.WeightedPodAffinityTerm{
 								{
 									Weight: 100,
@@ -443,8 +444,20 @@ func defaultReceiveCR(namespace string, templates clusters.TemplateMaps) runtime
 										TopologyKey: "kubernetes.io/hostname",
 										LabelSelector: &metav1.LabelSelector{
 											MatchLabels: map[string]string{
-												"app.kubernetes.io/component": "thanos-receive-router",
+												"app.kubernetes.io/component": "thanos-receive-ingester",
 											},
+										},
+									},
+								},
+							},
+						},
+						PodAntiAffinity: &corev1.PodAntiAffinity{
+							RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
+								{
+									TopologyKey: "kubernetes.io/hostname",
+									LabelSelector: &metav1.LabelSelector{
+										MatchLabels: map[string]string{
+											"app.kubernetes.io/component": "thanos-receive-router",
 										},
 									},
 								},

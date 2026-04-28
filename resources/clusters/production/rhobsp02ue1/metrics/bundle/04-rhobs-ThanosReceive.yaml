@@ -63,14 +63,20 @@ spec:
       \   \"backoffMultiplier\": 1,\n    \"retryableStatusCodes\": [\n  \t  \"UNAVAILABLE\"\n
       \   ]\n  }\n}"
     affinity:
-      podAntiAffinity:
+      podAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
         - podAffinityTerm:
             labelSelector:
               matchLabels:
-                app.kubernetes.io/component: thanos-receive-router
+                app.kubernetes.io/component: thanos-receive-ingester
             topologyKey: kubernetes.io/hostname
           weight: 100
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: thanos-receive-router
+          topologyKey: kubernetes.io/hostname
     baseImage: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos
     externalLabels:
       receive: "true"
