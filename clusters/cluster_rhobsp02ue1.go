@@ -79,10 +79,10 @@ func rhobsp02ue1TemplateMaps() TemplateMaps {
 				QueryTimeout:              "5m",
 			},
 			Ingest: LokiComponentSpec{
-				Replicas: 18,
+				Replicas: 9,
 			},
 			Router: LokiComponentSpec{
-				Replicas: 9,
+				Replicas: 6,
 			},
 		},
 	}
