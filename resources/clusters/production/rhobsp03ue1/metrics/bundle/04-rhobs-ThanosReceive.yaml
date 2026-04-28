@@ -12,14 +12,16 @@ spec:
     hashrings:
     - affinity:
         podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - podAffinityTerm:
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/component: thanos-receive-ingester
-                  app.kubernetes.io/instance: thanos-receive-ingester-rhobs-default
-              topologyKey: kubernetes.io/hostname
-            weight: 100
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: thanos-receive-ingester
+                app.kubernetes.io/instance: thanos-receive-ingester-rhobs-default
+            topologyKey: kubernetes.io/hostname
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/created-by: lokistack-controller
+            topologyKey: kubernetes.io/hostname
       asyncForwardWorkerCount: 50
       baseImage: quay.io/redhat-services-prod/rhobs-mco-tenant/rhobs-thanos
       externalLabels:
