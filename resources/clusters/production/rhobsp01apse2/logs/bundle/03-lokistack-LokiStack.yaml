@@ -8,7 +8,7 @@ spec:
     global:
       ingestion:
         ingestionBurstSize: 256
-        ingestionRate: 200
+        ingestionRate: 250
         maxGlobalStreamsPerTenant: 30000
         maxLineSize: 2097152
         perStreamRateLimit: 240
@@ -38,9 +38,27 @@ spec:
   storageClassName: gp3-csi
   template:
     distributor:
-      replicas: 9
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: distributor
+              app.kubernetes.io/created-by: observatorium-lokistack
+          topologyKey: kubernetes.io/hostname
+      replicas: 6
     ingester:
-      replicas: 18
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: ingester
+              app.kubernetes.io/created-by: observatorium-lokistack
+          topologyKey: kubernetes.io/hostname
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: thanos-receive-ingester
+          topologyKey: kubernetes.io/hostname
+      replicas: 6
     querier:
       replicas: 2
     queryFrontend:

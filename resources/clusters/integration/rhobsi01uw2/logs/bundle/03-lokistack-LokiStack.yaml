@@ -40,8 +40,26 @@ spec:
   storageClassName: gp3-csi
   template:
     distributor:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: distributor
+              app.kubernetes.io/created-by: observatorium-lokistack
+          topologyKey: kubernetes.io/hostname
       replicas: 3
     ingester:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: ingester
+              app.kubernetes.io/created-by: observatorium-lokistack
+          topologyKey: kubernetes.io/hostname
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/component: thanos-receive-ingester
+          topologyKey: kubernetes.io/hostname
       replicas: 3
     querier:
       replicas: 2
