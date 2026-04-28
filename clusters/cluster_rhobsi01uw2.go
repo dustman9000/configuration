@@ -26,8 +26,8 @@ func init() {
 		),
 		Templates:  rhobsi01uw2TemplateMaps(),
 		BuildSteps: rhobsi01uw2BuildSteps(),
-		LoggingConfig: &LoggingConfig{
-			LokiRuler: LokiRulerAlertingRulesOnly,
+		loggingConfig: &LoggingConfig{
+			LokiRuler: LokiRulerAlertingAndRecordingRules,
 		},
 	})
 }

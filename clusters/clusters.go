@@ -42,9 +42,9 @@ type LokiRulerMode int
 const (
 	// LokiRulerDisabled turns off the ruler (no RulerConfig, spec.rules disabled).
 	LokiRulerDisabled LokiRulerMode = iota
-	// LokiRulerAlertingRulesOnly: ruler for log-based alerts only (Alertmanager; no Thanos remote_write).
+	// LokiRulerAlertingRulesOnly configures the ruler for log-based alerts only (Alertmanager; no Thanos remote_write).
 	LokiRulerAlertingRulesOnly
-	// LokiRulerAlertingAndRecordingRules: alerts plus recording-rule metrics to Thanos.
+	// LokiRulerAlertingAndRecordingRules configures the ruler with log-based alerts plus recording-rule metrics to Thanos.
 	LokiRulerAlertingAndRecordingRules
 )
 
@@ -57,7 +57,8 @@ type ClusterConfig struct {
 	GatewayConfig      *GatewayConfig
 	BuildSteps         []string
 	MonitoringAPIGroup MonitoringAPIGroup
-	LoggingConfig      *LoggingConfig
+
+	loggingConfig *LoggingConfig
 }
 
 type GatewayConfig struct {
@@ -108,11 +109,9 @@ func (c ClusterConfig) Validate() error {
 	if len(c.BuildSteps) == 0 {
 		return fmt.Errorf("cluster must have at least one build step")
 	}
-	if c.LoggingConfig != nil {
-		switch c.LoggingConfig.LokiRuler {
-		case LokiRulerDisabled, LokiRulerAlertingRulesOnly:
-		case LokiRulerAlertingAndRecordingRules:
-			return fmt.Errorf("loki RulerMode LokiRulerAlertingAndRecordingRules is still not implemented")
+	if c.loggingConfig != nil {
+		switch c.loggingConfig.LokiRuler {
+		case LokiRulerDisabled, LokiRulerAlertingRulesOnly, LokiRulerAlertingAndRecordingRules:
 		default:
 			return fmt.Errorf(
 				"cluster %s: invalid LoggingConfig.LokiRuler; use LokiRulerDisabled(0), LokiRulerAlertingRulesOnly(1), or LokiRulerAlertingAndRecordingRules(2)",
@@ -351,13 +350,19 @@ func (g *GatewayConfig) CustomRoute() string {
 	return g.customRoute
 }
 
+func (c ClusterConfig) LoggingConfig() *LoggingConfig {
+	if c.loggingConfig == nil {
+		return &LoggingConfig{
+			LokiRuler: LokiRulerDisabled,
+		}
+	}
+	return c.loggingConfig
+}
+
 // LoggingRulerMode returns the ruler mode used when generating manifests.
 // Nil LoggingConfig means LokiRulerDisabled.
 func (c ClusterConfig) LoggingRulerMode() LokiRulerMode {
-	if c.LoggingConfig == nil {
-		return LokiRulerDisabled
-	}
-	return c.LoggingConfig.LokiRuler
+	return c.LoggingConfig().LokiRuler
 }
 
 // Enabled reports whether the Loki ruler component and RulerConfig should be deployed.

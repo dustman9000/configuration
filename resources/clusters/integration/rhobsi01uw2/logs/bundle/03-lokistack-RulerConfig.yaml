@@ -16,4 +16,28 @@ spec:
     - action: labeldrop
       regex: tenantId
       sourceLabels: []
+  remoteWrite:
+    client:
+      authorization: basic
+      authorizationSecretName: observatorium-lokistack-ruler-auth
+      followRedirects: false
+      name: rhobs
+      relabelConfigs:
+      - sourceLabels:
+        - tenantId
+        targetLabel: tenant_id
+      - action: labeldrop
+        regex: tenantId
+        sourceLabels: []
+      url: http://thanos-receive-router-rhobs.rhobs-int.svc.cluster.local:19291/api/v1/receive
+    enabled: true
+    queue:
+      batchSendDeadline: 60s
+      capacity: 2500
+      maxBackOffPeriod: 256s
+      maxSamplesPerSend: 2000
+      maxShards: 500
+      minBackOffPeriod: 1s
+      minShards: 1
+    refreshPeriod: 1m
 status: {}
