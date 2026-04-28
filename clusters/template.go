@@ -532,7 +532,7 @@ func DefaultBaseTemplate() TemplateMaps {
 			Query:                  3,
 			QueryFrontend:          3,
 			CompactDefault:         1,
-			ObservatoriumAPI:       2,
+			ObservatoriumAPI:       6,
 		},
 		StorageSize: ParamMap[v1alpha1.StorageSize]{
 			StoreDefault:           "10Gi",
