@@ -12,6 +12,7 @@ import (
 	lokiv1 "github.com/grafana/loki/operator/api/loki/v1"
 	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"gitlab.cee.redhat.com/rhobs/configuration/clusters"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -32,9 +33,44 @@ func NewBundleLokiStack(namespace string, overrides clusters.TemplateMaps, rules
 	templateSpec := &lokiv1.LokiTemplateSpec{
 		Distributor: &lokiv1.LokiComponentSpec{
 			Replicas: overrides.LokiOverrides[clusters.LokiConfig].Router.Replicas,
+			PodAntiAffinity: &corev1.PodAntiAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
+					{
+						TopologyKey: "kubernetes.io/hostname",
+						LabelSelector: &metav1.LabelSelector{
+							MatchLabels: map[string]string{
+								"app.kubernetes.io/component":  "distributor",
+								"app.kubernetes.io/created-by": "observatorium-lokistack",
+							},
+						},
+					},
+				},
+			},
 		},
 		Ingester: &lokiv1.LokiComponentSpec{
 			Replicas: overrides.LokiOverrides[clusters.LokiConfig].Ingest.Replicas,
+			PodAntiAffinity: &corev1.PodAntiAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: []corev1.PodAffinityTerm{
+					{
+						TopologyKey: "kubernetes.io/hostname",
+						LabelSelector: &metav1.LabelSelector{
+							MatchLabels: map[string]string{
+								"app.kubernetes.io/component":  "ingester",
+								"app.kubernetes.io/created-by": "observatorium-lokistack",
+							},
+						},
+					},
+					{
+
+						TopologyKey: "kubernetes.io/hostname",
+						LabelSelector: &metav1.LabelSelector{
+							MatchLabels: map[string]string{
+								"app.kubernetes.io/component": "thanos-receive-ingester",
+							},
+						},
+					},
+				},
+			},
 		},
 		Querier: &lokiv1.LokiComponentSpec{
 			Replicas: overrides.LokiOverrides[clusters.LokiConfig].Query.Replicas,
