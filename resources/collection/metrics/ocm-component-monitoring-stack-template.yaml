@@ -30,6 +30,9 @@ parameters:
     value: EFD08939-FE1D-41A1-A28A-BE9A9BC68003
   - name: OPENSHIFT_MONITORING_NAMESPACE
     value: openshift-monitoring
+  - name: NAMESPACE_REGEX
+    description: "Regex matching OCM application namespaces to collect metrics from"
+    value: "uhc-.*|osd-fleet-manager-.*"
 
 objects:
   - apiVersion: v1
@@ -90,7 +93,7 @@ objects:
               # Only allow metrics from OCM namespaces (uhc-*, osd-fleet-manager-*)
               - action: Replace
                 sourceLabels: [__name__, namespace]
-                regex: "(.+);(uhc-.*|osd-fleet-manager-.*)"
+                regex: "(.+);(${NAMESPACE_REGEX})"
                 replacement: "true"
                 targetLabel: __tmp_allowed
               # Allow scrape target health metrics
@@ -176,7 +179,7 @@ objects:
               kube_pod_resource_request|\
               kube_pod_resource_limit|\
               kube_running_pod_ready|\
-              up\",namespace=~\"uhc-.*|osd-fleet-manager-.*\"}"
+              up\",namespace=~\"${NAMESPACE_REGEX}\"}"
           tlsConfig:
             ca:
               configMap:
